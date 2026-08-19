@@ -1,1 +1,17 @@
+<!-- ... existing code ... -->
+    <div id="custom-confirm-modal" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] justify-center items-center" onclick="if(event.target===this) closeConfirm()">
+        <div class="modal-content bg-white dark:bg-slate-800 w-11/12 max-w-xs rounded-2xl p-6 transform transition-transform shadow-2xl text-center border border-white/40 dark:border-slate-700">
+            <div class="mb-4 text-brand-purple dark:text-purple-400"><i class="fa-solid fa-circle-question text-4xl"></i></div>
+            <p id="confirm-message" class="text-slate-700 dark:text-slate-200 font-bold mb-6 text-sm whitespace-pre-wrap"></p>
+            <div class="flex gap-2">
+                <button onclick="closeConfirm()" class="flex-1 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs hover:opacity-80 transition">キャンセル</button>
+                <button id="confirm-execute-btn" class="flex-1 py-2 rounded-xl bg-rose-500 text-white font-bold text-xs hover:bg-rose-600 transition">実行する</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- リファクタリングにより分割されたメインモジュールを読み込む -->
+    <script type="module" src="./src/main.js"></script>
+
+</body>
+</html>
