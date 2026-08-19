@@ -1,6 +1,6 @@
 import { observeAuthState } from './services/auth.js';
 import { setCurrentUserId, getCurrentUserId, getAppCollectionRef, getAppDocRef, getFcCollectionRef } from './services/db.js';
-import { showToast, showConfirm, closeConfirm, openModal, closeModal, toggleDarkMode, initTheme, switchViewUI } from './components/ui.js';
+import { showToast, showConfirm, closeConfirm, executeConfirm, openModal, closeModal, toggleDarkMode, initTheme, switchViewUI } from './components/ui.js';
 import { toggleAuthMode, performAuthAction, performGoogleAuth, handleLogout } from './components/authUI.js';
 import { renderDashboard, updateStreak } from './components/dashboard.js';
 import { renderCalendar, renderCalendarTasks, changeMonth, selectCalendarDate, getCalendarSelectedDate } from './components/calendar.js';
@@ -39,6 +39,7 @@ function initApp() {
             setCurrentUserId(user.uid);
             document.getElementById('display-user-id').innerText = user.uid;
             document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('auth-screen').classList.remove('flex');
             document.getElementById('main-app').classList.remove('hidden');
             document.getElementById('main-app').classList.add('flex');
             
@@ -49,6 +50,7 @@ function initApp() {
         } else {
             setCurrentUserId(null);
             document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('auth-screen').classList.add('flex');
             document.getElementById('main-app').classList.add('hidden');
             document.getElementById('main-app').classList.remove('flex');
             loading.classList.add('hidden');
@@ -140,9 +142,14 @@ function updateAllViews() {
 async function generateRoutineTasks() {
     const todayStr = formatDate(new Date());
     for (const r of state.routines) {
-        const isGenerated = state.tasks.some(t => t.sourceRoutineId === r.id && t.date === todayStr);
+        // 重複生成を防ぐための厳密なチェック
+        const isGenerated = state.tasks.some(t => t.title === r.title && t.isRoutine === true && t.date === todayStr);
         if (!isGenerated) {
-            const newDocRef = doc(getAppCollectionRef('tasks'));
+            // DB保存完了前に再び呼び出されるのを防ぐため、仮のタスクを配列に入れておく
+            state.tasks.push({ title: r.title, isRoutine: true, date: todayStr });
+            
+            const docId = `routine_${r.id}_${todayStr}`;
+            const newDocRef = doc(getAppCollectionRef('tasks'), docId);
             await setDoc(newDocRef, {
                 title: r.title,
                 subject: r.subject,
@@ -150,9 +157,10 @@ async function generateRoutineTasks() {
                 date: todayStr,
                 completed: false,
                 isReview: false,
+                isRoutine: true,
                 sourceRoutineId: r.id,
                 createdAt: new Date().toISOString()
-            });
+            }, { merge: true });
         }
     }
 }
@@ -414,6 +422,7 @@ window.toggleAuthMode = toggleAuthMode;
 window.handleLogout = handleLogout;
 window.toggleDarkMode = () => toggleDarkMode(updateChartColors);
 window.closeConfirm = closeConfirm;
+window.executeConfirm = executeConfirm;
 window.openModal = openModal;
 window.closeModal = closeModal;
 
@@ -435,3 +444,22 @@ window.deleteTask = deleteTask;
 window.saveTaskDetail = saveTaskDetail;
 window.openAddRoutineModal = openAddRoutineModal;
 window.saveNewRoutine = saveNewRoutine;
+
+```
+
+### 原因2：Service Workerの古いキャッシュが邪魔をしている
+ブラウザが過去のファイル構造を強力に記憶しており、新しい分割ファイルを取得できていない状態です。
+ブラウザの **スーパーリロード**（キャッシュを無視して強制再読み込み）を試してください。
+*   Windows: `Ctrl` + `Shift` + `R` または `Shift` を押しながら更新ボタン
+*   Mac: `Command` + `Shift` + `R`
+
+### 原因3：ローカル環境（ダブルクリック）で直接開いている
+もし、PCのフォルダ内にある `index.html` を**ダブルクリックしてブラウザで開いている（URLが `file:///...` になっている）**場合、ブラウザのセキュリティ制限によりモジュールファイルは読み込まれず、必ず停止します。
+VS Codeの拡張機能「Live Server」などを使って開くか、一度GitHubにPush（アップロード）してWeb上で確認してください。
+
+---
+
+### 💡 それでも解決しない場合
+どこかのファイル内でスペルミスや `import` の漏れがある可能性があります。
+原因を一発で特定するため、ぐるぐる画面の状態でキーボードの **`F12`キー** を押し、**「Console（コンソール）」タブ** を開いてください。
+そこに表示されている **赤文字のエラーメッセージ** をコピーして貼り付けていただければ、具体的な修正箇所をすぐにご提示いたします。
