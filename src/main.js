@@ -33,6 +33,9 @@ function initApp() {
     initDrill();
     initFlashcard();
 
+    updateCountdowns();
+    setInterval(updateCountdowns, 1000 * 60 * 60);
+
     observeAuthState((user) => {
         const loading = document.getElementById('loading-screen');
         if (user) {
@@ -411,6 +414,20 @@ async function saveNewRoutine() {
     } finally {
         btn.disabled = false;
     }
+}
+
+// ==========================================
+// カウントダウン処理
+// ==========================================
+function updateCountdowns() {
+    const now = new Date();
+    const cd = (dateStr, elId) => {
+        const diff = Math.ceil((new Date(dateStr) - now) / (1000 * 60 * 60 * 24));
+        const el = document.getElementById(elId);
+        if (el) el.innerText = diff > 0 ? diff : 0;
+    };
+    cd('2027-01-16T00:00:00', 'cd-common');
+    cd('2027-02-25T00:00:00', 'cd-second');
 }
 
 // ==========================================
