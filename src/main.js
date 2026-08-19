@@ -1,477 +1,430 @@
-import { db } from './config/firebase.js';
-import { observeAuthState, initPreviewAuth } from './services/auth.js';
+import { observeAuthState } from './services/auth.js';
 import { setCurrentUserId, getCurrentUserId, getAppCollectionRef, getAppDocRef, getFcCollectionRef } from './services/db.js';
-import { doc, setDoc, updateDoc, deleteDoc, writeBatch, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-// UI関連コンポーネント
 import { showToast, showConfirm, closeConfirm, openModal, closeModal, toggleDarkMode, initTheme, switchViewUI } from './components/ui.js';
 import { toggleAuthMode, performAuthAction, performGoogleAuth, handleLogout } from './components/authUI.js';
-import { formatDate, formatTime, escapeHTML } from './utils/helpers.js';
-import { SUBJECTS, LONG_TERM_REVIEW_INTERVALS, REVIEW_INTERVALS } from './utils/constants.js';
-
-// 機能コンポーネント
-import { initDrill } from './components/drill.js';
-import { initFlashcard, updateFcSets } from './components/flashcard.js';
-import { renderDashboard, updateStreak, displayDailyQuote } from './components/dashboard.js';
+import { renderDashboard, updateStreak } from './components/dashboard.js';
 import { renderCalendar, renderCalendarTasks, changeMonth, selectCalendarDate, getCalendarSelectedDate } from './components/calendar.js';
 import { renderAnalytics, updateChartColors } from './components/analytics.js';
-import { renderSettings, saveUserProfile, autoFetchWeights, deleteRoutine, buildWeightInputs } from './components/settings.js';
+import { renderSettings, saveUserProfile, autoFetchWeights, deleteRoutine, buildWeightInputs, saveApiKey } from './components/settings.js';
+import { initDrill, stopDrillTimer, focusDrillInput } from './components/drill.js';
+import { initFlashcard, updateFcSets } from './components/flashcard.js';
+import { SUBJECTS, REVIEW_INTERVALS } from './utils/constants.js';
+import { formatDate } from './utils/helpers.js';
+import { onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// アプリケーション全体の状態管理（State）
-let tasks = [];
-let routines = [];
-let userProfile = { targetUniv: '', targetFaculty: '', weights: {} };
-let currentSubEvaluations = [];
-
-let unsubTasks = null;
-let unsubRoutines = null;
-let unsubProfile = null;
-let unsubFlashcards = null;
-
-let isApplyingRoutines = false;
-let isTasksLoaded = false;
-let isRoutinesLoaded = false;
-let initialRoutineApplied = false;
-
-// HTMLに直接記述されている onclick="関数名()" などのイベントを動作させるための紐付け
-window.showToast = showToast;
-window.showConfirm = showConfirm;
-window.closeConfirm = closeConfirm;
-window.openModal = openModal;
-window.closeModal = closeModal;
-window.toggleDarkMode = () => toggleDarkMode(updateChartColors);
-window.updateChartColors = updateChartColors;
-
-// 認証UI関連
-window.toggleAuthMode = toggleAuthMode;
-window.performAuthAction = performAuthAction;
-window.performGoogleAuth = performGoogleAuth;
-window.handleLogout = handleLogout;
-
-// モーダルオープン
-window.openAddTaskModal = () => openModal('modal-add-task');
-window.openAddRoutineModal = () => openModal('modal-add-routine');
-
-// カレンダー操作
-window.changeMonth = (offset) => changeMonth(offset, tasks, checkAndApplyRoutines);
-window.handleSelectCalendarDate = (dateStr) => selectCalendarDate(dateStr, tasks, checkAndApplyRoutines);
-
-// 設定関連
-window.saveUserProfile = () => saveUserProfile(getCurrentUserId);
-window.autoFetchWeights = autoFetchWeights;
-window.deleteRoutine = deleteRoutine;
-import { saveApiKey } from './components/settings.js';
-window.saveApiKey = saveApiKey;
-
-function getActiveDateStr() { 
-    return document.querySelector('.view-section.active').id === 'view-calendar' ? getCalendarSelectedDate() : formatDate(new Date()); 
-}
-
-function updateCountdowns() { 
-    const now = new Date(); 
-    const cd = (dateStr, elId) => { 
-        const diff = Math.ceil((new Date(dateStr) - now) / (1000 * 60 * 60 * 24)); 
-        const el = document.getElementById(elId); 
-        if (el) el.innerText = diff > 0 ? diff : 0; 
-    }; 
-    cd('2027-01-16T00:00:00', 'cd-common'); 
-    cd('2027-02-25T00:00:00', 'cd-second'); 
-}
-
-function populateSelects() {
-    const html = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white">${s}</option>`).join('');
-    const taskSelect = document.getElementById('input-task-subject');
-    const routineSelect = document.getElementById('input-routine-subject');
-    if (taskSelect) taskSelect.innerHTML = html; 
-    if (routineSelect) routineSelect.innerHTML = html;
-}
-
-function renderCurrentView() { 
-    const activeView = document.querySelector('.view-section.active').id; 
-    if (activeView === 'view-dashboard') renderDashboard(tasks); 
-    if (activeView === 'view-calendar') { 
-        renderCalendar(tasks); 
-        renderCalendarTasks(tasks); 
-    } 
-    if (activeView === 'view-analytics') renderAnalytics(tasks, userProfile); 
-}
-
-window.switchView = function(viewName) {
-    // viewName のバリデーションを行い、ドリル状態をリセットする処理などがあれば実行
-    import('./components/drill.js').then(module => {
-        module.stopDrillTimer();
-    });
-
-    switchViewUI(viewName);
-    
-    if (viewName === 'analytics') setTimeout(() => renderAnalytics(tasks, userProfile), 50); 
-    if (viewName === 'settings') renderSettings(routines, userProfile); 
-    if (viewName === 'calendar') renderCalendar(tasks);
-    if (viewName === 'drill') import('./components/drill.js').then(m => m.focusDrillInput());
-    if (viewName === 'flashcard-app') window.showFcView('fc-sets'); 
+// アプリケーションのグローバル状態
+const state = {
+    tasks: [],
+    routines: [],
+    userProfile: {},
+    currentView: 'dashboard',
+    unsubscribeTasks: null,
+    unsubscribeRoutines: null,
+    unsubscribeProfile: null,
+    unsubscribeFc: null
 };
 
-function setupListeners() {
-    if (!getCurrentUserId()) return;
-    
-    if (unsubTasks) unsubTasks(); 
-    if (unsubRoutines) unsubRoutines(); 
-    if (unsubProfile) unsubProfile(); 
-    if (unsubFlashcards) unsubFlashcards();
+// ==========================================
+// 初期化と認証の監視
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    buildWeightInputs();
+    initDrill();
+    initFlashcard();
 
-    // タスクの監視
-    unsubTasks = onSnapshot(getAppCollectionRef('tasks'), async (snapshot) => {
-        tasks = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})); 
-        tasks.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-        isTasksLoaded = true; 
-        tryApplyInitialRoutines(); 
-        updateStreak(tasks); 
-        renderCurrentView();
-    }, e => console.error(e));
-
-    // ルーティンの監視
-    unsubRoutines = onSnapshot(getAppCollectionRef('routines'), (snapshot) => {
-        routines = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})); 
-        routines.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-        isRoutinesLoaded = true; 
-        
-        if (!initialRoutineApplied) tryApplyInitialRoutines(); 
-        else checkAndApplyRoutines(getActiveDateStr());
-        
-        if (document.getElementById('view-settings').classList.contains('active')) renderSettings(routines, userProfile);
-    }, e => console.error(e));
-
-    // プロフィールの監視
-    unsubProfile = onSnapshot(getAppDocRef('profile', 'data'), (docSnap) => {
-        if (docSnap.exists()) { 
-            userProfile = docSnap.data(); 
-            if(document.getElementById('view-settings').classList.contains('active')) renderSettings(routines, userProfile); 
-            if(document.getElementById('view-analytics').classList.contains('active')) renderAnalytics(tasks, userProfile); 
+    observeAuthState((user) => {
+        const loading = document.getElementById('loading-screen');
+        if (user) {
+            setCurrentUserId(user.uid);
+            document.getElementById('display-user-id').innerText = user.uid;
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('flex');
+            
+            subscribeToData();
+            switchView('dashboard');
+            loading.classList.add('hidden');
+            showToast('ログインしました');
+        } else {
+            setCurrentUserId(null);
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('flex');
+            loading.classList.add('hidden');
+            unsubscribeAll();
         }
-    }, e => console.error(e));
-
-    // フラッシュカードの監視
-    unsubFlashcards = onSnapshot(getFcCollectionRef(), (snapshot) => {
-        const fcSets = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-        fcSets.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-        updateFcSets(fcSets); // flashcard.jsへデータを渡す
-    }, e => console.error(e));
-}
-
-async function tryApplyInitialRoutines() { 
-    if (isTasksLoaded && isRoutinesLoaded && !initialRoutineApplied) { 
-        initialRoutineApplied = true; 
-        await cleanupDuplicateRoutines(); 
-        await checkAndApplyRoutines(formatDate(new Date())); 
-    } 
-}
-
-async function cleanupDuplicateRoutines() {
-    if (!getCurrentUserId()) return; 
-    const duplicateIdsToDelete = []; 
-    const routineTaskMap = {};
-    
-    tasks.forEach(t => { 
-        if (t.isRoutine) { 
-            const key = `${t.date}_${t.title}`; 
-            if (!routineTaskMap[key]) routineTaskMap[key] = []; 
-            routineTaskMap[key].push(t); 
-        } 
     });
-    
-    for (const key in routineTaskMap) { 
-        const group = routineTaskMap[key]; 
-        if (group.length > 1) { 
-            group.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()); 
-            for (let i = 1; i < group.length; i++) { 
-                const t = group[i]; 
-                if (!t.completed && (t.actualTime === 0 || !t.actualTime)) duplicateIdsToDelete.push(t.id); 
-            } 
-        } 
-    }
-    
-    if (duplicateIdsToDelete.length > 0) {
-        const batch = writeBatch(db);
-        duplicateIdsToDelete.forEach(id => batch.delete(getAppDocRef('tasks', id)));
-        await batch.commit().catch(e => console.error(e));
-    }
-}
+});
 
-async function checkAndApplyRoutines(targetDateStr) {
-    if (!getCurrentUserId() || routines.length === 0 || isApplyingRoutines) return; 
-    if (!isTasksLoaded || !isRoutinesLoaded) return; 
-    
-    isApplyingRoutines = true; 
-    try {
-        const tasksOnDate = tasks.filter(t => t.date === targetDateStr);
-        const batch = writeBatch(db);
-        let hasChanges = false;
-        
-        for (const routine of routines) {
-            if (!tasksOnDate.some(t => t.title === routine.title && t.isRoutine === true)) {
-                tasksOnDate.push({ title: routine.title, isRoutine: true, date: targetDateStr });
-                const docId = `routine_${routine.id}_${targetDateStr}`;
-                const newDocRef = doc(getAppCollectionRef('tasks'), docId); 
-                batch.set(newDocRef, { lineageId: docId, reviewCycle: 0, date: targetDateStr, title: routine.title, subject: routine.subject, estimatedTime: routine.estimatedTime, actualTime: 0, completed: false, isRoutine: true, createdAt: new Date().toISOString() }, { merge: true });
-                hasChanges = true;
-            }
+// ==========================================
+// データの同期 (Firestore)
+// ==========================================
+function subscribeToData() {
+    unsubscribeAll();
+
+    // タスクの購読
+    state.unsubscribeTasks = onSnapshot(getAppCollectionRef('tasks'), (snapshot) => {
+        state.tasks = [];
+        snapshot.forEach(doc => state.tasks.push({ id: doc.id, ...doc.data() }));
+        generateRoutineTasks();
+        updateAllViews();
+        updateStreak(state.tasks);
+    });
+
+    // ルーティンの購読
+    state.unsubscribeRoutines = onSnapshot(getAppCollectionRef('routines'), (snapshot) => {
+        state.routines = [];
+        snapshot.forEach(doc => state.routines.push({ id: doc.id, ...doc.data() }));
+        generateRoutineTasks();
+        if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
+    });
+
+    // プロフィールの購読
+    state.unsubscribeProfile = onSnapshot(getAppDocRef('profile', 'data'), (doc) => {
+        if (doc.exists()) {
+            state.userProfile = doc.data();
+            if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
+            if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
         }
-        if (hasChanges) await batch.commit();
-    } catch(e) { 
-        console.error(e); 
-    } finally { 
-        isApplyingRoutines = false; 
+    });
+
+    // 単語帳の購読
+    state.unsubscribeFc = onSnapshot(getFcCollectionRef(), (snapshot) => {
+        const sets = [];
+        snapshot.forEach(doc => sets.push({ id: doc.id, ...doc.data() }));
+        updateFcSets(sets); // flashcard.js 側の状態を更新
+    });
+}
+
+function unsubscribeAll() {
+    if (state.unsubscribeTasks) state.unsubscribeTasks();
+    if (state.unsubscribeRoutines) state.unsubscribeRoutines();
+    if (state.unsubscribeProfile) state.unsubscribeProfile();
+    if (state.unsubscribeFc) state.unsubscribeFc();
+}
+
+// ==========================================
+// ビュー（画面）切り替え
+// ==========================================
+function switchView(viewName) {
+    state.currentView = viewName;
+    switchViewUI(viewName);
+
+    if (viewName !== 'drill') stopDrillTimer();
+    if (viewName === 'drill') focusDrillInput();
+
+    updateAllViews();
+}
+
+function updateAllViews() {
+    if (state.currentView === 'dashboard') renderDashboard(state.tasks);
+    if (state.currentView === 'calendar') {
+        renderCalendar(state.tasks);
+        renderCalendarTasks(state.tasks);
+    }
+    if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
+    if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
+}
+
+// ==========================================
+// タスク・ルーティンのコアロジック
+// ==========================================
+async function generateRoutineTasks() {
+    const todayStr = formatDate(new Date());
+    for (const r of state.routines) {
+        const isGenerated = state.tasks.some(t => t.sourceRoutineId === r.id && t.date === todayStr);
+        if (!isGenerated) {
+            const newDocRef = doc(getAppCollectionRef('tasks'));
+            await setDoc(newDocRef, {
+                title: r.title,
+                subject: r.subject,
+                estimatedTime: r.estimatedTime,
+                date: todayStr,
+                completed: false,
+                isReview: false,
+                sourceRoutineId: r.id,
+                createdAt: new Date().toISOString()
+            });
+        }
     }
 }
 
-window.openTaskDetailModal = function(id) {
-    const t = tasks.find(x => x.id === id); if(!t) return; 
-    document.getElementById('detail-title').innerText = t.title; 
-    document.getElementById('detail-subject').innerText = t.subject; 
-    document.getElementById('detail-est-time').innerText = t.isReview ? 'なし (復習)' : formatTime(t.estimatedTime); 
-    document.getElementById('detail-task-id').value = t.id; 
-    document.getElementById('detail-actual-time').value = t.isReview ? 0 : (t.actualTime || t.estimatedTime); 
-    document.getElementById('detail-note').value = t.note || '';
-    
-    document.querySelectorAll('input[name="evaluation"]').forEach(el => el.checked = (el.value === t.evaluation)); 
-    currentSubEvaluations = t.subEvaluations || []; 
-    const sec = document.getElementById('sub-evaluations-section'); 
-    const mainSec = document.getElementById('main-evaluation-section'); 
-    const btn = document.getElementById('toggle-sub-eval-btn');
-    
-    if (currentSubEvaluations.length > 0) { 
-        sec.classList.remove('hidden'); 
-        mainSec.classList.add('opacity-40', 'pointer-events-none', 'grayscale'); 
-        btn.innerHTML = '全体評価に戻す <i class="fas fa-undo ml-1"></i>'; 
-        renderSubEvaluations(); 
-    } else { 
-        sec.classList.add('hidden'); 
-        mainSec.classList.remove('opacity-40', 'pointer-events-none', 'grayscale'); 
-        btn.innerHTML = '問題ごとに細かく評価する <i class="fas fa-list-ul ml-1"></i>'; 
+function openAddTaskModal() {
+    const todayStr = getCalendarSelectedDate();
+    document.getElementById('input-task-title').value = '';
+    document.getElementById('input-task-time').value = '';
+    const subjectSelect = document.getElementById('input-task-subject');
+    subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800">${s}</option>`).join('');
+    openModal('modal-add-task');
+}
+
+async function saveNewTask() {
+    const title = document.getElementById('input-task-title').value.trim();
+    const subject = document.getElementById('input-task-subject').value;
+    const time = parseInt(document.getElementById('input-task-time').value) || 0;
+    const dateStr = state.currentView === 'calendar' ? getCalendarSelectedDate() : formatDate(new Date());
+
+    if (!title || !subject || time <= 0) return showToast("入力内容を確認してください", "error");
+
+    const btn = document.getElementById('btn-save-new-task');
+    btn.disabled = true;
+    try {
+        const newDocRef = doc(getAppCollectionRef('tasks'));
+        await setDoc(newDocRef, {
+            title, subject, estimatedTime: time, date: dateStr,
+            completed: false, isReview: false, createdAt: new Date().toISOString()
+        });
+        closeModal('modal-add-task');
+        showToast("タスクを追加しました");
+    } catch (e) {
+        console.error(e);
+        showToast("タスクの追加に失敗しました", "error");
+    } finally {
+        btn.disabled = false;
     }
+}
+
+async function toggleTaskComplete(id, checked) {
+    try {
+        await setDoc(getAppDocRef('tasks', id), { completed: checked }, { merge: true });
+        if (checked) {
+            const task = state.tasks.find(t => t.id === id);
+            if (task && !task.evaluation && !task.isReview) openTaskDetailModal(id);
+        }
+    } catch (e) {
+        console.error(e);
+        showToast("状態の更新に失敗しました", "error");
+    }
+}
+
+function openTaskDetailModal(id) {
+    const task = state.tasks.find(t => t.id === id);
+    if (!task) return;
+
+    document.getElementById('detail-task-id').value = task.id;
+    document.getElementById('detail-title').innerText = task.title;
+    document.getElementById('detail-subject').innerText = task.subject;
+    document.getElementById('detail-est-time').innerText = `${task.estimatedTime || 0}分`;
+    document.getElementById('detail-actual-time').value = task.actualTime || task.estimatedTime || '';
+    document.getElementById('detail-note').value = task.note || '';
+
+    // 評価ラジオボタンのリセットと設定
+    document.querySelectorAll('input[name="evaluation"]').forEach(r => r.checked = false);
+    if (task.evaluation) {
+        const radio = document.querySelector(`input[name="evaluation"][value="${task.evaluation}"]`);
+        if (radio) radio.checked = true;
+    }
+
+    // 小問評価の復元
+    const subEvalsList = document.getElementById('sub-evaluations-list');
+    subEvalsList.innerHTML = '';
+    if (task.subEvaluations && task.subEvaluations.length > 0) {
+        document.getElementById('sub-evaluations-section').classList.remove('hidden');
+        document.getElementById('main-evaluation-section').classList.add('opacity-50', 'pointer-events-none');
+        task.subEvaluations.forEach(sub => addSubEvaluation(sub.name, sub.eval));
+    } else {
+        document.getElementById('sub-evaluations-section').classList.add('hidden');
+        document.getElementById('main-evaluation-section').classList.remove('opacity-50', 'pointer-events-none');
+    }
+
     openModal('modal-task-detail');
 }
 
-window.toggleSubEvaluations = () => {
-    const sec = document.getElementById('sub-evaluations-section'); const mainSec = document.getElementById('main-evaluation-section'); const btn = document.getElementById('toggle-sub-eval-btn');
-    if (sec.classList.contains('hidden')) { sec.classList.remove('hidden'); mainSec.classList.add('opacity-40', 'pointer-events-none', 'grayscale'); btn.innerHTML = '全体評価に戻す <i class="fas fa-undo ml-1"></i>'; if(currentSubEvaluations.length === 0) window.addSubEvaluation(); } 
-    else { sec.classList.add('hidden'); mainSec.classList.remove('opacity-40', 'pointer-events-none', 'grayscale'); btn.innerHTML = '問題ごとに細かく評価する <i class="fas fa-list-ul ml-1"></i>'; }
-};
-
-window.addSubEvaluation = () => { currentSubEvaluations.push({ id: Date.now().toString() + Math.random().toString(), name: '', eval: '' }); renderSubEvaluations(); };
-window.removeSubEvaluation = (id) => { currentSubEvaluations = currentSubEvaluations.filter(x => x.id !== id); renderSubEvaluations(); };
-window.updateSubEvalName = (id, val) => { const item = currentSubEvaluations.find(x => x.id === id); if(item) item.name = val; };
-window.updateSubEvalMark = (id, val) => { const item = currentSubEvaluations.find(x => x.id === id); if(item) item.eval = val; };
-
-function renderSubEvaluations() {
-    document.getElementById('sub-evaluations-list').innerHTML = currentSubEvaluations.map(item => `
-        <div class="flex items-center space-x-2 bg-white dark:bg-gray-700 p-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600">
-            <input type="text" value="${escapeHTML(item.name)}" onchange="updateSubEvalName('${item.id}', this.value)" class="flex-grow border-none bg-gray-50 dark:bg-gray-600 dark:text-white p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-purple-400 outline-none" placeholder="例: 問1">
-            <select onchange="updateSubEvalMark('${item.id}', this.value)" class="w-24 border-none bg-gray-50 dark:bg-gray-600 dark:text-white p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-purple-400 outline-none appearance-none font-bold text-center">
-                <option value="" class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white">評価 ▼</option><option value="A" class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white" ${item.eval === 'A' ? 'selected' : ''}>A (完璧)</option><option value="B" class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white" ${item.eval === 'B' ? 'selected' : ''}>B (不安)</option><option value="C" class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white" ${item.eval === 'C' ? 'selected' : ''}>C (復習)</option><option value="D" class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white" ${item.eval === 'D' ? 'selected' : ''}>D (無理)</option>
-            </select>
-            <button onclick="removeSubEvaluation('${item.id}')" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 dark:hover:bg-gray-600 transition-colors"><i class="fas fa-times"></i></button>
-        </div>
-    `).join('');
-}
-
-let isSaving = false;
-window.saveTaskDetail = async function() {
-    if (isSaving) return;
-    const btnSave = document.getElementById('btn-save-task-detail'); const btnDel = document.getElementById('btn-delete-task');
-    btnSave.disabled = true; btnDel.disabled = true;
-    const id = document.getElementById('detail-task-id').value; 
-    const t = tasks.find(x => x.id === id); 
-    const isDetailedMode = !document.getElementById('sub-evaluations-section').classList.contains('hidden'); 
-    let finalEval = null, finalSubEvals = [];
-
-    const actualTime = parseInt(document.getElementById('detail-actual-time').value);
-    if (isNaN(actualTime) || actualTime < 0) { btnSave.disabled = false; btnDel.disabled = false; return showToast("実際の学習時間を正しく入力してください", "error"); }
-
-    if (isDetailedMode) {
-        if (currentSubEvaluations.some(x => !x.name.trim() || !x.eval)) { btnSave.disabled = false; btnDel.disabled = false; return showToast("全ての問題名と評価を入力するか、不要な行を削除してください。", "error"); }
-        if (currentSubEvaluations.length === 0) { btnSave.disabled = false; btnDel.disabled = false; return showToast("少なくとも1つの問題を追加してください。", "error"); }
-        finalSubEvals = currentSubEvaluations.map(x => ({ name: x.name.trim(), eval: x.eval }));
+function toggleSubEvaluations() {
+    const sec = document.getElementById('sub-evaluations-section');
+    const mainSec = document.getElementById('main-evaluation-section');
+    if (sec.classList.contains('hidden')) {
+        sec.classList.remove('hidden');
+        mainSec.classList.add('opacity-50', 'pointer-events-none');
+        document.querySelectorAll('input[name="evaluation"]').forEach(r => r.checked = false);
+        if (document.getElementById('sub-evaluations-list').children.length === 0) addSubEvaluation();
     } else {
-        const evalNode = document.querySelector('input[name="evaluation"]:checked'); finalEval = evalNode ? evalNode.value : null;
-        if (!t.completed && !finalEval) { btnSave.disabled = false; btnDel.disabled = false; return showToast("定着度評価を選択してください。", "error"); }
-        finalEval = finalEval || t.evaluation; 
+        sec.classList.add('hidden');
+        mainSec.classList.remove('opacity-50', 'pointer-events-none');
+        document.getElementById('sub-evaluations-list').innerHTML = '';
     }
+}
 
-    isSaving = true;
-    try {
-        const batch = writeBatch(db);
-        const updates = { completed: true, actualTime: actualTime, note: document.getElementById('detail-note').value, evaluation: finalEval, subEvaluations: finalSubEvals };
-        batch.update(getAppDocRef('tasks', id), updates);
+function addSubEvaluation(name = '', evalVal = 'A') {
+    const list = document.getElementById('sub-evaluations-list');
+    const item = document.createElement('div');
+    item.className = 'flex space-x-2 items-center';
+    item.innerHTML = `
+        <input type="text" class="sub-eval-name flex-grow border-none bg-white dark:bg-gray-700 dark:text-white p-2.5 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none text-xs" placeholder="問題番号など" value="${name}">
+        <select class="sub-eval-val w-20 appearance-none bg-white dark:bg-gray-700 border-none rounded-xl text-xs font-bold p-2.5 outline-none dark:text-white text-center focus:ring-2 focus:ring-pink-500">
+            <option value="A" ${evalVal === 'A' ? 'selected' : ''}>評A</option>
+            <option value="B" ${evalVal === 'B' ? 'selected' : ''}>評B</option>
+            <option value="C" ${evalVal === 'C' ? 'selected' : ''}>評C</option>
+            <option value="D" ${evalVal === 'D' ? 'selected' : ''}>評D</option>
+        </select>
+        <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-red-500 p-2"><i class="fas fa-times"></i></button>
+    `;
+    list.appendChild(item);
+}
 
-        if (!t.completed && (!t.isReview || (t.isReview && t.isLastReview))) { 
-            const baseDate = new Date(t.date);
-            const cleanBaseTitle = t.title.replace(/\s*\[.*?\]\s*【.*?】$/, '').replace(/\s*【.*?】$/, '');
-            const nextCycle = (t.reviewCycle || 0) + 1;
-            
-            const generateReviewTasks = (evalRank, subName = null) => {
-                let intervals;
-                if (t.isReview && t.isLastReview && evalRank === 'A') intervals = LONG_TERM_REVIEW_INTERVALS; 
-                else intervals = REVIEW_INTERVALS[evalRank]; 
-                if(!intervals) return;
-                
-                intervals.forEach((days, index) => {
-                    const isLast = (index === intervals.length - 1);
-                    const rDate = new Date(baseDate); rDate.setDate(rDate.getDate() + days);
-                    let titleSuffix = t.isReview ? '再復' : '復';
-                    let newTitle = subName ? `${cleanBaseTitle} [${subName}] 【${titleSuffix}${days}日後/評${evalRank}】` : `${cleanBaseTitle} 【${titleSuffix}${days}日後/評${evalRank}】`;
-                    
-                    const newDocRef = doc(getAppCollectionRef('tasks'));
-                    batch.set(newDocRef, { 
-                        lineageId: t.lineageId || t.id, reviewCycle: nextCycle, reviewStep: index + 1, sourceEval: evalRank, subName: subName || '',
-                        date: formatDate(rDate), title: newTitle, subject: t.subject, 
-                        estimatedTime: 0, actualTime: 0, completed: false, isReview: true, isLastReview: isLast, createdAt: new Date().toISOString() 
-                    });
-                });
-            };
+async function saveTaskDetail() {
+    const id = document.getElementById('detail-task-id').value;
+    const task = state.tasks.find(t => t.id === id);
+    if (!task) return;
 
-            if (isDetailedMode) finalSubEvals.forEach(sub => generateReviewTasks(sub.eval, sub.name));
-            else if (finalEval) generateReviewTasks(finalEval);
+    const actualTime = parseInt(document.getElementById('detail-actual-time').value) || 0;
+    const note = document.getElementById('detail-note').value.trim();
+    
+    let evaluation = null;
+    const subEvaluations = [];
+    
+    if (!document.getElementById('sub-evaluations-section').classList.contains('hidden')) {
+        const items = document.getElementById('sub-evaluations-list').children;
+        for (let item of items) {
+            const name = item.querySelector('.sub-eval-name').value.trim();
+            const val = item.querySelector('.sub-eval-val').value;
+            if (name) subEvaluations.push({ name, eval: val });
         }
-        await batch.commit();
+        if (subEvaluations.length > 0) {
+            // 最も悪い評価を全体の評価とする
+            const ranks = { 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
+            evaluation = subEvaluations.reduce((worst, current) => ranks[current.eval] < ranks[worst] ? current.eval : worst, 'A');
+        } else {
+            return showToast("問題名を入力するか、詳細評価をオフにしてください", "error");
+        }
+    } else {
+        const selectedRadio = document.querySelector('input[name="evaluation"]:checked');
+        if (selectedRadio) evaluation = selectedRadio.value;
+    }
+
+    if (actualTime <= 0) return showToast("実際の学習時間を入力してください", "error");
+    if (!evaluation && !task.isReview) return showToast("定着度評価を選択してください", "error");
+
+    const btn = document.getElementById('btn-save-task-detail');
+    btn.disabled = true;
+
+    try {
+        const updateData = { actualTime, note, evaluation, subEvaluations, completed: true };
+        await setDoc(getAppDocRef('tasks', id), updateData, { merge: true });
+
+        // 復習タスクのスケジューリング
+        if (!task.isReview && evaluation) {
+            await scheduleReviews(task, evaluation, subEvaluations);
+        }
+
         closeModal('modal-task-detail');
-        showToast("学習記録を保存しました！");
-    } catch(e) {
+        showToast("タスクを記録しました！🎉");
+    } catch (e) {
         console.error(e);
-        showToast("保存に失敗しました", "error");
+        showToast("記録に失敗しました", "error");
     } finally {
-        isSaving = false;
-        btnSave.disabled = false; btnDel.disabled = false;
+        btn.disabled = false;
     }
 }
 
-window.toggleTaskComplete = async function(id, checked) { 
-    if (checked) { 
-        if (typeof confetti !== 'undefined') confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 }, colors: ['#f472b6', '#c084fc', '#fb7185'], disableForReducedMotion: true }); 
-    } 
-    await updateDoc(getAppDocRef('tasks', id), { completed: checked }); 
-}
+async function scheduleReviews(originalTask, evaluation, subEvaluations) {
+    const intervals = REVIEW_INTERVALS[evaluation];
+    if (!intervals) return;
 
-window.saveNewTask = async function() {
-    if(!getCurrentUserId() || isSaving) return; 
-    const btnSave = document.getElementById('btn-save-new-task'); btnSave.disabled = true;
-    
-    const title = document.getElementById('input-task-title').value.trim(); 
-    if(!title) { btnSave.disabled = false; return showToast("タスク名を入力してください", "error"); }
-    
-    const time = parseInt(document.getElementById('input-task-time').value);
-    if (isNaN(time) || time <= 0) { btnSave.disabled = false; return showToast("予定時間を正しく入力してください", "error"); }
+    const baseDate = new Date();
+    for (let i = 0; i < intervals.length; i++) {
+        const d = new Date(baseDate);
+        d.setDate(d.getDate() + intervals[i]);
+        const dateStr = formatDate(d);
 
-    isSaving = true;
-    try {
+        let reviewTitle = `[復習] ${originalTask.title} (評${evaluation})`;
+        if (subEvaluations && subEvaluations.length > 0) {
+            const weakPoints = subEvaluations.filter(s => s.eval === 'C' || s.eval === 'D').map(s => s.name);
+            if (weakPoints.length > 0) {
+                reviewTitle = `[復習] ${originalTask.title} (弱点: ${weakPoints.slice(0, 2).join(', ')}${weakPoints.length > 2 ? '...' : ''})`;
+            }
+        }
+
         const newDocRef = doc(getAppCollectionRef('tasks'));
-        await setDoc(newDocRef, { lineageId: newDocRef.id, reviewCycle: 0, date: getActiveDateStr(), title, subject: document.getElementById('input-task-subject').value, estimatedTime: time, actualTime: 0, completed: false, createdAt: new Date().toISOString() });
-        
-        document.getElementById('input-task-title').value = ''; 
-        document.getElementById('input-task-time').value = '';
-        closeModal('modal-add-task');
-        showToast("タスクを追加しました！");
-    } finally {
-        isSaving = false; btnSave.disabled = false;
-    }
-}
-
-window.deleteTask = async function() { 
-    showConfirm("このタスクを削除しますか？\n(復習タスクとして生成された未完了のタスクも連動して削除されます)", async () => { 
-        const id = document.getElementById('detail-task-id').value; 
-        const t = tasks.find(x => x.id === id); 
-        if (!t) return;
-        
-        const batch = writeBatch(db);
-        const targetLineageId = t.lineageId || t.id;
-        const tasksToDelete = tasks.filter(task => (task.lineageId === targetLineageId || task.id === targetLineageId) && task.id !== t.id && !task.completed);
-        
-        if (t.isRoutine) batch.update(getAppDocRef('tasks', t.id), { deleted: true }); 
-        else batch.delete(getAppDocRef('tasks', t.id)); 
-        
-        tasksToDelete.forEach(task => {
-            if (task.isRoutine) batch.update(getAppDocRef('tasks', task.id), { deleted: true });
-            else batch.delete(getAppDocRef('tasks', task.id));
+        await setDoc(newDocRef, {
+            title: reviewTitle,
+            subject: originalTask.subject,
+            estimatedTime: Math.max(10, Math.floor((originalTask.actualTime || originalTask.estimatedTime || 30) * 0.5)),
+            date: dateStr,
+            completed: false,
+            isReview: true,
+            isLastReview: i === intervals.length - 1,
+            originalTaskId: originalTask.id,
+            sourceEval: evaluation,
+            createdAt: new Date().toISOString()
         });
-        
-        await batch.commit();
-        closeModal('modal-task-detail'); 
-        showToast("タスクを削除しました", "info"); 
-    }); 
+    }
 }
 
-window.saveNewRoutine = async function() { 
-    if(!getCurrentUserId() || isSaving) return;
-    const btnSave = document.getElementById('btn-save-new-routine'); btnSave.disabled = true;
-    
-    const title = document.getElementById('input-routine-title').value.trim(); 
-    if(!title) { btnSave.disabled = false; return showToast("ルーティン名を入力してください", "error"); }
-    
-    const time = parseInt(document.getElementById('input-routine-time').value);
-    if (isNaN(time) || time <= 0) { btnSave.disabled = false; return showToast("予定時間を正しく入力してください", "error"); }
+function deleteTask() {
+    const id = document.getElementById('detail-task-id').value;
+    showConfirm("このタスクを削除しますか？\n(復習タスクも削除されます)", async () => {
+        try {
+            await setDoc(getAppDocRef('tasks', id), { deleted: true }, { merge: true });
+            closeModal('modal-task-detail');
+            showToast("タスクを削除しました", "info");
+        } catch (e) {
+            console.error(e);
+            showToast("削除に失敗しました", "error");
+        }
+    });
+}
 
-    isSaving = true;
+function openAddRoutineModal() {
+    document.getElementById('input-routine-title').value = '';
+    document.getElementById('input-routine-time').value = '';
+    const subjectSelect = document.getElementById('input-routine-subject');
+    subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800">${s}</option>`).join('');
+    openModal('modal-add-routine');
+}
+
+async function saveNewRoutine() {
+    const title = document.getElementById('input-routine-title').value.trim();
+    const subject = document.getElementById('input-routine-subject').value;
+    const time = parseInt(document.getElementById('input-routine-time').value) || 0;
+
+    if (!title || !subject || time <= 0) return showToast("入力内容を確認してください", "error");
+
+    const btn = document.getElementById('btn-save-new-routine');
+    btn.disabled = true;
     try {
-        await addDoc(getAppCollectionRef('routines'), { title, subject: document.getElementById('input-routine-subject').value, estimatedTime: time, createdAt: new Date().toISOString() }); 
-        document.getElementById('input-routine-title').value = ''; 
-        document.getElementById('input-routine-time').value = '';
-        closeModal('modal-add-routine'); 
-        showToast("ルーティンを追加しました！"); 
+        const newDocRef = doc(getAppCollectionRef('routines'));
+        await setDoc(newDocRef, {
+            title, subject, estimatedTime: time, createdAt: new Date().toISOString()
+        });
+        closeModal('modal-add-routine');
+        showToast("ルーティンを追加しました");
+    } catch (e) {
+        console.error(e);
+        showToast("追加に失敗しました", "error");
     } finally {
-        isSaving = false; btnSave.disabled = false;
+        btn.disabled = false;
     }
 }
 
-// Service Workerの登録
-if ('serviceWorker' in navigator) { 
-    window.addEventListener('load', function() { 
-        navigator.serviceWorker.register('./service-worker.js').catch(err => console.log('ServiceWorker 登録失敗: ', err)); 
-    }); 
-}
+// ==========================================
+// HTML（onclick等）から呼び出すためのグローバル関数の登録
+// ==========================================
+window.performAuthAction = performAuthAction;
+window.performGoogleAuth = performGoogleAuth;
+window.toggleAuthMode = toggleAuthMode;
+window.handleLogout = handleLogout;
+window.toggleDarkMode = () => toggleDarkMode(updateChartColors);
+window.closeConfirm = closeConfirm;
+window.openModal = openModal;
+window.closeModal = closeModal;
 
-// プレビュー環境用初期化など
-const initializeAppEnv = async () => { 
-    // const isUsingPreviewDB は './config/firebase.js' から取得可能
-    const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-    if (initialToken) {
-        await initPreviewAuth(initialToken);
-    }
-};
+window.switchView = switchView;
+window.changeMonth = (offset) => changeMonth(offset, state.tasks, () => {});
+window.handleSelectCalendarDate = (dateStr) => selectCalendarDate(dateStr, state.tasks, () => {});
+window.saveApiKey = saveApiKey;
+window.autoFetchWeights = autoFetchWeights;
+window.saveUserProfile = () => saveUserProfile(getCurrentUserId);
+window.deleteRoutine = deleteRoutine;
 
-window.onload = () => { 
-    initializeAppEnv(); 
-    setInterval(updateCountdowns, 1000 * 60 * 60); 
-    initTheme(); 
-    initDrill(); 
-    initFlashcard(); 
-};
-
-// 認証状態の監視 (アプリの起動起点)
-observeAuthState((user) => {
-    document.getElementById('loading-screen').style.display = 'none';
-    if (user) { 
-        setCurrentUserId(user.uid); 
-        document.getElementById('display-user-id').innerText = user.uid; 
-        document.getElementById('auth-screen').style.display = 'none'; 
-        document.getElementById('main-app').style.display = 'flex'; 
-        
-        setupListeners(); 
-        updateCountdowns(); 
-        populateSelects(); 
-        buildWeightInputs(); 
-    } else { 
-        setCurrentUserId(null);
-        document.getElementById('auth-screen').style.display = 'flex'; 
-        document.getElementById('main-app').style.display = 'none'; 
-        
-        // リスナーの解除
-        if (unsubTasks) unsubTasks(); 
-        if (unsubRoutines) unsubRoutines(); 
-        if (unsubProfile) unsubProfile(); 
-        if (unsubFlashcards) unsubFlashcards(); 
-        
-        // 状態のクリア
-        tasks = []; routines = []; userProfile = { targetUniv: '', targetFaculty: '', weights: {} }; 
-        isTasksLoaded = false; isRoutinesLoaded = false; initialRoutineApplied = false; 
-    }
-});
+window.openAddTaskModal = openAddTaskModal;
+window.saveNewTask = saveNewTask;
+window.toggleTaskComplete = toggleTaskComplete;
+window.openTaskDetailModal = openTaskDetailModal;
+window.toggleSubEvaluations = toggleSubEvaluations;
+window.addSubEvaluation = addSubEvaluation;
+window.deleteTask = deleteTask;
+window.saveTaskDetail = saveTaskDetail;
+window.openAddRoutineModal = openAddRoutineModal;
+window.saveNewRoutine = saveNewRoutine;
