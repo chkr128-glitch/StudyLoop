@@ -617,8 +617,26 @@
         </div>
     </div>
 
+    <!-- 構文エラーをキャッチして画面に表示するためのスクリプト -->
+    <script>
+        window.addEventListener('error', function(e) {
+            const ls = document.getElementById('loading-screen');
+            if(ls) {
+                ls.innerHTML = '<div class="text-center p-4 bg-white dark:bg-gray-800 rounded-xl shadow-xl w-3/4 max-w-sm"><i class="fas fa-exclamation-triangle text-red-500 text-4xl mb-3"></i><p class="text-red-500 font-bold text-sm">読み込みエラーが発生しました</p><p class="text-xs text-gray-500 dark:text-gray-400 mt-2 break-words text-left">' + e.message + '</p></div>';
+            }
+        });
+    </script>
+
     <!-- リファクタリングにより分割されたメインモジュールを読み込む -->
     <script type="module" src="./src/main.js"></script>
-
+    <script>
+        if ('serviceWorker' in navigator) { 
+            window.addEventListener('load', function() { 
+                navigator.serviceWorker.register('./service-worker.js').catch(function(err) {
+                    console.warn('ServiceWorkerの登録をスキップしました（プレビュー環境等のため）: ', err);
+                }); 
+            }); 
+        }
+    </script>
 </body>
 </html>
