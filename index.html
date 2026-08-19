@@ -1,4 +1,611 @@
-<!-- ... existing code ... -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>志望大学合格最適化マネージャー</title>
+    
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="StudyLoop">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class', 
+            theme: {
+                extend: {
+                    animation: {
+                        'bounce-slight': 'bounce-slight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both',
+                        'pop-in': 'pop-in 0.2s ease-out',
+                        'blob': 'blob 7s infinite',
+                    },
+                    keyframes: {
+                        'bounce-slight': {
+                            '0%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.3) translateY(-10%)' },
+                            '100%': { transform: 'scale(1)' },
+                        },
+                        'pop-in': {
+                            '0%': { transform: 'scale(0.9)', opacity: '0.5' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        },
+                        'blob': {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+        initTheme();
+    </script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .view-section:not(.active) { display: none !important; }
+        .view-section.active { display: block; }
+        .tab-btn.active { color: #ec4899; } 
+        .dark .tab-btn.active { color: #f472b6; }
+        .modal-overlay { display: none; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { max-height: 90vh; overflow-y: auto; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .calendar-cell { min-height: 80px; }
+        select { appearance: none; -webkit-appearance: none; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .zoom-in { animation: zoomIn 0.2s ease-out forwards; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .shake { animation: shake 0.3s ease-in-out; }
+
+        .eval-label:has(input:checked) { border-color: #ec4899; background-color: #fdf2f8; }
+        .dark .eval-label:has(input:checked) { border-color: #f472b6; background-color: rgba(244, 114, 182, 0.15); }
+
+        /* フラッシュカード用追加CSS */
+        .perspective-1000 { perspective: 1000px; }
+        .preserve-3d { transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); }
+        .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+    </style>
+</head>
+<body class="text-gray-800 dark:text-gray-100 h-screen overflow-hidden flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+
+    <div id="loading-screen" class="absolute inset-0 bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center transition-colors">
+        <i class="fas fa-spinner fa-spin text-5xl text-pink-500 mb-4"></i>
+        <p class="text-gray-500 dark:text-gray-400 font-medium tracking-wide">読み込み中...</p>
+    </div>
+
+    <div id="auth-screen" class="absolute inset-0 bg-slate-50 dark:bg-gray-900 z-40 hidden flex-col items-center justify-center p-5 transition-colors overflow-hidden">
+        <div class="absolute top-[-10%] left-[-10%] w-72 h-72 bg-pink-300/40 dark:bg-pink-900/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+        <div class="absolute top-[20%] right-[-10%] w-72 h-72 bg-purple-300/40 dark:bg-purple-900/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-72 h-72 bg-indigo-300/40 dark:bg-indigo-900/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
+
+        <div class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-xl p-8 sm:p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md border border-white/50 dark:border-gray-700/50 relative z-10">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-24 h-24 mb-3 transform hover:scale-105 transition-transform duration-300">
+                    <img src="icon.png" alt="StudyLoop Logo" class="w-full h-full object-contain drop-shadow-xl rounded-3xl" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGFsaWdubWVudC1iYXNlbGluZT0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Mb2dvPC90ZXh0Pjwvc3ZnPg=='">
+                </div>
+                <h1 class="text-3xl font-black text-gray-800 dark:text-white tracking-tight mb-1">StudyLoop</h1>
+                <p class="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 tracking-widest">志望大学合格最適化マネージャー</p>
+            </div>
+
+            <h2 class="text-sm font-bold text-center text-gray-500 dark:text-gray-400 mb-6" id="auth-title">ログインして学習を始める</h2>
+            
+            <div class="space-y-4">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-envelope text-gray-400"></i></div>
+                    <input type="email" id="auth-email" class="w-full border-none bg-white dark:bg-gray-900 dark:text-white py-3.5 pl-11 pr-4 rounded-xl focus:ring-2 focus:ring-pink-500 shadow-inner transition-all outline-none text-sm font-medium" placeholder="メールアドレス">
+                </div>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-lock text-gray-400"></i></div>
+                    <input type="password" id="auth-password" class="w-full border-none bg-white dark:bg-gray-900 dark:text-white py-3.5 pl-11 pr-4 rounded-xl focus:ring-2 focus:ring-pink-500 shadow-inner transition-all outline-none text-sm font-medium" placeholder="パスワード (6文字以上)">
+                </div>
+                <button id="auth-btn-action" onclick="performAuthAction()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-3.5 rounded-xl mt-2 hover:opacity-90 transition-all shadow-[0_8px_15px_rgba(236,72,153,0.3)] transform hover:-translate-y-0.5">ログイン</button>
+            </div>
+
+            <div class="relative flex items-center justify-center my-6">
+                <hr class="w-full border-gray-200 dark:border-gray-600">
+                <span class="absolute px-3 bg-transparent text-[10px] text-gray-400 font-bold uppercase tracking-wider">or continue with</span>
+            </div>
+            
+            <button onclick="performGoogleAuth()" class="w-full bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold py-3.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm border border-gray-200 dark:border-gray-600 flex justify-center items-center">
+                <i class="fab fa-google text-red-500 mr-2 text-lg"></i> Googleでログイン
+            </button>
+
+            <div class="mt-8 text-center">
+                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-gray-500 dark:text-gray-400 hover:text-pink-500 font-bold transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5">アカウントをお持ちでない方はこちら</button>
+            </div>
+            <p id="auth-error-msg" class="text-red-500 text-xs font-bold text-center mt-4 min-h-[1rem]"></p>
+        </div>
+    </div>
+
+    <div id="main-app" class="flex-1 flex-col hidden w-full h-full relative">
+        <header class="bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 text-white px-3 sm:px-4 shadow-md fixed w-full z-20 top-0 flex justify-between items-center h-16 rounded-b-3xl transition-colors">
+            <div class="flex items-center z-10">
+                <button onclick="toggleDarkMode()" class="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors focus:outline-none">
+                    <i id="theme-icon" class="fas fa-moon text-xs"></i>
+                </button>
+            </div>
+            <div class="absolute inset-0 flex justify-center items-center pointer-events-none z-0">
+                <div class="flex items-center space-x-1.5 sm:space-x-2 pointer-events-auto">
+                    <img src="icon.png" alt="Logo" class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg shadow-sm" onerror="this.style.display='none'">
+                    <h1 class="text-base sm:text-lg font-black tracking-wider opacity-90">StudyLoop</h1>
+                </div>
+            </div>
+            <div class="flex items-center space-x-1.5 sm:space-x-3 text-right z-10">
+                <div id="header-streak-container" class="hidden items-center justify-center bg-white/20 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full shadow-sm backdrop-blur-sm border border-white/20">
+                    <span id="header-streak-emoji" class="text-xs sm:text-sm drop-shadow-sm"></span>
+                    <span id="header-streak-days" class="font-black text-xs sm:text-sm ml-0.5 sm:ml-1 leading-none tracking-tight"></span><span class="text-[8px] sm:text-[10px] ml-0.5 font-bold leading-none hidden sm:inline">日</span>
+                </div>
+                <div class="flex space-x-2 sm:space-x-3 text-[9px] sm:text-xs">
+                    <div class="hidden sm:block">
+                        <p class="opacity-80 font-medium">共通テスト</p>
+                        <p class="font-black text-lg sm:text-xl leading-tight"><span id="cd-common">--</span> <span class="text-[8px] sm:text-xs font-medium">日</span></p>
+                    </div>
+                    <div>
+                        <p class="opacity-80 font-medium">2次試験</p>
+                        <p class="font-black text-lg sm:text-xl leading-tight text-yellow-200"><span id="cd-second">--</span> <span class="text-[8px] sm:text-xs font-medium text-white">日</span></p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto mt-20 pb-28 relative w-full max-w-lg mx-auto" id="main-content">
+            
+            <div id="view-dashboard" class="view-section active p-5">
+                <h2 id="current-date-display" class="text-2xl font-black text-gray-800 dark:text-white mb-3 ml-1 tracking-tight transition-colors">今日のタスク</h2>
+                
+                <div id="quote-container" class="mb-5 bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800 transition-colors animate-pop-in">
+                    <p id="daily-quote-text" class="text-sm font-bold text-indigo-800 dark:text-indigo-200 mb-1.5 leading-relaxed tracking-wide">""</p>
+                    <p id="daily-quote-author" class="text-xs text-right text-indigo-600 dark:text-indigo-400 font-bold">- </p>
+                </div>
+                
+                <div id="dashboard-streak-container" class="mb-5 bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hidden transition-colors animate-pop-in"></div>
+
+                <div class="mb-8 bg-gradient-to-br from-red-400 via-pink-500 to-purple-500 p-6 rounded-3xl shadow-[0_10px_25px_rgba(236,72,153,0.3)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.5)] text-white relative overflow-hidden animate-pop-in">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+                    <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-white opacity-10 rounded-full"></div>
+                    <p class="text-sm font-medium opacity-90 relative z-10">本日の残り推定学習時間</p>
+                    <p class="text-4xl font-black mt-2 relative z-10" id="remaining-time-display">0<span class="text-lg font-bold ml-1">分</span></p>
+                    <div class="mt-4 flex space-x-4 relative z-10 text-xs font-medium opacity-90">
+                        <p><i class="fas fa-list-ul mr-1"></i>未完了: <span id="incomplete-count" class="font-bold text-sm">0</span></p>
+                        <p><i class="fas fa-check-circle mr-1"></i>完了: <span id="completed-count" class="font-bold text-sm">0</span></p>
+                    </div>
+                </div>
+
+                <div id="dashboard-tasks-container" class="pb-6"></div>
+
+                <button onclick="openAddTaskModal()" class="fixed bottom-24 right-5 lg:right-[calc(50%-14rem)] w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full shadow-[0_8px_20px_rgba(236,72,153,0.4)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.5)] flex items-center justify-center text-2xl hover:opacity-90 transition-all transform hover:scale-105 hover:-translate-y-1 z-10">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+
+            <div id="view-calendar" class="view-section p-5">
+                <div class="flex justify-between items-center mb-4 bg-white dark:bg-gray-800 p-4 rounded-3xl shadow-sm transition-colors border border-gray-100 dark:border-gray-700">
+                    <button onclick="changeMonth(-1)" class="p-2 w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition"><i class="fas fa-chevron-left"></i></button>
+                    <h2 id="calendar-month-display" class="text-xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">年月</h2>
+                    <button onclick="changeMonth(1)" class="p-2 w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                
+                <div class="flex justify-end gap-3 px-2 mb-3 text-[10px] font-bold text-gray-500 dark:text-gray-400">
+                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-sm"></div>新しい学習</div>
+                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-sm"></div>復習</div>
+                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm animate-pulse"></div>未完了(復習)</div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm mb-6 p-2 transition-colors border border-gray-100 dark:border-gray-700">
+                    <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-400 dark:text-gray-500 py-3 mb-1">
+                        <div class="text-red-400 dark:text-red-500">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="text-blue-400 dark:text-blue-500">土</div>
+                    </div>
+                    <div id="calendar-grid" class="calendar-grid p-1"></div>
+                </div>
+                <div>
+                    <h3 id="calendar-selected-date-display" class="font-bold text-gray-700 dark:text-gray-300 mb-3 flex justify-between items-end pb-2 border-b border-gray-200 dark:border-gray-700 ml-1">
+                        選択日のタスク <span class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-medium" id="calendar-task-count">0</span>
+                    </h3>
+                    <div id="calendar-daily-summary"></div>
+                    <div id="calendar-tasks-container" class="space-y-3 pb-10 px-1 mt-3"></div>
+                </div>
+            </div>
+
+            <div id="view-analytics" class="view-section p-5">
+                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">学習分析</h2>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm mb-6 transition-colors border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-purple-500"></div>
+                    <h3 class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1 text-center">配点比率 vs 実際の学習時間</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 text-center mb-5 font-medium">志望校の配点に対して、適切なバランスで勉強できているか確認しましょう。</p>
+                    <div class="relative h-72 w-full"><canvas id="chart-radar"></canvas></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm transition-colors border border-gray-100 dark:border-gray-700">
+                        <h3 class="text-sm font-bold text-pink-600 dark:text-pink-400 mb-5 text-center bg-pink-50 dark:bg-pink-900/30 py-2 rounded-2xl block w-max mx-auto px-6">科目別 累計学習時間</h3>
+                        <div class="relative h-64 w-full"><canvas id="chart-subject"></canvas></div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm transition-colors border border-gray-100 dark:border-gray-700">
+                        <h3 class="text-sm font-bold text-purple-600 dark:text-purple-400 mb-5 text-center bg-purple-50 dark:bg-purple-900/30 py-2 rounded-2xl block w-max mx-auto px-6">理解度分布</h3>
+                        <div class="relative h-64 w-full"><canvas id="chart-evaluation"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-settings" class="view-section p-5">
+                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">設定・管理</h2>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-6 mb-6 transition-colors border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500"></div>
+                    <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center"><i class="fas fa-key text-yellow-500 mr-2"></i>APIキー設定 (Gemini)</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">配点の自動検索機能を使用するには、ご自身のGemini APIキーを設定してください。入力されたキーはブラウザのローカルストレージにのみ安全に保存されます。</p>
+                    <div class="mb-4">
+                        <input type="password" id="setting-api-key" class="w-full border-none bg-gray-50 dark:bg-gray-700 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none" placeholder="AIzaSy...">
+                    </div>
+                    <button onclick="saveApiKey()" class="w-full bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 font-bold py-3 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors border border-yellow-100 dark:border-yellow-800 shadow-sm">APIキーを保存する</button>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-6 mb-6 transition-colors border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 to-pink-500"></div>
+                    <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center"><i class="fas fa-university text-pink-500 mr-2"></i>志望校・配点設定</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">大学・学部名を入力して「AIで自動検索」を押すと配点情報を自動入力します。</p>
+                    
+                    <div class="flex space-x-3 mb-4">
+                        <div class="w-1/2">
+                            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1 ml-1">大学名</label>
+                            <input type="text" id="setting-univ" class="w-full border-none bg-gray-50 dark:bg-gray-700 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none" placeholder="例: 東京大学">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1 ml-1">学部・学科名</label>
+                            <input type="text" id="setting-fac" class="w-full border-none bg-gray-50 dark:bg-gray-700 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none" placeholder="例: 理科一類">
+                        </div>
+                    </div>
+                    
+                    <button onclick="autoFetchWeights()" id="btn-auto-fetch" class="w-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold py-3 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors mb-5 border border-indigo-100 dark:border-indigo-800 flex justify-center items-center shadow-sm">
+                        <i class="fas fa-magic mr-2"></i> AIで配点自動検索
+                    </button>
+
+                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 ml-1">各科目の配点（修正可能）</label>
+                    <div id="exam-weights-container" class="mb-5"></div>
+                    <button onclick="saveUserProfile()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-all shadow-md transform hover:-translate-y-0.5">志望校情報を保存する</button>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-6 mb-6 transition-colors border border-gray-100 dark:border-gray-700">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="font-bold text-gray-700 dark:text-gray-300 flex items-center"><i class="fas fa-list-check text-purple-500 mr-2"></i>固定ルーティン</h3>
+                        <button onclick="openAddRoutineModal()" class="text-sm bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-4 py-1.5 rounded-full font-bold hover:bg-purple-100 dark:hover:bg-purple-900/50 transition"><i class="fas fa-plus mr-1"></i>追加</button>
+                    </div>
+                    <ul id="routine-list" class="space-y-3"></ul>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-6 mb-6 border border-gray-100 dark:border-gray-700 transition-colors">
+                    <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center"><i class="fas fa-user-circle text-gray-500 mr-2"></i>アカウント管理</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 ml-1 font-medium">ログイン中のユーザーID:</p>
+                    <p class="text-xs font-mono bg-gray-50 dark:bg-gray-700 p-3 rounded-2xl mb-6 break-all text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-600" id="display-user-id">---</p>
+                    <button onclick="handleLogout()" class="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold py-3 rounded-full hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors border border-transparent">ログアウト</button>
+                </div>
+            </div>
+
+            <div id="view-drill" class="view-section p-5">
+                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">計算ドリル</h2>
+                <div class="bg-white dark:bg-gray-800 p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row mb-6 gap-1 transition-colors">
+                    <button id="drill-mode-training" class="flex-1 flex items-center justify-center gap-2 py-3 px-2 rounded-xl font-bold text-sm transition-all duration-200 bg-indigo-600 text-white shadow-md">
+                        <i class="fas fa-fire text-yellow-300"></i> 特訓
+                    </button>
+                    <button id="drill-mode-random" class="flex-1 flex items-center justify-center gap-2 py-3 px-2 rounded-xl font-bold text-sm transition-all duration-200 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-dice"></i> ランダム
+                    </button>
+                    <button id="drill-mode-timeattack" class="flex-1 flex items-center justify-center gap-2 py-3 px-2 rounded-xl font-bold text-sm transition-all duration-200 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-stopwatch"></i> タイムアタック
+                    </button>
+                </div>
+
+                <div class="flex justify-between items-end mb-4 px-2">
+                    <div>
+                        <h2 id="drill-title" class="text-lg font-black text-gray-800 dark:text-white tracking-tight">🎯 パターン集中特訓</h2>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">
+                            <span id="drill-score-label">連続正解:</span> <span id="drill-score-text" class="text-indigo-600 dark:text-indigo-400 font-bold">0</span> 問
+                            <span class="ml-2 px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded-md text-xs font-bold text-gray-600 dark:text-gray-300">最高: <span id="drill-highscore-text">0</span></span>
+                        </p>
+                    </div>
+                    <div id="drill-timer" class="hidden text-2xl font-black text-rose-500 dark:text-rose-400 font-mono tracking-tighter">⏳ 60s</div>
+                    <button id="drill-toggle-hint" class="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/60">
+                        <i id="drill-icon-hint-on" class="fas fa-lightbulb"></i>
+                        <i id="drill-icon-hint-off" class="fas fa-lightbulb hidden opacity-50"></i>
+                        <span id="drill-text-hint">ヒントON</span>
+                    </button>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-6 transition-colors">
+                    <div class="p-6 sm:p-8 text-center bg-gradient-to-b from-indigo-50/50 to-white dark:from-indigo-900/20 dark:to-gray-800 border-b border-gray-100 dark:border-gray-700 transition-colors">
+                        <div class="flex justify-center items-center text-5xl sm:text-6xl md:text-7xl font-black text-gray-800 dark:text-white tracking-wide font-mono whitespace-nowrap">
+                            <span id="drill-num1">0</span> <span class="text-indigo-400 dark:text-indigo-500 text-4xl sm:text-5xl mx-2 sm:mx-4">×</span> <span id="drill-num2">0</span>
+                        </div>
+                    </div>
+                    
+                    <div id="drill-hint-area" class="px-6 py-4 bg-amber-50/50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-800 transition-colors">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-amber-500 mt-1"></i>
+                            <div>
+                                <div class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-1">推奨解法</div>
+                                <div id="drill-hint-name" class="font-bold text-gray-800 dark:text-gray-200 mb-1 text-sm">ヒント名</div>
+                                <div id="drill-hint-desc" class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-medium">ヒントの説明がここに入ります。</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <form id="drill-play-area" class="flex flex-col gap-4">
+                            <input id="drill-user-input" type="number" placeholder="答えを入力..." class="w-full text-center text-3xl font-bold py-4 bg-gray-50 dark:bg-gray-700 dark:text-white border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-400 transition-colors" autocomplete="off" required>
+                            <button type="submit" id="drill-btn-submit" class="w-full py-4 rounded-2xl font-bold text-lg text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 disabled:opacity-50 transition-colors">答える</button>
+                        </form>
+
+                        <div id="drill-result-area" class="hidden zoom-in duration-200">
+                            <div id="drill-result-box" class="flex flex-col items-center justify-center p-6 rounded-2xl mb-4 border-2">
+                                <i id="drill-icon-correct" class="fas fa-check-circle text-5xl text-emerald-500 mb-3 hidden"></i>
+                                <i id="drill-icon-incorrect" class="fas fa-times-circle text-5xl text-rose-500 mb-3 hidden"></i>
+                                <i id="drill-icon-timeup" class="fas fa-clock text-5xl text-indigo-500 mb-3 hidden"></i>
+                                <h2 id="drill-result-title" class="text-2xl font-black mb-2">結果</h2>
+                                <p id="drill-correct-text" class="text-rose-600 dark:text-rose-400 font-medium hidden">正解は <span id="drill-actual-answer" class="font-bold text-xl">0</span> です</p>
+                                <p id="drill-timeattack-text" class="text-indigo-600 dark:text-indigo-400 font-medium hidden text-lg mt-2">今回のスコア: <span id="drill-final-score" class="font-bold text-2xl">0</span> 問</p>
+                            </div>
+                            <button id="drill-btn-next" class="w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-lg text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                                <span id="drill-btn-next-text">次の問題へ</span> <i class="fas fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button id="drill-btn-skip" class="inline-flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+                        <i class="fas fa-forward"></i> 問題をスキップ
+                    </button>
+                </div>
+            </div>
+
+            <div id="view-flashcard-app" class="view-section h-full relative flex-col bg-slate-50 dark:bg-slate-900">
+                <div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30">
+                    <h2 class="text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 flex items-center gap-2 cursor-pointer" onclick="showFcView('fc-sets')">
+                        <i class="fa-solid fa-layer-group text-pink-500"></i> 単語帳
+                    </h2>
+                    <div id="fc-header-action"></div>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-4 pb-32">
+                    <div id="fc-sets" class="fc-view space-y-6 animate-pop-in">
+                        <section class="bg-white/80 dark:bg-slate-800/80 p-5 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-slate-700">
+                            <h3 class="text-sm font-bold mb-3 text-purple-500 flex items-center gap-2"><i class="fa-solid fa-folder-plus"></i> 新しい単語帳を作る</h3>
+                            <form id="fc-set-form" class="flex gap-2">
+                                <input type="text" id="fc-set-name-input" required placeholder="例: TOEIC必須単語" class="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-pink-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm dark:text-white transition-colors">
+                                <button type="submit" class="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold px-5 py-2.5 rounded-xl transition text-sm whitespace-nowrap shadow-md hover:opacity-90">作成</button>
+                            </form>
+                        </section>
+                        <section>
+                            <h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 ml-2">あなたの単語帳</h3>
+                            <div id="fc-set-list" class="space-y-3"></div>
+                            <div id="fc-set-empty" class="text-center py-12 text-slate-400 hidden bg-white/50 dark:bg-slate-800/50 rounded-[1.5rem] border border-slate-100 dark:border-slate-700">
+                                <i class="fa-solid fa-folder-open text-4xl mb-3 text-pink-200 dark:text-slate-600"></i>
+                                <p class="font-medium text-sm">単語帳がありません。<br>上のフォームから作成しましょう。</p>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div id="fc-words" class="fc-view space-y-6 hidden pb-20 animate-pop-in">
+                        <div class="flex justify-between items-end pb-2 ml-1 border-b border-slate-200 dark:border-slate-700">
+                            <h3 id="fc-current-set-title" class="text-xl font-extrabold text-slate-800 dark:text-white">セット名</h3>
+                            <span id="fc-word-count" class="text-xs font-bold bg-purple-500 text-white px-3 py-1 rounded-full shadow-sm">0 語</span>
+                        </div>
+                        <section class="bg-white/80 dark:bg-slate-800/80 p-5 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-slate-700">
+                            <form id="fc-word-form" class="space-y-3">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <input type="text" id="fc-word-input" required placeholder="単語 (Apple)" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-pink-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm dark:text-white transition-colors">
+                                    <input type="text" id="fc-meaning-input" required placeholder="意味 (りんご)" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-pink-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm dark:text-white transition-colors">
+                                </div>
+                                <button type="submit" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold py-3 rounded-xl transition shadow-md hover:opacity-90 flex justify-center items-center gap-2 text-sm"><i class="fa-solid fa-plus"></i> 単語を追加する</button>
+                            </form>
+                        </section>
+                        <section>
+                            <div id="fc-word-list" class="space-y-3"></div>
+                            <div id="fc-word-empty" class="text-center py-12 text-slate-400 hidden bg-white/50 dark:bg-slate-800/50 rounded-[1.5rem] border border-slate-100 dark:border-slate-700"><p class="font-medium text-sm">単語がありません。</p></div>
+                        </section>
+                        <div class="fixed bottom-24 left-0 w-full px-4 flex justify-center z-10 pointer-events-none">
+                            <div class="max-w-md w-full flex gap-2 pointer-events-auto shadow-xl rounded-[1.5rem]">
+                                <button id="fc-start-btn" onclick="startFcLearning(false)" class="flex-1 bg-slate-800 dark:bg-slate-100 dark:text-slate-800 text-white font-bold py-4 rounded-[1.5rem] transition flex justify-center items-center gap-2 text-sm border-2 border-slate-700 dark:border-white disabled:opacity-50"><i class="fa-solid fa-bolt text-yellow-400"></i> 今日の復習 (<span id="fc-due-count">0</span>)</button>
+                                <button id="fc-start-all-btn" onclick="startFcLearning(true)" class="w-14 bg-white dark:bg-slate-700 text-slate-600 dark:text-white font-bold py-4 rounded-[1.5rem] transition flex justify-center items-center text-sm border border-slate-200 dark:border-slate-600 disabled:opacity-50" title="全て学習する"><i class="fa-solid fa-layer-group"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="fc-play" class="fc-view hidden flex-col h-[60vh] animate-pop-in">
+                        <div class="mb-6">
+                            <div class="flex justify-between text-xs text-purple-500 dark:text-purple-400 font-bold mb-2 px-1"><span>学習進捗</span><span id="fc-progress-text">1 / 10</span></div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden"><div id="fc-progress-bar" class="bg-gradient-to-r from-pink-500 to-purple-500 h-full rounded-full transition-all duration-500" style="width: 10%"></div></div>
+                        </div>
+                        <div class="flex-1 w-full flex flex-col justify-center perspective-1000">
+                            <div id="fc-inner" class="w-full h-72 relative preserve-3d cursor-pointer" onclick="flipFcCard()">
+                                <div class="absolute inset-0 w-full h-full backface-hidden bg-white dark:bg-slate-800 rounded-[2rem] p-6 flex flex-col justify-center items-center text-center overflow-y-auto border-2 border-pink-100 dark:border-slate-700 shadow-xl transition-colors">
+                                    <span class="text-[10px] font-black text-pink-500 uppercase tracking-widest bg-pink-50 dark:bg-slate-900 px-3 py-1 rounded-full absolute top-5">Question</span>
+                                    <h4 id="fc-card-word" class="text-4xl font-extrabold text-slate-800 dark:text-white mt-4 break-words hyphens-auto">Word</h4>
+                                    <p class="text-[10px] text-slate-400 mt-8"><i class="fa-solid fa-hand-pointer"></i> タップして裏返す</p>
+                                </div>
+                                <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-slate-50 dark:bg-slate-800 rounded-[2rem] p-6 flex flex-col justify-center items-center text-center overflow-y-auto border-2 border-purple-400 shadow-xl transition-colors">
+                                    <span class="text-[10px] font-black text-purple-500 uppercase tracking-widest bg-purple-100 dark:bg-purple-900/30 px-3 py-1 rounded-full absolute top-5">Answer</span>
+                                    <h4 id="fc-card-meaning" class="text-3xl font-bold text-purple-600 dark:text-purple-400 mt-4 break-words hyphens-auto">意味</h4>
+                                    <p class="text-[10px] text-slate-400 mt-8"><i class="fa-solid fa-hand-pointer"></i> タップして裏返す</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 h-16 w-full relative">
+                            <div id="fc-show-ans-container" class="absolute inset-0 transition-opacity duration-300">
+                                <button onclick="flipFcCard()" class="w-full h-full bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-400 font-bold rounded-[1.5rem] shadow-sm border-2 border-purple-100 dark:border-slate-700 flex justify-center items-center gap-2 hover:bg-purple-50 dark:hover:bg-slate-700 transition">
+                                    <i class="fa-regular fa-eye"></i> 答えを見る
+                                </button>
+                            </div>
+                            <div id="fc-eval-container" class="absolute inset-0 flex gap-2 opacity-0 pointer-events-none transition-opacity duration-300">
+                                <button onclick="evalFcWord('again')" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-[1.5rem] shadow-sm transition flex flex-col justify-center items-center text-xs"><span>忘れた</span><span class="text-[9px] opacity-75 font-normal">やり直し</span></button>
+                                <button onclick="evalFcWord('good')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-[1.5rem] shadow-sm transition flex flex-col justify-center items-center text-xs"><span>普通</span><span class="text-[9px] opacity-75 font-normal">数日後</span></button>
+                                <button onclick="evalFcWord('easy')" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-[1.5rem] shadow-sm transition flex flex-col justify-center items-center text-xs"><span>簡単</span><span class="text-[9px] opacity-75 font-normal">間隔長め</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <div id="toast-container" class="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center space-y-3 pointer-events-none w-full max-w-xs px-4"></div>
+
+        <nav class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 fixed bottom-0 w-full z-20 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.05)] flex rounded-t-3xl transition-colors">
+            <div class="flex justify-around w-full max-w-lg mx-auto px-1 sm:px-2">
+                <button onclick="switchView('dashboard')" id="nav-dashboard" class="tab-btn active flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                    <i class="fas fa-list-check text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">今日</span>
+                </button>
+                <button onclick="switchView('drill')" id="nav-drill" class="tab-btn flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                    <i class="fas fa-calculator text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">計算</span>
+                </button>
+                <button onclick="switchView('calendar')" id="nav-calendar" class="tab-btn flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                    <i class="far fa-calendar-alt text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">予定</span>
+                </button>
+                <button onclick="switchView('analytics')" id="nav-analytics" class="tab-btn flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                    <i class="fas fa-chart-pie text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">分析</span>
+                </button>
+                <button onclick="switchView('flashcard-app')" id="nav-flashcard-app" class="tab-btn flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                    <i class="fa-solid fa-layer-group text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">単語</span>
+                </button>
+                <button onclick="switchView('settings')" id="nav-settings" class="tab-btn flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                    <i class="fas fa-cog text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">設定</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- モーダル: 新規タスク追加 -->
+    <div id="modal-add-task" class="modal-overlay fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] justify-center items-end sm:items-center" onclick="if(event.target===this) closeModal('modal-add-task')">
+        <div class="modal-content bg-white dark:bg-gray-800 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl border border-gray-100 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white tracking-wide">新規タスク追加</h3>
+                <button onclick="closeModal('modal-add-task')" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">タスク名</label>
+                    <input type="text" id="input-task-title" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 outline-none transition-all" placeholder="例: 青チャート 数学II B 第1章">
+                </div>
+                <div class="flex space-x-4">
+                    <div class="w-1/2 relative">
+                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">科目</label>
+                        <select id="input-task-subject" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 outline-none transition-all appearance-none font-medium"></select>
+                        <i class="fas fa-chevron-down absolute right-4 top-11 text-gray-400 pointer-events-none text-xs"></i>
+                    </div>
+                    <div class="w-1/2">
+                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">予定時間 (分)</label>
+                        <input type="number" id="input-task-time" min="1" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 outline-none transition-all" placeholder="60">
+                    </div>
+                </div>
+                <button onclick="saveNewTask()" id="btn-save-new-task" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-4 rounded-full mt-4 hover:opacity-90 transition-all shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50">追加する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: タスク詳細 -->
+    <div id="modal-task-detail" class="modal-overlay fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] justify-center items-center" onclick="if(event.target===this) closeModal('modal-task-detail')">
+        <div class="modal-content bg-white dark:bg-gray-800 w-11/12 max-w-md rounded-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl relative border border-gray-100 dark:border-gray-700">
+            <button onclick="closeModal('modal-task-detail')" class="absolute top-6 right-6 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><i class="fas fa-times"></i></button>
+            <h3 class="text-xl font-black mb-2 text-gray-800 dark:text-white pr-10" id="detail-title">タスク名</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-6 font-medium flex items-center">
+                <span id="detail-subject" class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-700 mr-2">科目</span>
+                予定: <span id="detail-est-time" class="mx-1 font-bold text-gray-700 dark:text-gray-300"></span>
+            </p>
+            <input type="hidden" id="detail-task-id">
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">実際の学習時間 (分)</label>
+                    <input type="number" id="detail-actual-time" min="0" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 outline-none transition-all font-bold text-lg text-center">
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-2 ml-1">
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">定着度評価</label>
+                        <button onclick="toggleSubEvaluations()" id="toggle-sub-eval-btn" class="text-xs text-pink-500 dark:text-pink-400 hover:text-pink-600 font-bold transition-colors">問題ごとに細かく評価する <i class="fas fa-list-ul ml-1"></i></button>
+                    </div>
+                    <div id="main-evaluation-section" class="grid grid-cols-2 gap-3 text-sm font-medium transition-all duration-300">
+                        <label class="eval-label border-2 border-gray-100 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer transition-colors dark:text-gray-200">
+                            <input type="radio" name="evaluation" value="A" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> A: 完璧
+                        </label>
+                        <label class="eval-label border-2 border-gray-100 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer transition-colors dark:text-gray-200">
+                            <input type="radio" name="evaluation" value="B" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> B: やや不安
+                        </label>
+                        <label class="eval-label border-2 border-gray-100 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer transition-colors dark:text-gray-200">
+                            <input type="radio" name="evaluation" value="C" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> C: 要復習
+                        </label>
+                        <label class="eval-label border-2 border-gray-100 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer transition-colors dark:text-gray-200">
+                            <input type="radio" name="evaluation" value="D" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> D: 歯が立たず
+                        </label>
+                    </div>
+                    <div id="sub-evaluations-section" class="hidden mt-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-200 dark:border-gray-700">
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-3 font-medium leading-tight">問題名と評価を入力してください。</p>
+                        <div id="sub-evaluations-list" class="space-y-2 mb-3"></div>
+                        <button onclick="addSubEvaluation()" class="text-xs text-purple-600 dark:text-purple-400 font-bold flex items-center justify-center w-full py-2.5 bg-purple-100 dark:bg-purple-900/40 rounded-xl transition-colors"><i class="fas fa-plus mr-1"></i> 問題を追加</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">学習メモ</label>
+                    <textarea id="detail-note" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl h-24 focus:ring-2 focus:ring-pink-500 outline-none transition-all resize-none leading-relaxed" placeholder="気づきや弱点などをメモ..."></textarea>
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button onclick="deleteTask()" id="btn-delete-task" class="w-16 flex-shrink-0 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold rounded-2xl hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors border border-transparent dark:border-red-900/50 disabled:opacity-50"><i class="fas fa-trash"></i></button>
+                    <button onclick="saveTaskDetail()" id="btn-save-task-detail" class="flex-grow bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-4 rounded-2xl hover:opacity-90 transition-all shadow-md transform hover:-translate-y-0.5 disabled:opacity-50">完了して記録する</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: 新規ルーティン追加 -->
+    <div id="modal-add-routine" class="modal-overlay fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] justify-center items-end sm:items-center" onclick="if(event.target===this) closeModal('modal-add-routine')">
+        <div class="modal-content bg-white dark:bg-gray-800 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl border border-gray-100 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white tracking-wide">固定ルーティン追加</h3>
+                <button onclick="closeModal('modal-add-routine')" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 transition-colors"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">ルーティン名</label>
+                    <input type="text" id="input-routine-title" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all" placeholder="例: ターゲット1900">
+                </div>
+                <div class="flex space-x-4">
+                    <div class="w-1/2 relative">
+                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">科目</label>
+                        <select id="input-routine-subject" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all appearance-none font-medium"></select>
+                        <i class="fas fa-chevron-down absolute right-4 top-11 text-gray-400 pointer-events-none text-xs"></i>
+                    </div>
+                    <div class="w-1/2">
+                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">予定時間(分)</label>
+                        <input type="number" id="input-routine-time" min="1" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all" placeholder="15">
+                    </div>
+                </div>
+                <button onclick="saveNewRoutine()" id="btn-save-new-routine" class="w-full bg-purple-600 text-white font-bold py-4 rounded-full mt-4 hover:bg-purple-700 transition-all shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50">追加する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: 独自確認モーダル -->
     <div id="custom-confirm-modal" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] justify-center items-center" onclick="if(event.target===this) closeConfirm()">
         <div class="modal-content bg-white dark:bg-slate-800 w-11/12 max-w-xs rounded-2xl p-6 transform transition-transform shadow-2xl text-center border border-white/40 dark:border-slate-700">
             <div class="mb-4 text-brand-purple dark:text-purple-400"><i class="fa-solid fa-circle-question text-4xl"></i></div>
