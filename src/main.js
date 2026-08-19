@@ -435,22 +435,3 @@ window.deleteTask = deleteTask;
 window.saveTaskDetail = saveTaskDetail;
 window.openAddRoutineModal = openAddRoutineModal;
 window.saveNewRoutine = saveNewRoutine;
-
-```
-
-### 原因2：Service Workerの古いキャッシュが邪魔をしている
-ブラウザが過去のファイル構造を強力に記憶しており、新しい分割ファイルを取得できていない状態です。
-ブラウザの **スーパーリロード**（キャッシュを無視して強制再読み込み）を試してください。
-*   Windows: `Ctrl` + `Shift` + `R` または `Shift` を押しながら更新ボタン
-*   Mac: `Command` + `Shift` + `R`
-
-### 原因3：ローカル環境（ダブルクリック）で直接開いている
-もし、PCのフォルダ内にある `index.html` を**ダブルクリックしてブラウザで開いている（URLが `file:///...` になっている）**場合、ブラウザのセキュリティ制限によりモジュールファイルは読み込まれず、必ず停止します。
-VS Codeの拡張機能「Live Server」などを使って開くか、一度GitHubにPush（アップロード）してWeb上で確認してください。
-
----
-
-### 💡 それでも解決しない場合
-どこかのファイル内でスペルミスや `import` の漏れがある可能性があります。
-原因を一発で特定するため、ぐるぐる画面の状態でキーボードの **`F12`キー** を押し、**「Console（コンソール）」タブ** を開いてください。
-そこに表示されている **赤文字のエラーメッセージ** をコピーして貼り付けていただければ、具体的な修正箇所をすぐにご提示いたします。
