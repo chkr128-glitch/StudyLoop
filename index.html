@@ -254,6 +254,25 @@
                 </div>
             </div>
 
+            <!-- ストア（英作文例文集） -->
+            <div id="view-store" class="view-section p-5 pb-32">
+                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">英作文・ストア</h2>
+                
+                <div id="store-loading" class="flex flex-col items-center justify-center py-20 hidden">
+                    <i class="fas fa-spinner fa-spin text-4xl text-indigo-500 mb-4"></i>
+                    <p class="text-sm font-bold text-slate-500">パックを読み込み中...</p>
+                </div>
+
+                <div id="store-content">
+                    <div class="bg-indigo-50 dark:bg-indigo-900/20 p-5 rounded-3xl mb-8 border border-indigo-100 dark:border-indigo-800 shadow-sm">
+                        <h3 class="font-bold text-indigo-800 dark:text-indigo-300 mb-2 flex items-center"><i class="fa-solid fa-circle-info mr-2"></i>英作文サポート</h3>
+                        <p class="text-xs text-indigo-600 dark:text-indigo-400 leading-relaxed font-medium">英作文で使える便利な構文や、テーマ別のアイデアパックを自分の単語帳に追加できます。「みんなの共有パック」では、全国のユーザーが作成した単語帳を利用可能です。</p>
+                    </div>
+
+                    <div id="store-list-container"></div>
+                </div>
+            </div>
+
             <!-- 設定 -->
             <div id="view-settings" class="view-section p-5">
                 <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">設定・管理</h2>
@@ -497,6 +516,9 @@
                 <button id="nav-flashcard-app" class="tab-btn flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
                     <i class="fa-solid fa-layer-group text-xl mb-1.5 transition-transform duration-200 pointer-events-none"></i><span class="text-[10px] font-bold tracking-wider pointer-events-none">単語</span>
                 </button>
+                <button id="nav-store" class="tab-btn flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                    <i class="fa-solid fa-pen-nib text-xl mb-1.5 transition-transform duration-200 pointer-events-none"></i><span class="text-[10px] font-bold tracking-wider pointer-events-none">英作文</span>
+                </button>
                 <button id="nav-settings" class="tab-btn flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
                     <i class="fas fa-cog text-xl mb-1.5 transition-transform duration-200 pointer-events-none"></i><span class="text-[10px] font-bold tracking-wider pointer-events-none">設定</span>
                 </button>
@@ -647,3 +669,4 @@
     </script>
 </body>
 </html>
+```eof
