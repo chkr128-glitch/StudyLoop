@@ -1,7 +1,9 @@
 {
-  "name": "StudyLoop",
+  "name": "StudyLoop - 志望大学合格最適化マネージャー",
   "short_name": "StudyLoop",
-  "start_url": "./index.html",
+  "description": "大学受験に向けた学習の進捗管理、計算ドリル、単語帳などを備えた統合学習サポートアプリです。",
+  "lang": "ja",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ec4899",
@@ -9,12 +11,14 @@
     {
       "src": "icon.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
