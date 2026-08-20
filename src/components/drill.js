@@ -1,6 +1,3 @@
-// (上部の import は省略)
-
-// ★ 安全な LocalStorage 読み込み関数
 function loadHighScores() {
     try {
         const stored = localStorage.getItem('studyLoopDrillScores');
@@ -57,7 +54,3 @@ export function initDrill() {
     
     generateDrillQuestion();
 }
-
-// ... (focusDrillInput, stopDrillTimer などの関数も変更なし) ...
-
-// ... (後半の generateDrillQuestion, getDrillPatternInfo, updateDrillUI なども変更なし) ...
