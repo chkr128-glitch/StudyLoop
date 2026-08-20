@@ -24,8 +24,10 @@ export function createImportantTaskHTML(t, imp) {
     const subjectBadge = `<span class="text-[10px] px-2 py-0.5 rounded-sm font-bold ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span>`;
     return `
         <div class="flex items-center p-4 rounded-xl shadow-sm hover:shadow-md transition-all relative overflow-hidden mb-3 ${imp.colorClass}">
-            <input type="checkbox" ${t.completed ? 'checked' : ''} class="w-6 h-6 text-pink-500 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-pink-500 mr-4 flex-shrink-0 transition-colors" onclick="window.toggleTaskComplete('${t.id}', this.checked)">
-            <div class="flex-grow cursor-pointer truncate" onclick="window.openTaskDetailModal('${t.id}')">
+            <!-- ★ onclickを削除し、task-checkboxクラスとdata-task-idを追加 -->
+            <input type="checkbox" ${t.completed ? 'checked' : ''} class="task-checkbox w-6 h-6 text-pink-500 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-pink-500 mr-4 flex-shrink-0 transition-colors" data-task-id="${t.id}">
+            <!-- ★ onclickを削除し、task-row-clickableクラスとdata-task-idを追加 -->
+            <div class="flex-grow cursor-pointer truncate task-row-clickable" data-task-id="${t.id}">
                 <div class="flex items-center gap-2 mb-1.5"><span class="text-[10px] font-black text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 border border-gray-200 dark:border-gray-600"><i class="${imp.iconClass}"></i> ${imp.badgeText}</span>${subjectBadge}</div>
                 <div class="flex justify-between items-center mb-1"><span class="text-gray-800 dark:text-gray-100 font-bold text-[15px] truncate mr-2 tracking-wide">${escapeHTML(t.title)}</span></div>
                 <div class="text-[11px] text-gray-500 dark:text-gray-400 font-medium flex items-center"><i class="far fa-clock mr-1"></i> ${t.isReview ? 'なし' : formatTime(t.estimatedTime)}</div>
@@ -40,8 +42,10 @@ export function createTaskHTML(t, hideSubjectBadge = false) {
     return `
         <div class="flex items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-gray-700 relative overflow-hidden mb-3">
             ${t.isReview ? '<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-400"></div>' : ''}
-            <input type="checkbox" ${t.completed ? 'checked' : ''} class="w-6 h-6 text-pink-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-pink-500 mr-4 flex-shrink-0 transition-colors" onclick="window.toggleTaskComplete('${t.id}', this.checked)">
-            <div class="flex-grow cursor-pointer truncate" onclick="window.openTaskDetailModal('${t.id}')">
+            <!-- ★ onclickを削除し、task-checkboxクラスとdata-task-idを追加 -->
+            <input type="checkbox" ${t.completed ? 'checked' : ''} class="task-checkbox w-6 h-6 text-pink-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-pink-500 mr-4 flex-shrink-0 transition-colors" data-task-id="${t.id}">
+            <!-- ★ onclickを削除し、task-row-clickableクラスとdata-task-idを追加 -->
+            <div class="flex-grow cursor-pointer truncate task-row-clickable" data-task-id="${t.id}">
                 <div class="flex justify-between items-center mb-1">
                     <span class="${t.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-800 dark:text-gray-100'} font-bold text-base truncate mr-2 tracking-wide">${escapeHTML(t.title)}</span>
                     ${subjectBadge}
@@ -62,5 +66,22 @@ export function createCompletedTaskReviewHTML(t) {
         subEvalsHtml = `<div class="mt-3 bg-gray-50 dark:bg-gray-700/40 rounded-xl p-3 border border-gray-100 dark:border-gray-600/50"><p class="text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-2 border-b border-gray-200 dark:border-gray-600 pb-1">教材・問題別の詳細</p><div class="space-y-1.5">${t.subEvaluations.map(sub => `<div class="flex justify-between items-center text-xs"><span class="text-gray-700 dark:text-gray-300 font-medium truncate">${escapeHTML(sub.name)}</span><span class="font-bold ml-2 ${sub.eval === 'A' ? 'text-pink-500' : sub.eval === 'B' ? 'text-purple-500' : sub.eval === 'C' ? 'text-yellow-500' : 'text-red-500'}">評${sub.eval}</span></div>`).join('')}</div></div>`;
     }
     let noteHtml = t.note ? `<div class="mt-3"><p class="text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-1 ml-1">学習メモ・振り返り</p><p class="text-xs text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/40 border border-gray-100 dark:border-gray-600/50 p-3 rounded-xl whitespace-pre-wrap leading-relaxed">${escapeHTML(t.note)}</p></div>` : '';
-    return `<div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700 relative mb-4"><div class="flex justify-between items-start mb-2"><div class="flex-grow pr-4"><h4 class="font-bold text-gray-800 dark:text-gray-100 text-[15px] leading-tight mb-2">${escapeHTML(t.title)}</h4><div class="flex flex-wrap items-center gap-2"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span><span class="text-xs text-gray-500 dark:text-gray-400 font-bold bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-md"><i class="far fa-clock mr-1"></i>${formatTime(t.actualTime)}</span>${t.evaluation ? `<span class="text-xs font-bold px-2 py-0.5 rounded-md border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300">全体評: ${t.evaluation}</span>` : ''}${t.isReview ? '<span class="text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 px-2 py-0.5 rounded-md text-[10px] font-bold"><i class="fas fa-redo-alt mr-1"></i>復習</span>' : ''}</div></div><button onclick="window.openTaskDetailModal('${t.id}')" class="text-gray-400 hover:text-pink-500 transition-colors w-8 h-8 flex items-center justify-center bg-gray-50 hover:bg-pink-50 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-full flex-shrink-0"><i class="fas fa-edit text-xs"></i></button></div>${subEvalsHtml}${noteHtml}</div>`;
+    return `<div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700 relative mb-4">
+        <div class="flex justify-between items-start mb-2">
+            <div class="flex-grow pr-4">
+                <h4 class="font-bold text-gray-800 dark:text-gray-100 text-[15px] leading-tight mb-2">${escapeHTML(t.title)}</h4>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 font-bold bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-md"><i class="far fa-clock mr-1"></i>${formatTime(t.actualTime)}</span>
+                    ${t.evaluation ? `<span class="text-xs font-bold px-2 py-0.5 rounded-md border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300">全体評: ${t.evaluation}</span>` : ''}
+                    ${t.isReview ? '<span class="text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 px-2 py-0.5 rounded-md text-[10px] font-bold"><i class="fas fa-redo-alt mr-1"></i>復習</span>' : ''}
+                </div>
+            </div>
+            <!-- ★ onclickを削除し、task-edit-btnクラスとdata-task-idを追加 -->
+            <button class="task-edit-btn text-gray-400 hover:text-pink-500 transition-colors w-8 h-8 flex items-center justify-center bg-gray-50 hover:bg-pink-50 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-full flex-shrink-0" data-task-id="${t.id}">
+                <i class="fas fa-edit text-xs pointer-events-none"></i>
+            </button>
+        </div>
+        ${subEvalsHtml}${noteHtml}
+    </div>`;
 }

@@ -2,6 +2,42 @@ import { QUOTES, SUBJECTS, SUBJECT_COLORS } from '../utils/constants.js';
 import { formatDate } from '../utils/helpers.js';
 import { getTaskImportance, createImportantTaskHTML, createTaskHTML } from './taskUI.js';
 
+// main.js から渡されるコールバックを保持
+let onToggleTaskComplete = null;
+let onOpenTaskDetail = null;
+
+// ★ 新規追加: イベント委譲を使った初期化
+export function initDashboard(toggleCallback, openDetailCallback) {
+    onToggleTaskComplete = toggleCallback;
+    onOpenTaskDetail = openDetailCallback;
+
+    const container = document.getElementById('dashboard-tasks-container');
+    if (!container) return;
+
+    // タスク完了（チェックボックス）の変更イベントを監視
+    container.addEventListener('change', (e) => {
+        if (e.target.matches('.task-checkbox')) {
+            const taskId = e.target.dataset.taskId;
+            if (taskId && onToggleTaskComplete) {
+                onToggleTaskComplete(taskId, e.target.checked);
+            }
+        }
+    });
+
+    // タスクのクリック（詳細モーダルを開く）イベントを監視
+    container.addEventListener('click', (e) => {
+        // チェックボックス自体をクリックした場合は無視（changeイベントで処理するため）
+        if (e.target.matches('.task-checkbox')) return;
+
+        const taskRow = e.target.closest('.task-row-clickable');
+        if (taskRow && taskRow.dataset.taskId) {
+            if (onOpenTaskDetail) {
+                onOpenTaskDetail(taskRow.dataset.taskId);
+            }
+        }
+    });
+}
+
 export function displayDailyQuote() {
     const today = new Date();
     const daysSinceEpoch = Math.floor(today.getTime() / (1000 * 60 * 60 * 24));

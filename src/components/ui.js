@@ -1,5 +1,43 @@
 import { escapeHTML } from '../utils/helpers.js';
 
+// ★ 新規追加: 共通UIのイベント初期化
+export function initUI(onThemeChangeCallback) {
+    // 1. ダークモード切り替えボタン（HTMLに id="btn-toggle-theme" を追加してください）
+    document.getElementById('btn-toggle-theme')?.addEventListener('click', () => {
+        toggleDarkMode(onThemeChangeCallback);
+    });
+
+    // 2. カスタム確認モーダルのイベント
+    const confirmModal = document.getElementById('custom-confirm-modal');
+    if (confirmModal) {
+        // 背景クリックで閉じる
+        confirmModal.addEventListener('click', (e) => {
+            if (e.target === confirmModal) closeConfirm();
+        });
+        // キャンセルボタン（HTMLに id="confirm-cancel-btn" を追加してください）
+        document.getElementById('confirm-cancel-btn')?.addEventListener('click', closeConfirm);
+        // 実行ボタン
+        document.getElementById('confirm-execute-btn')?.addEventListener('click', executeConfirm);
+    }
+
+    // 3. 各種モーダルの「閉じる」イベントをまとめて処理（イベント委譲）
+    // HTMLの各種モーダル（.modal-overlay）に対して設定
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+        // 背景クリックで閉じる
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal(modal.id);
+        });
+
+        // モーダル内の「閉じる(×)」ボタン（class="modal-close-btn" を追加してください）
+        const closeBtn = modal.querySelector('.modal-close-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => closeModal(modal.id));
+        }
+    });
+
+    initTheme();
+}
+
 // ==========================================
 // トースト通知
 // ==========================================

@@ -1,39 +1,67 @@
 import { SUBJECTS, SUBJECT_COLORS } from '../utils/constants.js';
 import { formatDate, formatTime } from '../utils/helpers.js';
+// taskUI.js の関数も、内部で onclick を使っている場合は後ほど調整が必要です
 import { createTaskHTML, createCompletedTaskReviewHTML } from './taskUI.js';
 
 let calendarSelectedDateStr = formatDate(new Date()); 
 let calendarMonthObj = new Date(); 
 calendarMonthObj.setDate(1);
 
+// main.js から最新の tasks を取得するためのコールバックを保持
+let getLatestTasks = () => [];
+let onDateChanged = null;
+let onMonthChanged = null;
+
+// ★ 新規追加: 初期化とイベントリスナーの登録
+export function initCalendar(tasksProvider, monthChangeCallback, dateSelectCallback) {
+    getLatestTasks = tasksProvider;
+    onMonthChanged = monthChangeCallback;
+    onDateChanged = dateSelectCallback;
+
+    // 月切り替えボタンのイベント登録 (HTMLから onclick="changeMonth(-1)" 等を削除してください)
+    document.getElementById('btn-prev-month')?.addEventListener('click', () => changeMonth(-1));
+    document.getElementById('btn-next-month')?.addEventListener('click', () => changeMonth(1));
+
+    // ★ イベント委譲: グリッド全体にクリックイベントを登録
+    document.getElementById('calendar-grid')?.addEventListener('click', (e) => {
+        // クリックされた要素がセル（.calendar-cell）か判定
+        const cell = e.target.closest('.calendar-cell');
+        if (cell && cell.dataset.date) {
+            selectCalendarDate(cell.dataset.date);
+        }
+    });
+}
+
 export function getCalendarSelectedDate() {
     return calendarSelectedDateStr;
 }
 
-export function changeMonth(offset, tasks, onMonthChangedCallback) { 
+export function changeMonth(offset) { 
     calendarMonthObj.setDate(1); 
     calendarMonthObj.setMonth(calendarMonthObj.getMonth() + offset); 
     calendarSelectedDateStr = formatDate(calendarMonthObj);
     
-    if (onMonthChangedCallback) {
-        // 月が変わった際にルーティンタスクの適用等を行うため、メインの関数をコールバック
-        onMonthChangedCallback(calendarSelectedDateStr);
+    if (onMonthChanged) {
+        onMonthChanged(calendarSelectedDateStr);
     }
     
+    const tasks = getLatestTasks();
     renderCalendar(tasks); 
     renderCalendarTasks(tasks);
 }
 
-export function selectCalendarDate(dateStr, tasks, onDateSelectedCallback) { 
+export function selectCalendarDate(dateStr) { 
     calendarSelectedDateStr = dateStr; 
-    if (onDateSelectedCallback) {
-        onDateSelectedCallback(calendarSelectedDateStr);
+    if (onDateChanged) {
+        onDateChanged(calendarSelectedDateStr);
     }
+    const tasks = getLatestTasks();
     renderCalendar(tasks); 
     renderCalendarTasks(tasks); 
 }
 
 export function renderCalendar(tasks) {
+    if (!tasks) return;
     const y = calendarMonthObj.getFullYear(), m = calendarMonthObj.getMonth();
     document.getElementById('calendar-month-display').innerText = `${y}年 ${m + 1}月`;
     const firstDay = new Date(y, m, 1).getDay(), daysInMonth = new Date(y, m + 1, 0).getDate();
@@ -71,8 +99,9 @@ export function renderCalendar(tasks) {
         const bgClass = isSelected ? 'bg-pink-50 dark:bg-gray-700 ring-2 ring-inset ring-pink-500 dark:ring-pink-400 shadow-sm' : 
                      (hasOverdue ? 'bg-rose-50/30 dark:bg-rose-900/20 border border-rose-300 dark:border-rose-800' : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:bg-pink-50 dark:hover:bg-gray-700');
 
+        // ★ onclick を削除し、data-date 属性を付与
         grid.innerHTML += `
-            <div onclick="window.handleSelectCalendarDate('${dateStr}')" class="calendar-cell rounded-2xl p-1.5 cursor-pointer transition-colors text-center flex flex-col items-center ${bgClass}">
+            <div data-date="${dateStr}" class="calendar-cell rounded-2xl p-1.5 cursor-pointer transition-colors text-center flex flex-col items-center ${bgClass}">
                 <div class="text-xs ${dateStr === todayStr ? 'font-black text-white bg-pink-500 w-6 h-6 rounded-full flex items-center justify-center shadow-sm' : 'font-medium text-gray-700 dark:text-gray-300'}">${d}</div>
                 ${badge}${dots}
             </div>`;
@@ -80,6 +109,7 @@ export function renderCalendar(tasks) {
 }
 
 export function renderCalendarTasks(tasks) {
+    if (!tasks) return;
     const parts = calendarSelectedDateStr.split('-'); 
     document.getElementById('calendar-selected-date-display').innerHTML = `${parseInt(parts[1])}月${parseInt(parts[2])}日の記録 <span class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-medium" id="calendar-task-count">0</span>`;
     
