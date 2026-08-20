@@ -1,16 +1,16 @@
 import { observeAuthState } from './services/auth.js';
 import { setCurrentUserId, getCurrentUserId, getAppCollectionRef, getAppDocRef, getFcCollectionRef } from './services/db.js';
-import { showToast, showConfirm, closeConfirm, executeConfirm, openModal, closeModal, toggleDarkMode, initTheme, switchViewUI } from './components/ui.js';
-import { toggleAuthMode, performAuthAction, performGoogleAuth, handleLogout } from './components/authUI.js';
+import { showToast, showConfirm, closeConfirm, executeConfirm, openModal, closeModal, initUI, switchViewUI } from './components/ui.js';
+import { initAuthUI } from './components/authUI.js';
 import { renderDashboard, updateStreak } from './components/dashboard.js';
-import { renderCalendar, renderCalendarTasks, changeMonth, selectCalendarDate, getCalendarSelectedDate } from './components/calendar.js';
+import { initCalendar, renderCalendar, renderCalendarTasks, changeMonth, selectCalendarDate, getCalendarSelectedDate } from './components/calendar.js';
 import { renderAnalytics, updateChartColors } from './components/analytics.js';
-import { renderSettings, saveUserProfile, autoFetchWeights, deleteRoutine, buildWeightInputs, saveApiKey } from './components/settings.js';
+import { initSettings, renderSettings, saveUserProfile, buildWeightInputs } from './components/settings.js';
 import { initDrill, stopDrillTimer, focusDrillInput } from './components/drill.js';
 import { initFlashcard, updateFcSets } from './components/flashcard.js';
 import { SUBJECTS, REVIEW_INTERVALS } from './utils/constants.js';
 import { formatDate } from './utils/helpers.js';
-import { onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // アプリケーションのグローバル状態
 const state = {
@@ -25,17 +25,24 @@ const state = {
 };
 
 // ==========================================
-// 初期化と認証の監視
+// 初期化とイベントリスナーの設定
 // ==========================================
 function initApp() {
-    initTheme();
-    buildWeightInputs();
+    // 1. 各モジュールの初期化
+    initUI(() => updateChartColors());
+    initAuthUI();
+    initSettings(() => getCurrentUserId());
     initDrill();
     initFlashcard();
+    initCalendar(() => state.tasks, undefined, undefined);
+    
+    buildWeightInputs();
+    setupEventListeners();
 
     updateCountdowns();
     setInterval(updateCountdowns, 1000 * 60 * 60);
 
+    // 2. 認証状態の監視
     observeAuthState((user) => {
         const loading = document.getElementById('loading-screen');
         if (user) {
@@ -62,7 +69,60 @@ function initApp() {
     });
 }
 
-// モジュールは読み込みタイミングが遅れるため、readyStateをチェックして確実に実行する
+// 3. main.jsが管轄するUI要素のイベント登録
+function setupEventListeners() {
+    // ボトムナビゲーションのタブ切り替え
+    document.querySelectorAll('nav .tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const viewId = e.currentTarget.id.replace('nav-', '');
+            switchView(viewId);
+        });
+    });
+
+    // 右下のフローティング追加ボタン（HTML側に id="btn-open-add-task" を付与）
+    document.getElementById('btn-open-add-task')?.addEventListener('click', openAddTaskModal);
+    
+    // タスク追加モーダル内
+    document.getElementById('btn-save-new-task')?.addEventListener('click', saveNewTask);
+    
+    // ルーティン追加関連（HTML側のボタンに id="btn-open-add-routine" を付与）
+    document.getElementById('btn-open-add-routine')?.addEventListener('click', openAddRoutineModal);
+    document.getElementById('btn-save-new-routine')?.addEventListener('click', saveNewRoutine);
+
+    // タスク詳細モーダル内
+    document.getElementById('btn-save-task-detail')?.addEventListener('click', saveTaskDetail);
+    document.getElementById('btn-delete-task')?.addEventListener('click', deleteTask);
+    document.getElementById('toggle-sub-eval-btn')?.addEventListener('click', toggleSubEvaluations);
+
+    // ★ ここを追記：「問題を追加」ボタンが押されたら addSubEvaluation を実行する
+    document.getElementById('btn-add-sub-eval')?.addEventListener('click', () => addSubEvaluation());
+    
+    // 小問評価の削除ボタンへのイベント委譲
+    document.getElementById('sub-evaluations-list')?.addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.sub-eval-delete-btn');
+        if (deleteBtn) deleteBtn.closest('.flex').remove();
+    });
+
+    // ダッシュボードとカレンダーのタスク一覧へのイベント委譲（チェック・クリック処理）
+    ['dashboard-tasks-container', 'calendar-tasks-container'].forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.addEventListener('change', (e) => {
+                if (e.target.matches('.task-checkbox')) {
+                    toggleTaskComplete(e.target.dataset.taskId, e.target.checked);
+                }
+            });
+            container.addEventListener('click', (e) => {
+                if (e.target.matches('.task-checkbox')) return; // checkboxのクリックは無視
+                const targetEl = e.target.closest('.task-row-clickable, .task-edit-btn');
+                if (targetEl && targetEl.dataset.taskId) {
+                    openTaskDetailModal(targetEl.dataset.taskId);
+                }
+            });
+        }
+    });
+}
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
 } else {
@@ -75,7 +135,6 @@ if (document.readyState === 'loading') {
 function subscribeToData() {
     unsubscribeAll();
 
-    // タスクの購読
     state.unsubscribeTasks = onSnapshot(getAppCollectionRef('tasks'), (snapshot) => {
         state.tasks = [];
         snapshot.forEach(doc => state.tasks.push({ id: doc.id, ...doc.data() }));
@@ -84,7 +143,6 @@ function subscribeToData() {
         updateStreak(state.tasks);
     });
 
-    // ルーティンの購読
     state.unsubscribeRoutines = onSnapshot(getAppCollectionRef('routines'), (snapshot) => {
         state.routines = [];
         snapshot.forEach(doc => state.routines.push({ id: doc.id, ...doc.data() }));
@@ -92,7 +150,6 @@ function subscribeToData() {
         if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
     });
 
-    // プロフィールの購読
     state.unsubscribeProfile = onSnapshot(getAppDocRef('profile', 'data'), (doc) => {
         if (doc.exists()) {
             state.userProfile = doc.data();
@@ -101,11 +158,10 @@ function subscribeToData() {
         }
     });
 
-    // 単語帳の購読
     state.unsubscribeFc = onSnapshot(getFcCollectionRef(), (snapshot) => {
         const sets = [];
         snapshot.forEach(doc => sets.push({ id: doc.id, ...doc.data() }));
-        updateFcSets(sets); // flashcard.js 側の状態を更新
+        updateFcSets(sets); 
     });
 }
 
@@ -145,12 +201,9 @@ function updateAllViews() {
 async function generateRoutineTasks() {
     const todayStr = formatDate(new Date());
     for (const r of state.routines) {
-        // 重複生成を防ぐための厳密なチェック
         const isGenerated = state.tasks.some(t => t.title === r.title && t.isRoutine === true && t.date === todayStr);
         if (!isGenerated) {
-            // DB保存完了前に再び呼び出されるのを防ぐため、仮のタスクを配列に入れておく
             state.tasks.push({ title: r.title, isRoutine: true, date: todayStr });
-            
             const docId = `routine_${r.id}_${todayStr}`;
             const newDocRef = doc(getAppCollectionRef('tasks'), docId);
             await setDoc(newDocRef, {
@@ -169,7 +222,7 @@ async function generateRoutineTasks() {
 }
 
 function openAddTaskModal() {
-    const todayStr = getCalendarSelectedDate();
+    const todayStr = state.currentView === 'calendar' ? getCalendarSelectedDate() : formatDate(new Date());
     document.getElementById('input-task-title').value = '';
     document.getElementById('input-task-time').value = '';
     const subjectSelect = document.getElementById('input-task-subject');
@@ -227,14 +280,12 @@ function openTaskDetailModal(id) {
     document.getElementById('detail-actual-time').value = task.actualTime || task.estimatedTime || '';
     document.getElementById('detail-note').value = task.note || '';
 
-    // 評価ラジオボタンのリセットと設定
     document.querySelectorAll('input[name="evaluation"]').forEach(r => r.checked = false);
     if (task.evaluation) {
         const radio = document.querySelector(`input[name="evaluation"][value="${task.evaluation}"]`);
         if (radio) radio.checked = true;
     }
 
-    // 小問評価の復元
     const subEvalsList = document.getElementById('sub-evaluations-list');
     subEvalsList.innerHTML = '';
     if (task.subEvaluations && task.subEvaluations.length > 0) {
@@ -268,6 +319,7 @@ function addSubEvaluation(name = '', evalVal = 'A') {
     const list = document.getElementById('sub-evaluations-list');
     const item = document.createElement('div');
     item.className = 'flex space-x-2 items-center';
+    // ★ 削除ボタンに class="sub-eval-delete-btn" を追加し、onclickを削除
     item.innerHTML = `
         <input type="text" class="sub-eval-name flex-grow border-none bg-white dark:bg-gray-700 dark:text-white p-2.5 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none text-xs" placeholder="問題番号など" value="${name}">
         <select class="sub-eval-val w-20 appearance-none bg-white dark:bg-gray-700 border-none rounded-xl text-xs font-bold p-2.5 outline-none dark:text-white text-center focus:ring-2 focus:ring-pink-500">
@@ -276,7 +328,7 @@ function addSubEvaluation(name = '', evalVal = 'A') {
             <option value="C" ${evalVal === 'C' ? 'selected' : ''}>評C</option>
             <option value="D" ${evalVal === 'D' ? 'selected' : ''}>評D</option>
         </select>
-        <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-red-500 p-2"><i class="fas fa-times"></i></button>
+        <button class="sub-eval-delete-btn text-gray-400 hover:text-red-500 p-2"><i class="fas fa-times pointer-events-none"></i></button>
     `;
     list.appendChild(item);
 }
@@ -300,7 +352,6 @@ async function saveTaskDetail() {
             if (name) subEvaluations.push({ name, eval: val });
         }
         if (subEvaluations.length > 0) {
-            // 最も悪い評価を全体の評価とする
             const ranks = { 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
             evaluation = subEvaluations.reduce((worst, current) => ranks[current.eval] < ranks[worst] ? current.eval : worst, 'A');
         } else {
@@ -321,7 +372,6 @@ async function saveTaskDetail() {
         const updateData = { actualTime, note, evaluation, subEvaluations, completed: true };
         await setDoc(getAppDocRef('tasks', id), updateData, { merge: true });
 
-        // 復習タスクのスケジューリング
         if (!task.isReview && evaluation) {
             await scheduleReviews(task, evaluation, subEvaluations);
         }
@@ -416,9 +466,6 @@ async function saveNewRoutine() {
     }
 }
 
-// ==========================================
-// カウントダウン処理
-// ==========================================
 function updateCountdowns() {
     const now = new Date();
     const cd = (dateStr, elId) => {
@@ -429,35 +476,3 @@ function updateCountdowns() {
     cd('2027-01-16T00:00:00', 'cd-common');
     cd('2027-02-25T00:00:00', 'cd-second');
 }
-
-// ==========================================
-// HTML（onclick等）から呼び出すためのグローバル関数の登録
-// ==========================================
-window.performAuthAction = performAuthAction;
-window.performGoogleAuth = performGoogleAuth;
-window.toggleAuthMode = toggleAuthMode;
-window.handleLogout = handleLogout;
-window.toggleDarkMode = () => toggleDarkMode(updateChartColors);
-window.closeConfirm = closeConfirm;
-window.executeConfirm = executeConfirm;
-window.openModal = openModal;
-window.closeModal = closeModal;
-
-window.switchView = switchView;
-window.changeMonth = (offset) => changeMonth(offset, state.tasks, () => {});
-window.handleSelectCalendarDate = (dateStr) => selectCalendarDate(dateStr, state.tasks, () => {});
-window.saveApiKey = saveApiKey;
-window.autoFetchWeights = autoFetchWeights;
-window.saveUserProfile = () => saveUserProfile(getCurrentUserId);
-window.deleteRoutine = deleteRoutine;
-
-window.openAddTaskModal = openAddTaskModal;
-window.saveNewTask = saveNewTask;
-window.toggleTaskComplete = toggleTaskComplete;
-window.openTaskDetailModal = openTaskDetailModal;
-window.toggleSubEvaluations = toggleSubEvaluations;
-window.addSubEvaluation = addSubEvaluation;
-window.deleteTask = deleteTask;
-window.saveTaskDetail = saveTaskDetail;
-window.openAddRoutineModal = openAddRoutineModal;
-window.saveNewRoutine = saveNewRoutine;
