@@ -306,4 +306,3 @@ async function evalFcWord(grade) {
         fcIsEval = false;
     }, 600);
 }
-```eof
