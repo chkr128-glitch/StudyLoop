@@ -7,7 +7,7 @@ import { initCalendar, renderCalendar, renderCalendarTasks, changeMonth, selectC
 import { renderAnalytics, updateChartColors } from './components/analytics.js';
 import { initSettings, renderSettings, saveUserProfile, buildWeightInputs } from './components/settings.js';
 import { initDrill, stopDrillTimer, focusDrillInput } from './components/drill.js';
-import { initFlashcard, updateFcSets } from './components/flashcard.js';
+import { initFlashcard, updateFcSets, showFcView } from './components/flashcard.js';
 import { SUBJECTS, REVIEW_INTERVALS } from './utils/constants.js';
 import { formatDate } from './utils/helpers.js';
 import { onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -28,13 +28,18 @@ const state = {
 // 初期化とイベントリスナーの設定
 // ==========================================
 function initApp() {
-    // 1. 各モジュールの初期化
     initUI(() => updateChartColors());
     initAuthUI();
     initSettings(() => getCurrentUserId());
     initDrill();
     initFlashcard();
-    initCalendar(() => state.tasks, undefined, undefined);
+    
+    // カレンダーの月変更・日選択時に、その日付のルーティンを生成するようコールバックを設定
+    initCalendar(
+        () => state.tasks, 
+        (dateStr) => generateRoutineTasks(dateStr), 
+        (dateStr) => generateRoutineTasks(dateStr)
+    );
     
     buildWeightInputs();
     setupEventListeners();
@@ -42,34 +47,40 @@ function initApp() {
     updateCountdowns();
     setInterval(updateCountdowns, 1000 * 60 * 60);
 
-    // 2. 認証状態の監視
     observeAuthState((user) => {
         const loading = document.getElementById('loading-screen');
         if (user) {
             setCurrentUserId(user.uid);
             document.getElementById('display-user-id').innerText = user.uid;
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('auth-screen').classList.remove('flex');
-            document.getElementById('main-app').classList.remove('hidden');
-            document.getElementById('main-app').classList.add('flex');
+            toggleVisibility('auth-screen', false);
+            toggleVisibility('main-app', true);
             
             subscribeToData();
             switchView('dashboard');
-            loading.classList.add('hidden');
+            if (loading) loading.classList.add('hidden');
             showToast('ログインしました');
         } else {
             setCurrentUserId(null);
-            document.getElementById('auth-screen').classList.remove('hidden');
-            document.getElementById('auth-screen').classList.add('flex');
-            document.getElementById('main-app').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('flex');
-            loading.classList.add('hidden');
+            toggleVisibility('auth-screen', true);
+            toggleVisibility('main-app', false);
+            if (loading) loading.classList.add('hidden');
             unsubscribeAll();
         }
     });
 }
 
-// 3. main.jsが管轄するUI要素のイベント登録
+function toggleVisibility(id, isVisible) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (isVisible) {
+        el.classList.remove('hidden');
+        el.classList.add('flex');
+    } else {
+        el.classList.add('hidden');
+        el.classList.remove('flex');
+    }
+}
+
 function setupEventListeners() {
     // ボトムナビゲーションのタブ切り替え
     document.querySelectorAll('nav .tab-btn').forEach(btn => {
@@ -79,22 +90,15 @@ function setupEventListeners() {
         });
     });
 
-    // 右下のフローティング追加ボタン（HTML側に id="btn-open-add-task" を付与）
     document.getElementById('btn-open-add-task')?.addEventListener('click', openAddTaskModal);
-    
-    // タスク追加モーダル内
     document.getElementById('btn-save-new-task')?.addEventListener('click', saveNewTask);
     
-    // ルーティン追加関連（HTML側のボタンに id="btn-open-add-routine" を付与）
     document.getElementById('btn-open-add-routine')?.addEventListener('click', openAddRoutineModal);
     document.getElementById('btn-save-new-routine')?.addEventListener('click', saveNewRoutine);
 
-    // タスク詳細モーダル内
     document.getElementById('btn-save-task-detail')?.addEventListener('click', saveTaskDetail);
     document.getElementById('btn-delete-task')?.addEventListener('click', deleteTask);
     document.getElementById('toggle-sub-eval-btn')?.addEventListener('click', toggleSubEvaluations);
-
-    // ★ ここを追記：「問題を追加」ボタンが押されたら addSubEvaluation を実行する
     document.getElementById('btn-add-sub-eval')?.addEventListener('click', () => addSubEvaluation());
     
     // 小問評価の削除ボタンへのイベント委譲
@@ -103,21 +107,17 @@ function setupEventListeners() {
         if (deleteBtn) deleteBtn.closest('.flex').remove();
     });
 
-    // ダッシュボードとカレンダーのタスク一覧へのイベント委譲（チェック・クリック処理）
+    // タスク一覧へのイベント委譲
     ['dashboard-tasks-container', 'calendar-tasks-container'].forEach(containerId => {
         const container = document.getElementById(containerId);
         if (container) {
             container.addEventListener('change', (e) => {
-                if (e.target.matches('.task-checkbox')) {
-                    toggleTaskComplete(e.target.dataset.taskId, e.target.checked);
-                }
+                if (e.target.matches('.task-checkbox')) toggleTaskComplete(e.target.dataset.taskId, e.target.checked);
             });
             container.addEventListener('click', (e) => {
-                if (e.target.matches('.task-checkbox')) return; // checkboxのクリックは無視
+                if (e.target.matches('.task-checkbox')) return; 
                 const targetEl = e.target.closest('.task-row-clickable, .task-edit-btn');
-                if (targetEl && targetEl.dataset.taskId) {
-                    openTaskDetailModal(targetEl.dataset.taskId);
-                }
+                if (targetEl && targetEl.dataset.taskId) openTaskDetailModal(targetEl.dataset.taskId);
             });
         }
     });
@@ -141,14 +141,14 @@ function subscribeToData() {
         generateRoutineTasks();
         updateAllViews();
         updateStreak(state.tasks);
-    });
+    }, (err) => console.error("Tasks sync error:", err));
 
     state.unsubscribeRoutines = onSnapshot(getAppCollectionRef('routines'), (snapshot) => {
         state.routines = [];
         snapshot.forEach(doc => state.routines.push({ id: doc.id, ...doc.data() }));
         generateRoutineTasks();
         if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
-    });
+    }, (err) => console.error("Routines sync error:", err));
 
     state.unsubscribeProfile = onSnapshot(getAppDocRef('profile', 'data'), (doc) => {
         if (doc.exists()) {
@@ -156,13 +156,13 @@ function subscribeToData() {
             if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
             if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
         }
-    });
+    }, (err) => console.error("Profile sync error:", err));
 
     state.unsubscribeFc = onSnapshot(getFcCollectionRef(), (snapshot) => {
         const sets = [];
         snapshot.forEach(doc => sets.push({ id: doc.id, ...doc.data() }));
         updateFcSets(sets); 
-    });
+    }, (err) => console.error("Flashcards sync error:", err));
 }
 
 function unsubscribeAll() {
@@ -193,30 +193,38 @@ function updateAllViews() {
     }
     if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
     if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
+    
+    // 単語帳タブを開いた際に、現在アクティブなFCビューを再描画する
+    if (state.currentView === 'flashcard-app') {
+        const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
+        showFcView(activeFcView);
+    }
 }
 
 // ==========================================
 // タスク・ルーティンのコアロジック
 // ==========================================
-async function generateRoutineTasks() {
-    const todayStr = formatDate(new Date());
+async function generateRoutineTasks(targetDateStr = null) {
+    // 引数がない場合は「今日」をデフォルトとする
+    const dateStr = targetDateStr || formatDate(new Date());
+    
     for (const r of state.routines) {
-        const isGenerated = state.tasks.some(t => t.title === r.title && t.isRoutine === true && t.date === todayStr);
+        const isGenerated = state.tasks.some(t => t.title === r.title && t.isRoutine === true && t.date === dateStr);
         if (!isGenerated) {
-            state.tasks.push({ title: r.title, isRoutine: true, date: todayStr });
-            const docId = `routine_${r.id}_${todayStr}`;
+            state.tasks.push({ title: r.title, isRoutine: true, date: dateStr });
+            const docId = `routine_${r.id}_${dateStr}`;
             const newDocRef = doc(getAppCollectionRef('tasks'), docId);
             await setDoc(newDocRef, {
                 title: r.title,
                 subject: r.subject,
                 estimatedTime: r.estimatedTime,
-                date: todayStr,
+                date: dateStr,
                 completed: false,
                 isReview: false,
                 isRoutine: true,
                 sourceRoutineId: r.id,
                 createdAt: new Date().toISOString()
-            }, { merge: true });
+            }, { merge: true }).catch(err => console.error("Error generating routine:", err));
         }
     }
 }
@@ -226,20 +234,20 @@ function openAddTaskModal() {
     document.getElementById('input-task-title').value = '';
     document.getElementById('input-task-time').value = '';
     const subjectSelect = document.getElementById('input-task-subject');
-    subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800">${s}</option>`).join('');
+    if(subjectSelect) subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800">${s}</option>`).join('');
     openModal('modal-add-task');
 }
 
 async function saveNewTask() {
     const title = document.getElementById('input-task-title').value.trim();
     const subject = document.getElementById('input-task-subject').value;
-    const time = parseInt(document.getElementById('input-task-time').value) || 0;
+    const time = parseInt(document.getElementById('input-task-time').value, 10) || 0;
     const dateStr = state.currentView === 'calendar' ? getCalendarSelectedDate() : formatDate(new Date());
 
     if (!title || !subject || time <= 0) return showToast("入力内容を確認してください", "error");
 
     const btn = document.getElementById('btn-save-new-task');
-    btn.disabled = true;
+    if(btn) btn.disabled = true;
     try {
         const newDocRef = doc(getAppCollectionRef('tasks'));
         await setDoc(newDocRef, {
@@ -252,7 +260,7 @@ async function saveNewTask() {
         console.error(e);
         showToast("タスクの追加に失敗しました", "error");
     } finally {
-        btn.disabled = false;
+        if(btn) btn.disabled = false;
     }
 }
 
@@ -287,39 +295,43 @@ function openTaskDetailModal(id) {
     }
 
     const subEvalsList = document.getElementById('sub-evaluations-list');
-    subEvalsList.innerHTML = '';
-    if (task.subEvaluations && task.subEvaluations.length > 0) {
-        document.getElementById('sub-evaluations-section').classList.remove('hidden');
-        document.getElementById('main-evaluation-section').classList.add('opacity-50', 'pointer-events-none');
-        task.subEvaluations.forEach(sub => addSubEvaluation(sub.name, sub.eval));
-    } else {
-        document.getElementById('sub-evaluations-section').classList.add('hidden');
-        document.getElementById('main-evaluation-section').classList.remove('opacity-50', 'pointer-events-none');
+    if(subEvalsList) {
+        subEvalsList.innerHTML = '';
+        if (task.subEvaluations && task.subEvaluations.length > 0) {
+            document.getElementById('sub-evaluations-section')?.classList.remove('hidden');
+            document.getElementById('main-evaluation-section')?.classList.add('opacity-50', 'pointer-events-none');
+            task.subEvaluations.forEach(sub => addSubEvaluation(sub.name, sub.eval));
+        } else {
+            document.getElementById('sub-evaluations-section')?.classList.add('hidden');
+            document.getElementById('main-evaluation-section')?.classList.remove('opacity-50', 'pointer-events-none');
+        }
     }
-
     openModal('modal-task-detail');
 }
 
 function toggleSubEvaluations() {
     const sec = document.getElementById('sub-evaluations-section');
     const mainSec = document.getElementById('main-evaluation-section');
+    if(!sec || !mainSec) return;
+    
     if (sec.classList.contains('hidden')) {
         sec.classList.remove('hidden');
         mainSec.classList.add('opacity-50', 'pointer-events-none');
         document.querySelectorAll('input[name="evaluation"]').forEach(r => r.checked = false);
-        if (document.getElementById('sub-evaluations-list').children.length === 0) addSubEvaluation();
+        if (document.getElementById('sub-evaluations-list')?.children.length === 0) addSubEvaluation();
     } else {
         sec.classList.add('hidden');
         mainSec.classList.remove('opacity-50', 'pointer-events-none');
-        document.getElementById('sub-evaluations-list').innerHTML = '';
+        const list = document.getElementById('sub-evaluations-list');
+        if(list) list.innerHTML = '';
     }
 }
 
 function addSubEvaluation(name = '', evalVal = 'A') {
     const list = document.getElementById('sub-evaluations-list');
+    if(!list) return;
     const item = document.createElement('div');
     item.className = 'flex space-x-2 items-center';
-    // ★ 削除ボタンに class="sub-eval-delete-btn" を追加し、onclickを削除
     item.innerHTML = `
         <input type="text" class="sub-eval-name flex-grow border-none bg-white dark:bg-gray-700 dark:text-white p-2.5 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none text-xs" placeholder="問題番号など" value="${name}">
         <select class="sub-eval-val w-20 appearance-none bg-white dark:bg-gray-700 border-none rounded-xl text-xs font-bold p-2.5 outline-none dark:text-white text-center focus:ring-2 focus:ring-pink-500">
@@ -338,14 +350,15 @@ async function saveTaskDetail() {
     const task = state.tasks.find(t => t.id === id);
     if (!task) return;
 
-    const actualTime = parseInt(document.getElementById('detail-actual-time').value) || 0;
+    const actualTime = parseInt(document.getElementById('detail-actual-time').value, 10) || 0;
     const note = document.getElementById('detail-note').value.trim();
     
     let evaluation = null;
     const subEvaluations = [];
+    const subEvalSec = document.getElementById('sub-evaluations-section');
     
-    if (!document.getElementById('sub-evaluations-section').classList.contains('hidden')) {
-        const items = document.getElementById('sub-evaluations-list').children;
+    if (subEvalSec && !subEvalSec.classList.contains('hidden')) {
+        const items = document.getElementById('sub-evaluations-list')?.children || [];
         for (let item of items) {
             const name = item.querySelector('.sub-eval-name').value.trim();
             const val = item.querySelector('.sub-eval-val').value;
@@ -366,7 +379,7 @@ async function saveTaskDetail() {
     if (!evaluation && !task.isReview) return showToast("定着度評価を選択してください", "error");
 
     const btn = document.getElementById('btn-save-task-detail');
-    btn.disabled = true;
+    if(btn) btn.disabled = true;
 
     try {
         const updateData = { actualTime, note, evaluation, subEvaluations, completed: true };
@@ -382,7 +395,7 @@ async function saveTaskDetail() {
         console.error(e);
         showToast("記録に失敗しました", "error");
     } finally {
-        btn.disabled = false;
+        if(btn) btn.disabled = false;
     }
 }
 
@@ -438,19 +451,19 @@ function openAddRoutineModal() {
     document.getElementById('input-routine-title').value = '';
     document.getElementById('input-routine-time').value = '';
     const subjectSelect = document.getElementById('input-routine-subject');
-    subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800">${s}</option>`).join('');
+    if(subjectSelect) subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800">${s}</option>`).join('');
     openModal('modal-add-routine');
 }
 
 async function saveNewRoutine() {
     const title = document.getElementById('input-routine-title').value.trim();
     const subject = document.getElementById('input-routine-subject').value;
-    const time = parseInt(document.getElementById('input-routine-time').value) || 0;
+    const time = parseInt(document.getElementById('input-routine-time').value, 10) || 0;
 
     if (!title || !subject || time <= 0) return showToast("入力内容を確認してください", "error");
 
     const btn = document.getElementById('btn-save-new-routine');
-    btn.disabled = true;
+    if(btn) btn.disabled = true;
     try {
         const newDocRef = doc(getAppCollectionRef('routines'));
         await setDoc(newDocRef, {
@@ -462,7 +475,7 @@ async function saveNewRoutine() {
         console.error(e);
         showToast("追加に失敗しました", "error");
     } finally {
-        btn.disabled = false;
+        if(btn) btn.disabled = false;
     }
 }
 
