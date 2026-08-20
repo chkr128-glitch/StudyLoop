@@ -146,6 +146,3 @@ export function shareMySetToStore(setName, wordsArray) {
         }
     });
 }
-```eof
-
-次は、この新しいモジュールを組み込むために `main.js` と `flashcard.js` を修正しましょうか？（準備が良ければお知らせください！）
