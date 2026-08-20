@@ -1,5 +1,5 @@
 import { observeAuthState } from './services/auth.js';
-import { setCurrentUserId, getCurrentUserId, getAppCollectionRef, getAppDocRef, getFcCollectionRef } from './services/db.js';
+import { setCurrentUserId, getCurrentUserId, getAppCollectionRef, getAppDocRef, getFcCollectionRef, getStoreCollectionRef } from './services/db.js';
 import { showToast, showConfirm, closeConfirm, executeConfirm, openModal, closeModal, initUI, switchViewUI } from './components/ui.js';
 import { initAuthUI } from './components/authUI.js';
 import { renderDashboard, updateStreak } from './components/dashboard.js';
@@ -8,33 +8,32 @@ import { renderAnalytics, updateChartColors } from './components/analytics.js';
 import { initSettings, renderSettings, saveUserProfile, buildWeightInputs } from './components/settings.js';
 import { initDrill, stopDrillTimer, focusDrillInput } from './components/drill.js';
 import { initFlashcard, updateFcSets, showFcView } from './components/flashcard.js';
+import { initStore, renderStore } from './components/store.js';
 import { SUBJECTS, REVIEW_INTERVALS } from './utils/constants.js';
 import { formatDate } from './utils/helpers.js';
 import { onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// アプリケーションのグローバル状態
 const state = {
     tasks: [],
     routines: [],
     userProfile: {},
+    storeSets: [],
     currentView: 'dashboard',
     unsubscribeTasks: null,
     unsubscribeRoutines: null,
     unsubscribeProfile: null,
-    unsubscribeFc: null
+    unsubscribeFc: null,
+    unsubscribeStore: null
 };
 
-// ==========================================
-// 初期化とイベントリスナーの設定
-// ==========================================
 function initApp() {
     initUI(() => updateChartColors());
     initAuthUI();
     initSettings(() => getCurrentUserId());
     initDrill();
     initFlashcard();
+    initStore();
     
-    // カレンダーの月変更・日選択時に、その日付のルーティンを生成するようコールバックを設定
     initCalendar(
         () => state.tasks, 
         (dateStr) => generateRoutineTasks(dateStr), 
@@ -82,7 +81,6 @@ function toggleVisibility(id, isVisible) {
 }
 
 function setupEventListeners() {
-    // ボトムナビゲーションのタブ切り替え
     document.querySelectorAll('nav .tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const viewId = e.currentTarget.id.replace('nav-', '');
@@ -101,13 +99,11 @@ function setupEventListeners() {
     document.getElementById('toggle-sub-eval-btn')?.addEventListener('click', toggleSubEvaluations);
     document.getElementById('btn-add-sub-eval')?.addEventListener('click', () => addSubEvaluation());
     
-    // 小問評価の削除ボタンへのイベント委譲
     document.getElementById('sub-evaluations-list')?.addEventListener('click', (e) => {
         const deleteBtn = e.target.closest('.sub-eval-delete-btn');
         if (deleteBtn) deleteBtn.closest('.flex').remove();
     });
 
-    // タスク一覧へのイベント委譲
     ['dashboard-tasks-container', 'calendar-tasks-container'].forEach(containerId => {
         const container = document.getElementById(containerId);
         if (container) {
@@ -129,9 +125,6 @@ if (document.readyState === 'loading') {
     initApp();
 }
 
-// ==========================================
-// データの同期 (Firestore)
-// ==========================================
 function subscribeToData() {
     unsubscribeAll();
 
@@ -163,6 +156,12 @@ function subscribeToData() {
         snapshot.forEach(doc => sets.push({ id: doc.id, ...doc.data() }));
         updateFcSets(sets); 
     }, (err) => console.error("Flashcards sync error:", err));
+
+    state.unsubscribeStore = onSnapshot(getStoreCollectionRef(), (snapshot) => {
+        state.storeSets = [];
+        snapshot.forEach(doc => state.storeSets.push({ id: doc.id, ...doc.data() }));
+        if (state.currentView === 'store') renderStore(state.storeSets);
+    }, (err) => console.error("Store sync error:", err));
 }
 
 function unsubscribeAll() {
@@ -170,11 +169,9 @@ function unsubscribeAll() {
     if (state.unsubscribeRoutines) state.unsubscribeRoutines();
     if (state.unsubscribeProfile) state.unsubscribeProfile();
     if (state.unsubscribeFc) state.unsubscribeFc();
+    if (state.unsubscribeStore) state.unsubscribeStore();
 }
 
-// ==========================================
-// ビュー（画面）切り替え
-// ==========================================
 function switchView(viewName) {
     state.currentView = viewName;
     switchViewUI(viewName);
@@ -193,19 +190,15 @@ function updateAllViews() {
     }
     if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
     if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
+    if (state.currentView === 'store') renderStore(state.storeSets);
     
-    // 単語帳タブを開いた際に、現在アクティブなFCビューを再描画する
     if (state.currentView === 'flashcard-app') {
         const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
         showFcView(activeFcView);
     }
 }
 
-// ==========================================
-// タスク・ルーティンのコアロジック
-// ==========================================
 async function generateRoutineTasks(targetDateStr = null) {
-    // 引数がない場合は「今日」をデフォルトとする
     const dateStr = targetDateStr || formatDate(new Date());
     
     for (const r of state.routines) {
@@ -489,3 +482,6 @@ function updateCountdowns() {
     cd('2027-01-16T00:00:00', 'cd-common');
     cd('2027-02-25T00:00:00', 'cd-second');
 }
+```eof
+
+次は `flashcard.js` または `index.html` の更新を行いますか？
