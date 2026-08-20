@@ -482,6 +482,3 @@ function updateCountdowns() {
     cd('2027-01-16T00:00:00', 'cd-common');
     cd('2027-02-25T00:00:00', 'cd-second');
 }
-```eof
-
-次は `flashcard.js` または `index.html` の更新を行いますか？
