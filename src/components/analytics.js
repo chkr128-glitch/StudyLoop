@@ -7,9 +7,9 @@ let chartRadarInstance = null;
 export function updateChartColors() { 
     const isDark = document.documentElement.classList.contains('dark'); 
     
-    // Chart.js がグローバルに読み込まれているか確認
-    if (typeof Chart !== 'undefined') {
-        Chart.defaults.color = isDark ? '#9CA3AF' : '#6B7280'; 
+    // window.Chart と明記することでグローバル変数であることを明確化
+    if (typeof window.Chart !== 'undefined') {
+        window.Chart.defaults.color = isDark ? '#9CA3AF' : '#6B7280'; 
     }
     
     if (chartRadarInstance) {
@@ -23,6 +23,18 @@ export function updateChartColors() {
 
 export function renderAnalytics(tasks, userProfile) {
     if (!tasks || !userProfile) return;
+    
+    // Chart.jsが読み込まれていない場合は処理を中断
+    if (typeof window.Chart === 'undefined') {
+        console.error("Chart.js is not loaded.");
+        return;
+    }
+
+    // 各Canvas要素を取得し、存在しない場合は中断（エラー防止）
+    const radarCtx = document.getElementById('chart-radar');
+    const subjectCtx = document.getElementById('chart-subject');
+    const evalCtx = document.getElementById('chart-evaluation');
+    if (!radarCtx || !subjectCtx || !evalCtx) return;
 
     // 完了したタスクの実績を集計
     const completed = tasks.filter(t => t.completed && t.actualTime > 0 && !t.deleted);
@@ -63,7 +75,7 @@ export function renderAnalytics(tasks, userProfile) {
     const gridColor = isDark ? 'rgba(156, 163, 175, 0.2)' : 'rgba(0, 0, 0, 0.1)';
 
     if(chartRadarInstance) chartRadarInstance.destroy();
-    chartRadarInstance = new Chart(document.getElementById('chart-radar'), { 
+    chartRadarInstance = new window.Chart(radarCtx, { 
         type: 'radar', 
         data: { 
             labels: SUBJECTS, 
@@ -80,14 +92,14 @@ export function renderAnalytics(tasks, userProfile) {
     });
 
     if(chartSubjectInstance) chartSubjectInstance.destroy(); 
-    chartSubjectInstance = new Chart(document.getElementById('chart-subject'), { 
+    chartSubjectInstance = new window.Chart(subjectCtx, { 
         type: 'doughnut', 
         data: { labels: SUBJECTS, datasets: [{ data: SUBJECTS.map(s => subData[s]), backgroundColor: bgColors, borderWidth: 0 }] }, 
         options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: {font:{size: 10}} } } } 
     });
     
     if(chartEvalInstance) chartEvalInstance.destroy(); 
-    chartEvalInstance = new Chart(document.getElementById('chart-evaluation'), { 
+    chartEvalInstance = new window.Chart(evalCtx, { 
         type: 'pie', 
         data: { labels: ['A (完璧)', 'B (不安)', 'C (復習)', 'D (無理)'], datasets: [{ data: [evalData['A'], evalData['B'], evalData['C'], evalData['D']], backgroundColor: ['#F472B6', '#C084FC', '#FBBF24', '#FB7185'], borderWidth: 0 }] }, 
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: {font:{size: 10}} } } } 

@@ -1,13 +1,29 @@
+function loadHighScores() {
+    try {
+        const stored = localStorage.getItem('studyLoopDrillScores');
+        if (stored) {
+            return JSON.parse(stored);
+        }
+    } catch (e) {
+        console.warn("LocalStorageの読み込みに失敗しました:", e);
+    }
+    return { streak: 0, timeAttack: 0 };
+}
+
 const drillState = { 
     num1: 0, num2: 0, status: 'playing', showHint: true, streak: 0, score: 0, 
     gameMode: 'training', timeLeft: 60, timerId: null, 
-    highScores: JSON.parse(localStorage.getItem('studyLoopDrillScores')) || { streak: 0, timeAttack: 0 } 
+    highScores: loadHighScores()
 };
 
 let drillEls = {};
 
 function saveDrillHighScores() { 
-    localStorage.setItem('studyLoopDrillScores', JSON.stringify(drillState.highScores)); 
+    try {
+        localStorage.setItem('studyLoopDrillScores', JSON.stringify(drillState.highScores)); 
+    } catch (e) {
+        console.warn("LocalStorageへの保存に失敗しました:", e);
+    }
 }
 
 export function initDrill() {
@@ -95,7 +111,7 @@ export function initDrill() {
     generateDrillQuestion();
 }
 
-// 画面遷移時にインプットにフォーカスを当てるための公開関数
+// ★ ここから下が抜けていた関数です
 export function focusDrillInput() {
     if (drillEls.userInput) { setTimeout(() => drillEls.userInput.focus(), 50); }
 }

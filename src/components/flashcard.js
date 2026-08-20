@@ -11,17 +11,65 @@ let fcIsFlipped = false;
 let fcIsStudyAll = false;
 let fcIsEval = false;
 
-// HTML側のonclick属性から直接呼び出せるように、グローバルに公開する（段階的移行のため）
+// ★ 新規追加: イベント委譲を使った初期化
 export function initFlashcard() {
-    window.showFcView = showFcView;
-    window.deleteFcSet = deleteFcSet;
-    window.openFcSet = openFcSet;
-    window.deleteFcWord = deleteFcWord;
-    window.startFcLearning = startFcLearning;
-    window.flipFcCard = flipFcCard;
-    window.evalFcWord = evalFcWord;
+    const container = document.getElementById('view-flashcard-app');
+    if (!container) return;
 
-    // フォームのイベントリスナー登録
+    // 単語帳コンテナ全体のクリックイベントを監視（イベント委譲）
+    container.addEventListener('click', (e) => {
+        // 1. ビュー切り替えボタン (戻る/終了/ヘッダーなど)
+        const viewBtn = e.target.closest('[data-fc-view]');
+        if (viewBtn) {
+            showFcView(viewBtn.dataset.fcView);
+            return;
+        }
+
+        // 2. 単語帳セットのクリック (開く)
+        const setCard = e.target.closest('.fc-set-card');
+        if (setCard && !e.target.closest('.fc-set-delete-btn')) {
+            openFcSet(setCard.dataset.setId);
+            return;
+        }
+
+        // 3. 単語帳セットの削除ボタン
+        const setDeleteBtn = e.target.closest('.fc-set-delete-btn');
+        if (setDeleteBtn) {
+            deleteFcSet(setDeleteBtn.dataset.setId);
+            return;
+        }
+
+        // 4. 単語の削除ボタン
+        const wordDeleteBtn = e.target.closest('.fc-word-delete-btn');
+        if (wordDeleteBtn) {
+            deleteFcWord(wordDeleteBtn.dataset.wordId);
+            return;
+        }
+
+        // 5. 学習スタートボタン
+        const startBtn = e.target.closest('[data-fc-start]');
+        if (startBtn) {
+            startFcLearning(startBtn.dataset.fcStart === 'all');
+            return;
+        }
+
+        // 6. カードを裏返す
+        const innerCard = e.target.closest('#fc-inner');
+        const showAnsBtn = e.target.closest('#fc-show-ans-btn');
+        if (innerCard || showAnsBtn) {
+            flipFcCard();
+            return;
+        }
+
+        // 7. 評価ボタン
+        const evalBtn = e.target.closest('[data-fc-eval]');
+        if (evalBtn) {
+            evalFcWord(evalBtn.dataset.fcEval);
+            return;
+        }
+    });
+
+    // 単語帳作成フォーム
     document.getElementById('fc-set-form')?.addEventListener('submit', async (e) => {
         e.preventDefault(); 
         const input = document.getElementById('fc-set-name-input'); 
@@ -40,6 +88,7 @@ export function initFlashcard() {
         }
     });
 
+    // 単語追加フォーム
     document.getElementById('fc-word-form')?.addEventListener('submit', async (e) => {
         e.preventDefault(); 
         const wi = document.getElementById('fc-word-input'); 
@@ -61,7 +110,7 @@ export function initFlashcard() {
     });
 }
 
-// データベースの監視(onSnapshot)から呼ばれ、内部データを更新する
+// データベースの監視(onSnapshot)から呼ばれ、内部データを更新する（外部公開）
 export function updateFcSets(newSets) {
     fcSets = newSets;
     if (document.getElementById('view-flashcard-app')?.classList.contains('active')) {
@@ -70,7 +119,9 @@ export function updateFcSets(newSets) {
     }
 }
 
-function showFcView(viewId) {
+// === 以下は export 不要（モジュール内に閉じた関数） ===
+
+export function showFcView(viewId) { // main.jsのタブ切り替えからも呼ばれる可能性があるためexport
     document.querySelectorAll('.fc-view').forEach(el => el.classList.add('hidden'));
     const target = document.getElementById(viewId);
     if(target) {
@@ -83,10 +134,12 @@ function showFcView(viewId) {
         headerAction.innerHTML = '';
         renderFcSets();
     } else if (viewId === 'fc-words') {
-        headerAction.innerHTML = `<button onclick="showFcView('fc-sets')" class="text-xs bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full font-bold shadow-sm transition"><i class="fa-solid fa-chevron-left"></i> 戻る</button>`;
+        // onclick を data-fc-view に変更
+        headerAction.innerHTML = `<button data-fc-view="fc-sets" class="text-xs bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full font-bold shadow-sm transition"><i class="fa-solid fa-chevron-left"></i> 戻る</button>`;
         renderFcWords();
     } else if (viewId === 'fc-play') {
-        headerAction.innerHTML = `<button onclick="showFcView('fc-words')" class="text-xs bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 px-3 py-1.5 rounded-full font-bold shadow-sm transition"><i class="fa-solid fa-xmark"></i> 終了</button>`;
+        // onclick を data-fc-view に変更
+        headerAction.innerHTML = `<button data-fc-view="fc-words" class="text-xs bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 px-3 py-1.5 rounded-full font-bold shadow-sm transition"><i class="fa-solid fa-xmark"></i> 終了</button>`;
     }
 }
 
@@ -96,14 +149,16 @@ function renderFcSets() {
     document.getElementById('fc-set-empty').classList.add('hidden');
     fcSets.slice().reverse().forEach(set => {
         const card = document.createElement('div');
-        card.className = "bg-white/80 dark:bg-slate-800/80 p-4 rounded-2xl flex flex-col gap-3 transition-transform cursor-pointer border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md";
-        card.innerHTML = `<div class="flex justify-between items-start" onclick="openFcSet('${set.id}')"><div><h4 class="font-extrabold text-slate-800 dark:text-white text-base">${escapeHTML(set.name)}</h4><p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium"><i class="fa-solid fa-book"></i> 収録単語: ${set.words.length} 語</p></div><button onclick="deleteFcSet(event, '${set.id}')" class="text-slate-300 hover:text-rose-500 p-2 transition z-10 relative"><i class="fa-solid fa-trash"></i></button></div>`;
+        // fc-set-card クラスと data-set-id を追加
+        card.className = "fc-set-card bg-white/80 dark:bg-slate-800/80 p-4 rounded-2xl flex flex-col gap-3 transition-transform cursor-pointer border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md";
+        card.dataset.setId = set.id;
+        // onclick を削除し、削除ボタンには fc-set-delete-btn を追加
+        card.innerHTML = `<div class="flex justify-between items-start"><div><h4 class="font-extrabold text-slate-800 dark:text-white text-base">${escapeHTML(set.name)}</h4><p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium"><i class="fa-solid fa-book"></i> 収録単語: ${set.words.length} 語</p></div><button class="fc-set-delete-btn text-slate-300 hover:text-rose-500 p-2 transition z-10 relative" data-set-id="${set.id}"><i class="fa-solid fa-trash pointer-events-none"></i></button></div>`;
         list.appendChild(card);
     });
 }
 
-function deleteFcSet(e, id) {
-    e.stopPropagation();
+function deleteFcSet(id) {
     showConfirm('この単語帳を削除しますか？', async () => {
         try {
             await deleteDoc(getFcDocRef(id));
@@ -126,6 +181,8 @@ function updateFcCountUI(set) {
     document.getElementById('fc-word-count').textContent = `${set.words.length} 語`;
     const dueCount = getFcDueWords(set).length;
     const sBtn = document.getElementById('fc-start-btn'); const aBtn = document.getElementById('fc-start-all-btn');
+    
+    // HTML側で onclick を外している前提で data-fc-start 属性を付与して制御
     if (set.words.length === 0) {
         document.getElementById('fc-word-empty').classList.remove('hidden');
         sBtn.disabled = true; aBtn.disabled = true;
@@ -133,14 +190,18 @@ function updateFcCountUI(set) {
     } else {
         document.getElementById('fc-word-empty').classList.add('hidden');
         aBtn.disabled = false;
+        aBtn.dataset.fcStart = 'all'; // 全て学習
+        
         if (dueCount === 0) {
             sBtn.innerHTML = `<i class="fa-solid fa-check text-white"></i> 今日のノルマ完了`;
             sBtn.className = "flex-1 bg-emerald-500 text-white font-bold py-4 rounded-[1.5rem] shadow-sm transition flex justify-center items-center gap-2 text-sm border-2 border-emerald-400";
             sBtn.disabled = true;
+            sBtn.removeAttribute('data-fc-start');
         } else {
             sBtn.innerHTML = `<i class="fa-solid fa-bolt text-yellow-400"></i> 今日の復習 (${dueCount})`;
             sBtn.className = "flex-1 bg-slate-800 dark:bg-slate-100 dark:text-slate-800 text-white font-bold py-4 rounded-[1.5rem] shadow-sm transition flex justify-center items-center gap-2 text-sm border-2 border-slate-700 dark:border-white";
             sBtn.disabled = false;
+            sBtn.dataset.fcStart = 'due'; // 復習のみ
         }
     }
 }
@@ -153,7 +214,8 @@ function renderFcWords() {
     set.words.slice().reverse().forEach(item => {
         const card = document.createElement('div'); card.className = "bg-white/80 dark:bg-slate-800/80 p-3 rounded-2xl flex justify-between items-center border border-slate-100 dark:border-slate-700 shadow-sm";
         let badge = !item.nextReviewDate ? `<span class="text-[9px] bg-pink-500 text-white px-2 py-0.5 rounded-full">New</span>` : (item.nextReviewDate <= today ? `<span class="text-[9px] bg-rose-500 text-white px-2 py-0.5 rounded-full">復習</span>` : `<span class="text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 px-2 py-0.5 rounded-full">${item.nextReviewDate.slice(5)}予定</span>`);
-        card.innerHTML = `<div class="overflow-hidden flex-1 pr-2"><div class="flex items-center gap-2 mb-0.5"><span class="font-bold text-slate-800 dark:text-white text-sm truncate">${escapeHTML(item.word)}</span>${badge}</div><div class="text-xs text-slate-500 dark:text-slate-400 truncate">${escapeHTML(item.meaning)}</div></div><button onclick="deleteFcWord('${item.id}')" class="text-slate-300 hover:text-rose-500 p-2"><i class="fa-solid fa-xmark"></i></button>`;
+        // onclick 削除、 fc-word-delete-btn クラスと data-word-id 追加
+        card.innerHTML = `<div class="overflow-hidden flex-1 pr-2"><div class="flex items-center gap-2 mb-0.5"><span class="font-bold text-slate-800 dark:text-white text-sm truncate">${escapeHTML(item.word)}</span>${badge}</div><div class="text-xs text-slate-500 dark:text-slate-400 truncate">${escapeHTML(item.meaning)}</div></div><button class="fc-word-delete-btn text-slate-300 hover:text-rose-500 p-2" data-word-id="${item.id}"><i class="fa-solid fa-xmark pointer-events-none"></i></button>`;
         list.appendChild(card);
     });
 }
