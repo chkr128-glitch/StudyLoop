@@ -8,13 +8,7 @@ export function initAuthUI() {
     document.getElementById('auth-toggle-btn')?.addEventListener('click', toggleAuthMode);
     document.getElementById('auth-btn-action')?.addEventListener('click', performAuthAction);
     document.getElementById('auth-google-btn')?.addEventListener('click', performGoogleAuth);
-    
-    // ★ ここを追記：ログアウトボタンが押されたら handleLogout を実行する
     document.getElementById('btn-logout')?.addEventListener('click', handleLogout);
-}
-    
-    // Googleログインボタン（HTML側に id="auth-google-btn" を付与してください）
-    document.getElementById('auth-google-btn')?.addEventListener('click', performGoogleAuth);
 }
 
 // ログイン/新規登録の切り替え
@@ -39,7 +33,6 @@ export async function performAuthAction() {
         return;
     }
 
-    // 連打防止
     if (actionBtn) actionBtn.disabled = true;
 
     try { 
@@ -56,7 +49,6 @@ export async function performAuthAction() {
         if (error.code === 'auth/weak-password') msg = "パスワードは6文字以上にしてください。"; 
         errorEl.innerText = msg; 
     } finally {
-        // 通信が終わったらボタンを有効化
         if (actionBtn) actionBtn.disabled = false;
     }
 }
@@ -64,7 +56,6 @@ export async function performAuthAction() {
 // Google認証実行
 export async function performGoogleAuth() { 
     const errorEl = document.getElementById('auth-error-msg'); 
-    // このボタンのHTMLに id="auth-google-btn" を追加してください
     const googleBtn = document.getElementById('auth-google-btn');
 
     errorEl.innerText = ""; 
