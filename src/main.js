@@ -8,7 +8,7 @@ import { renderAnalytics, updateChartColors } from './components/analytics.js';
 import { initSettings, renderSettings, saveUserProfile, buildWeightInputs } from './components/settings.js';
 import { initDrill, stopDrillTimer, focusDrillInput } from './components/drill.js';
 import { initFlashcard, updateFcSets, showFcView } from './components/flashcard.js';
-import { initStore, renderStore } from './components/store.js';
+import { initStore, renderStore, seedOfficialPacks } from './components/store.js';
 import { SUBJECTS, REVIEW_INTERVALS } from './utils/constants.js';
 import { formatDate } from './utils/helpers.js';
 import { onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -102,6 +102,10 @@ function setupEventListeners() {
     document.getElementById('sub-evaluations-list')?.addEventListener('click', (e) => {
         const deleteBtn = e.target.closest('.sub-eval-delete-btn');
         if (deleteBtn) deleteBtn.closest('.flex').remove();
+    });
+
+    document.getElementById('btn-seed-store')?.addEventListener('click', () => {
+        showConfirm("公式例文・アイデアパックをストアに追加しますか？", seedOfficialPacks);
     });
 
     ['dashboard-tasks-container', 'calendar-tasks-container'].forEach(containerId => {
