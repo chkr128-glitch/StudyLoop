@@ -161,5 +161,3 @@ async function completeTutorial() {
         console.error("Tutorial complete error:", e);
     }
 }
-各スライドでアプリの主要な機能を網羅しつつ、色が少しずつ変わっていくように視覚的な調整も施しています。
-一度動作を確認したい場合は、「設定」画面一番下からログアウトし、再ログインしてみてください！
