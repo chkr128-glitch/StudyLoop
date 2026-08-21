@@ -1,5 +1,5 @@
 import { observeAuthState } from './services/auth.js';
-import { setCurrentUserId, getCurrentUserId, getAppCollectionRef, getAppDocRef, getFcCollectionRef, getStoreCollectionRef } from './services/db.js';
+import { setCurrentUserId, getCurrentUserId, getAppCollectionRef, getAppDocRef } from './services/db.js';
 import { showToast, showConfirm, closeConfirm, executeConfirm, openModal, closeModal, initUI, switchViewUI } from './components/ui.js';
 import { initAuthUI } from './components/authUI.js';
 import { renderDashboard, updateStreak } from './components/dashboard.js';
@@ -8,7 +8,8 @@ import { renderAnalytics, updateChartColors } from './components/analytics.js';
 import { initSettings, renderSettings, saveUserProfile, buildWeightInputs } from './components/settings.js';
 import { initDrill, stopDrillTimer, focusDrillInput } from './components/drill.js';
 import { initFlashcard, updateFcSets, showFcView } from './components/flashcard.js';
-import { initStore, renderStore, seedOfficialPacks } from './components/store.js';
+import { initStore, renderStore } from './components/store.js';
+import { initTutorial, checkAndShowTutorial } from './components/tutorial.js';
 import { SUBJECTS, REVIEW_INTERVALS } from './utils/constants.js';
 import { formatDate } from './utils/helpers.js';
 import { onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -33,6 +34,7 @@ function initApp() {
     initDrill();
     initFlashcard();
     initStore();
+    initTutorial(); // チュートリアルの初期化
     
     initCalendar(
         () => state.tasks, 
@@ -104,10 +106,6 @@ function setupEventListeners() {
         if (deleteBtn) deleteBtn.closest('.flex').remove();
     });
 
-    document.getElementById('btn-seed-store')?.addEventListener('click', () => {
-        showConfirm("公式例文・アイデアパックをストアに追加しますか？", seedOfficialPacks);
-    });
-
     ['dashboard-tasks-container', 'calendar-tasks-container'].forEach(containerId => {
         const container = document.getElementById(containerId);
         if (container) {
@@ -121,6 +119,12 @@ function setupEventListeners() {
             });
         }
     });
+    
+    // 運営ツール：公式パック生成
+    document.getElementById('btn-seed-official')?.addEventListener('click', async () => {
+        const { seedOfficialPacks } = await import('./components/store.js');
+        seedOfficialPacks();
+    });
 }
 
 if (document.readyState === 'loading') {
@@ -131,6 +135,8 @@ if (document.readyState === 'loading') {
 
 function subscribeToData() {
     unsubscribeAll();
+    
+    let tutorialChecked = false; // チュートリアル判定を1度だけ行うためのフラグ
 
     state.unsubscribeTasks = onSnapshot(getAppCollectionRef('tasks'), (snapshot) => {
         state.tasks = [];
@@ -147,21 +153,34 @@ function subscribeToData() {
         if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
     }, (err) => console.error("Routines sync error:", err));
 
-    state.unsubscribeProfile = onSnapshot(getAppDocRef('profile', 'data'), (doc) => {
-        if (doc.exists()) {
-            state.userProfile = doc.data();
+    state.unsubscribeProfile = onSnapshot(getAppDocRef('profile', 'data'), (docSnap) => {
+        if (docSnap.exists()) {
+            state.userProfile = docSnap.data();
+            
+            // 初回ロード時のみチュートリアル判定
+            if (!tutorialChecked) {
+                checkAndShowTutorial(state.userProfile);
+                tutorialChecked = true;
+            }
+
             if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
             if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
+        } else {
+            // プロフィールが存在しない（完全な新規ユーザー）場合もチュートリアル表示
+            if (!tutorialChecked) {
+                checkAndShowTutorial({});
+                tutorialChecked = true;
+            }
         }
     }, (err) => console.error("Profile sync error:", err));
 
-    state.unsubscribeFc = onSnapshot(getFcCollectionRef(), (snapshot) => {
+    state.unsubscribeFc = onSnapshot(getAppCollectionRef('flashcard_sets'), (snapshot) => {
         const sets = [];
         snapshot.forEach(doc => sets.push({ id: doc.id, ...doc.data() }));
         updateFcSets(sets); 
     }, (err) => console.error("Flashcards sync error:", err));
 
-    state.unsubscribeStore = onSnapshot(getStoreCollectionRef(), (snapshot) => {
+    state.unsubscribeStore = onSnapshot(getAppCollectionRef('store_sets'), (snapshot) => {
         state.storeSets = [];
         snapshot.forEach(doc => state.storeSets.push({ id: doc.id, ...doc.data() }));
         if (state.currentView === 'store') renderStore(state.storeSets);
