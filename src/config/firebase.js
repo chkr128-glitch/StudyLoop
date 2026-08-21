@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// メインアプリ（StudyLoop）用設定
+// メインアプリ（StudyLoop）用設定（すべてのデータをここに統合します）
 const MY_FIREBASE_CONFIG = {
     apiKey: "AIzaSyAyzCLL-Y_xuQ0RzHurN0r5UvqdNm-Yomw",
     authDomain: "learning-manager-829f4.firebaseapp.com",
@@ -21,29 +21,3 @@ export const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-i
 const app = initializeApp(finalConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-
-// 単語帳アプリ専用設定（第2のクラウド）
-const FLASHCARD_FIREBASE_CONFIG = {
-    apiKey: "AIzaSyB0GcA0C0Z0LGE70NTcRHFBm-dxfA40oDc",
-    authDomain: "studyloop-flashcard.firebaseapp.com",
-    projectId: "studyloop-flashcard",
-    storageBucket: "studyloop-flashcard.firebasestorage.app",
-    messagingSenderId: "200240406024",
-    appId: "1:200240406024:web:affed45afa27e85913bbbd"
-};
-
-const appFlashcard = initializeApp(FLASHCARD_FIREBASE_CONFIG, "flashcardApp");
-export const dbFlashcard = getFirestore(appFlashcard);
-
-// 英作文・ストア専用設定（第3のクラウド）
-const STORE_FIREBASE_CONFIG = {
-    apiKey: "AIzaSyDlhGBBNkqzBOXNF-xNPVgqQl0nNZUjojE",
-    authDomain: "studyloop-writingsupport.firebaseapp.com",
-    projectId: "studyloop-writingsupport",
-    storageBucket: "studyloop-writingsupport.firebasestorage.app",
-    messagingSenderId: "668231212210",
-    appId: "1:668231212210:web:a8c24bbc07e3692b4b7dab"
-};
-
-const appStore = initializeApp(STORE_FIREBASE_CONFIG, "storeApp");
-export const dbStore = getFirestore(appStore);
