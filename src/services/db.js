@@ -1,4 +1,4 @@
-import { db, dbFlashcard, dbStore, isUsingPreviewDB, appId } from '../config/firebase.js';
+import { db, isUsingPreviewDB, appId } from '../config/firebase.js';
 import { collection, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 let currentUserId = null;
@@ -7,7 +7,7 @@ export const setCurrentUserId = (uid) => { currentUserId = uid; };
 export const getCurrentUserId = () => currentUserId;
 
 // ==========================================
-// メインアプリ用データ参照 (StudyLoop)
+// 1. メインアプリ用データ参照 (Tasks, Routines, Profile)
 // ==========================================
 export function getAppCollectionRef(collectionName) {
     if (!currentUserId) throw new Error("User not authenticated");
@@ -22,29 +22,29 @@ export function getAppDocRef(collectionName, docId) {
 }
 
 // ==========================================
-// 単語帳アプリ用データ参照 (Flashcard)
+// 2. 単語帳用データ参照 (Flashcards - メインDB内に作成)
 // ==========================================
 export function getFcCollectionRef() {
     if (!currentUserId) throw new Error("User not authenticated");
-    if (isUsingPreviewDB) return collection(dbFlashcard, 'artifacts', appId, 'users', currentUserId, 'flashcard_sets');
-    return collection(dbFlashcard, 'users', currentUserId, 'flashcard_sets');
+    if (isUsingPreviewDB) return collection(db, 'artifacts', appId, 'users', currentUserId, 'flashcard_sets');
+    return collection(db, 'users', currentUserId, 'flashcard_sets');
 }
 
 export function getFcDocRef(docId) {
     if (!currentUserId) throw new Error("User not authenticated");
-    if (isUsingPreviewDB) return doc(dbFlashcard, 'artifacts', appId, 'users', currentUserId, 'flashcard_sets', docId);
-    return doc(dbFlashcard, 'users', currentUserId, 'flashcard_sets', docId);
+    if (isUsingPreviewDB) return doc(db, 'artifacts', appId, 'users', currentUserId, 'flashcard_sets', docId);
+    return doc(db, 'users', currentUserId, 'flashcard_sets', docId);
 }
 
 // ==========================================
-// ストアアプリ用データ参照 (Store) パブリックデータ
+// 3. ストア用データ参照 (Store - メインDBの公開領域に作成)
 // ==========================================
 export function getStoreCollectionRef() {
-    if (isUsingPreviewDB) return collection(dbStore, 'artifacts', appId, 'store_sets');
-    return collection(dbStore, 'store_sets');
+    if (isUsingPreviewDB) return collection(db, 'artifacts', appId, 'store_sets');
+    return collection(db, 'store_sets');
 }
 
 export function getStoreDocRef(docId) {
-    if (isUsingPreviewDB) return doc(dbStore, 'artifacts', appId, 'store_sets', docId);
-    return doc(dbStore, 'store_sets', docId);
+    if (isUsingPreviewDB) return doc(db, 'artifacts', appId, 'store_sets', docId);
+    return doc(db, 'store_sets', docId);
 }
