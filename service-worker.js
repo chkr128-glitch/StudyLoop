@@ -84,7 +84,3 @@ self.addEventListener('activate', event => {
         })
     );
 });
-```eof
-
-この修正により、拡張機能の通信を無視するようになり、エラーが出なくなります。
-修正後は、ブラウザのキャッシュをクリアするか、スーパーリロード（Windows: `Ctrl + F5`, Mac: `Cmd + Shift + R`）を行って、新しいService Workerを読み込ませてください。
