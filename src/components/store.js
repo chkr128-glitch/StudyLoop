@@ -136,7 +136,8 @@ export async function seedOfficialPacks() {
     try {
         showToast('公式パックを作成中...', 'info');
         
-        // 公式例文パックの作成
+        // ▼ 1. 既存のパックを編集（上書き）する場合
+        // wordsの中身を書き換えたり行を増やしてボタンを押せば、ストアの内容が自動で最新になります。
         const phraseRef = doc(getStoreCollectionRef(), 'official_phrase_01');
         await setDoc(phraseRef, {
             type: 'official_phrase',
@@ -150,11 +151,29 @@ export async function seedOfficialPacks() {
                 { word: 'I firmly believe that ~', meaning: '私は〜だと固く信じている（I thinkの強化版）' },
                 { word: 'From a different perspective,', meaning: '別の視点から見ると、（段落の切り替え）' },
                 { word: 'One of the main reasons is that ~', meaning: '主な理由の一つは〜（理由説明）' },
-                { word: 'play an important role in ~', meaning: '〜において重要な役割を果たす' }
+                { word: 'play an important role in ~', meaning: '〜において重要な役割を果たす' },
+                { word: 'This means that ~', meaning: 'これは〜ということを意味する（このように追加できます）' }
             ]
         });
 
-        // 公式アイデアパックの作成
+        // ▼ 2. 新しいパック（第2弾）を追加する場合
+        // ID（official_phrase_02など）を変えて、ブロックごと新しく追加します。
+        const newPhraseRef = doc(getStoreCollectionRef(), 'official_phrase_02');
+        await setDoc(newPhraseRef, {
+            type: 'official_phrase', // 'official_idea' にすればアイデア集になります
+            name: '【英作文】論理展開を助ける接続詞',
+            description: '文章の流れを自然にする必須の接続詞パックです。',
+            authorName: 'StudyLoop公式',
+            downloads: 0,
+            createdAt: new Date().toISOString(),
+            words: [
+                { word: 'Therefore,', meaning: 'それゆえに、したがって（結果）' },
+                { word: 'Furthermore,', meaning: 'さらに、その上（追加）' },
+                { word: 'However,', meaning: 'しかしながら（逆接）' }
+            ]
+        });
+
+        // ▼ 公式アイデアパックの作成（既存）
         const ideaRef = doc(getStoreCollectionRef(), 'official_idea_01');
         await setDoc(ideaRef, {
             type: 'official_idea',
