@@ -533,6 +533,36 @@
             </div>
         </nav>
     </div>
+    
+    <!-- チュートリアル・オーバーレイ -->
+    <div id="tutorial-overlay" class="modal-overlay fixed inset-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md z-[300] hidden flex-col items-center justify-center p-5 transition-colors">
+        <div class="w-full max-w-sm text-center relative zoom-in bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-gray-700">
+            <!-- スキップボタン -->
+            <button id="tutorial-skip-btn" class="absolute top-6 right-6 text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">スキップ</button>
+            
+            <!-- アイコン -->
+            <div id="tutorial-icon-container" class="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center bg-pink-50 dark:bg-pink-900/20 transition-colors duration-300">
+                <i id="tutorial-icon" class="fa-solid fa-rocket text-4xl text-pink-500"></i>
+            </div>
+            
+            <!-- テキスト -->
+            <h2 id="tutorial-title" class="text-xl font-black text-gray-800 dark:text-white mb-4 tracking-tight">StudyLoopへようこそ！</h2>
+            <p id="tutorial-desc" class="text-sm text-gray-600 dark:text-gray-300 font-medium leading-relaxed mb-8 h-20 flex items-center justify-center">
+                大学合格に向けた学習を最適化する、あなただけのマネージャーです。
+            </p>
+            
+            <!-- インジケーター -->
+            <div class="flex justify-center gap-2 mb-8" id="tutorial-indicators">
+                <div class="tutorial-dot w-6 h-2 rounded-full bg-pink-500 transition-all duration-300"></div>
+                <div class="tutorial-dot w-2 h-2 rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300"></div>
+                <div class="tutorial-dot w-2 h-2 rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300"></div>
+                <div class="tutorial-dot w-2 h-2 rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300"></div>
+            </div>
+            
+            <!-- 次へボタン -->
+            <button id="tutorial-next-btn" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-4 rounded-2xl shadow-lg transform hover:-translate-y-0.5 transition-all">次へ</button>
+        </div>
+    </div>
 
     <!-- モーダル: 新規タスク追加 -->
     <div id="modal-add-task" class="modal-overlay fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] justify-center items-end sm:items-center">
