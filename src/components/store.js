@@ -3,21 +3,18 @@ import { showToast, showConfirm } from './ui.js';
 import { getStoreCollectionRef, getFcCollectionRef, getCurrentUserId } from '../services/db.js';
 import { doc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// ストアのデータカテゴリ定義
 const STORE_CATEGORIES = {
     'official_phrase': { title: '公式：例文・万能フレーズ', icon: 'fa-pen-nib', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
     'official_idea': { title: '公式：テーマ別アイデア', icon: 'fa-lightbulb', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
     'user_shared': { title: 'みんなの共有パック', icon: 'fa-users', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' }
 };
 
-// 内部で保持するストアデータ
 let currentStoreSets = [];
 
 export function initStore() {
     const container = document.getElementById('view-store');
     if (!container) return;
 
-    // ダウンロードボタンのイベント委譲
     container.addEventListener('click', (e) => {
         const downloadBtn = e.target.closest('.store-download-btn');
         if (downloadBtn && downloadBtn.dataset.setId) {
@@ -26,7 +23,6 @@ export function initStore() {
     });
 }
 
-// メインの購読（onSnapshot）からデータを受け取って描画する
 export function renderStore(storeSets) {
     currentStoreSets = storeSets;
     const container = document.getElementById('store-list-container');
@@ -36,10 +32,8 @@ export function renderStore(storeSets) {
 
     Object.keys(STORE_CATEGORIES).forEach(categoryKey => {
         const categoryData = STORE_CATEGORIES[categoryKey];
-        // ダウンロード数が多い順にソートして表示
         const setsInCategory = storeSets.filter(s => s.type === categoryKey).sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
         
-        // ユーザー共有パックが0件の場合はセクション自体を非表示
         if (setsInCategory.length === 0 && categoryKey === 'user_shared') return;
 
         const section = document.createElement('div');
@@ -73,7 +67,6 @@ export function renderStore(storeSets) {
     });
 }
 
-// ストアから自分の単語帳にコピー（ダウンロード）
 async function downloadStoreSet(storeSetId) {
     if (!getCurrentUserId()) return showToast('ログインが必要です', 'error');
 
@@ -83,13 +76,10 @@ async function downloadStoreSet(storeSetId) {
     showConfirm(`「${storeSet.name}」を自分の単語帳に追加しますか？`, async () => {
         try {
             showToast('ダウンロード中...', 'info');
-            
-            // 1. 自分のフラッシュカードDBに新しくセットを作る
             const newDocRef = doc(getFcCollectionRef());
             
-            // 全てのカードの復習間隔（ease, interval等）を初期状態にリセットしてコピー
             const cleanWords = storeSet.words.map(w => ({
-                id: Date.now().toString() + Math.random().toString(36).substr(2, 5), // 新しい一意のIDを生成
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
                 word: w.word,
                 meaning: w.meaning,
                 interval: 0,
@@ -106,11 +96,8 @@ async function downloadStoreSet(storeSetId) {
             });
 
             showToast('単語帳タブに追加しました！🎉');
-
-            // 2. （非同期で）ストア側のダウンロード数を+1する
             const storeRef = doc(getStoreCollectionRef().firestore, 'store_sets', storeSet.id);
             updateDoc(storeRef, { downloads: increment(1) }).catch(e => console.warn('DL数更新失敗', e));
-
         } catch (e) {
             console.error(e);
             showToast('追加に失敗しました', 'error');
@@ -118,15 +105,12 @@ async function downloadStoreSet(storeSetId) {
     });
 }
 
-// 自分の単語帳を「みんなの共有パック」にアップロードする機能
 export function shareMySetToStore(setName, wordsArray) {
     if (!getCurrentUserId()) return;
     
     showConfirm(`「${setName}」を全国のユーザーに公開しますか？\n(個人的なメモなどが含まれていないか確認してください)`, async () => {
         try {
-            // 学習履歴や個人情報を除外してクリーンアップ
             const cleanWords = wordsArray.map(w => ({ word: w.word, meaning: w.meaning }));
-            
             const newStoreRef = doc(getStoreCollectionRef());
             await setDoc(newStoreRef, {
                 type: 'user_shared',
@@ -134,11 +118,10 @@ export function shareMySetToStore(setName, wordsArray) {
                 description: 'ユーザーから共有された単語帳です。',
                 words: cleanWords,
                 authorId: getCurrentUserId(),
-                authorName: 'StudyLoop ユーザー', // プロフィール機能があればそこに連携可能
+                authorName: 'StudyLoop ユーザー',
                 downloads: 0,
                 createdAt: new Date().toISOString()
             });
-            
             showToast('ストアに公開しました！🚀');
         } catch (e) {
             console.error(e);

@@ -18,10 +18,7 @@ export function initFlashcard() {
 
     container.addEventListener('click', (e) => {
         const viewBtn = e.target.closest('[data-fc-view]');
-        if (viewBtn) {
-            showFcView(viewBtn.dataset.fcView);
-            return;
-        }
+        if (viewBtn) { showFcView(viewBtn.dataset.fcView); return; }
 
         const shareBtn = e.target.closest('.fc-set-share-btn');
         if (shareBtn) {
@@ -31,41 +28,23 @@ export function initFlashcard() {
         }
 
         const setDeleteBtn = e.target.closest('.fc-set-delete-btn');
-        if (setDeleteBtn) {
-            deleteFcSet(setDeleteBtn.dataset.setId);
-            return;
-        }
+        if (setDeleteBtn) { deleteFcSet(setDeleteBtn.dataset.setId); return; }
 
         const setCard = e.target.closest('.fc-set-card');
-        if (setCard) {
-            openFcSet(setCard.dataset.setId);
-            return;
-        }
+        if (setCard) { openFcSet(setCard.dataset.setId); return; }
 
         const wordDeleteBtn = e.target.closest('.fc-word-delete-btn');
-        if (wordDeleteBtn) {
-            deleteFcWord(wordDeleteBtn.dataset.wordId);
-            return;
-        }
+        if (wordDeleteBtn) { deleteFcWord(wordDeleteBtn.dataset.wordId); return; }
 
         const startBtn = e.target.closest('[data-fc-start]');
-        if (startBtn) {
-            startFcLearning(startBtn.dataset.fcStart === 'all');
-            return;
-        }
+        if (startBtn) { startFcLearning(startBtn.dataset.fcStart === 'all'); return; }
 
         const innerCard = e.target.closest('#fc-inner');
         const showAnsBtn = e.target.closest('#fc-show-ans-btn');
-        if (innerCard || showAnsBtn) {
-            flipFcCard();
-            return;
-        }
+        if (innerCard || showAnsBtn) { flipFcCard(); return; }
 
         const evalBtn = e.target.closest('[data-fc-eval]');
-        if (evalBtn) {
-            evalFcWord(evalBtn.dataset.fcEval);
-            return;
-        }
+        if (evalBtn) { evalFcWord(evalBtn.dataset.fcEval); return; }
     });
 
     document.getElementById('fc-set-form')?.addEventListener('submit', async (e) => {
