@@ -121,11 +121,60 @@ export function shareMySetToStore(setName, wordsArray) {
                 authorName: 'StudyLoop ユーザー',
                 downloads: 0,
                 createdAt: new Date().toISOString()
-            });
-            showToast('ストアに公開しました！🚀');
-        } catch (e) {
-            console.error(e);
-            showToast('公開に失敗しました', 'error');
-        }
-    });
+        });
+        
+        showToast('ストアに公開しました！🚀');
+    } catch (e) {
+        console.error(e);
+        showToast('公開に失敗しました', 'error');
+    }
+});
+}
+
+// --- 運営用：公式パックの初期追加スクリプト ---
+export async function seedOfficialPacks() {
+    try {
+        showToast('公式パックを作成中...', 'info');
+        
+        // 公式例文パックの作成
+        const phraseRef = doc(getStoreCollectionRef(), 'official_phrase_01');
+        await setDoc(phraseRef, {
+            type: 'official_phrase',
+            name: '【英作文】どんなテーマでも使える万能構文',
+            description: '意見を主張したり、理由を説明する際に使い回せる便利なフレーズ集です。',
+            authorName: 'StudyLoop公式',
+            downloads: 0,
+            createdAt: new Date().toISOString(),
+            words: [
+                { word: 'It goes without saying that ~', meaning: '〜は言うまでもない（導入で便利）' },
+                { word: 'I firmly believe that ~', meaning: '私は〜だと固く信じている（I thinkの強化版）' },
+                { word: 'From a different perspective,', meaning: '別の視点から見ると、（段落の切り替え）' },
+                { word: 'One of the main reasons is that ~', meaning: '主な理由の一つは〜（理由説明）' },
+                { word: 'play an important role in ~', meaning: '〜において重要な役割を果たす' }
+            ]
+        });
+
+        // 公式アイデアパックの作成
+        const ideaRef = doc(getStoreCollectionRef(), 'official_idea_01');
+        await setDoc(ideaRef, {
+            type: 'official_idea',
+            name: '【アイデア】環境問題 (賛成/反対)',
+            description: '環境問題（レジ袋有料化、再生可能エネルギーなど）に関する英作文で使えるアイデアと英語表現です。',
+            authorName: 'StudyLoop公式',
+            downloads: 0,
+            createdAt: new Date().toISOString(),
+            words: [
+                { word: '[賛成] reduce plastic waste', meaning: 'プラスチックゴミを減らす' },
+                { word: '[賛成] protect marine life', meaning: '海洋生物を保護する' },
+                { word: '[反対] financial burden on consumers', meaning: '消費者の経済的負担' },
+                { word: '[反対] lack of infrastructure', meaning: 'インフラの不足' },
+                { word: '[解決策] raise public awareness', meaning: '世間の意識を高める' }
+            ]
+        });
+        
+        showToast('公式パックを追加しました！ストアを確認してください🎉');
+    } catch (e) {
+        console.error(e);
+        showToast('公式パックの追加に失敗しました', 'error');
+    }
 }
