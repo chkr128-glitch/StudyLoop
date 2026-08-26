@@ -246,7 +246,7 @@ async function generateRoutineTasks(targetDateStr = null) {
                 t.date < todayStr
             );
 
-            // 並列で削除を実行（ローカルを先に更新して重複処理を防ぐ）
+            // 並列で削除を実行
             const deletePromises = pastIncompleteTasks.map(async (pastTask) => {
                 pastTask.deleted = true; 
                 try {
@@ -257,10 +257,10 @@ async function generateRoutineTasks(targetDateStr = null) {
             });
             await Promise.all(deletePromises);
 
-            // 重複生成を防ぐための確認
-            const isGenerated = state.tasks.some(t => t.sourceRoutineId === r.id && t.isRoutine === true && t.date === todayStr && !t.deleted);
+            // ★ 修正: 既存タスクを取得して判定する形に変更
+            const existingTask = state.tasks.find(t => t.sourceRoutineId === r.id && t.isRoutine === true && t.date === todayStr && !t.deleted);
             
-            if (!isGenerated) {
+            if (!existingTask) {
                 const startPos = r.currentPosition || 1;
                 let endPos = startPos + (r.dailyPace || 1) - 1;
                 
@@ -268,13 +268,9 @@ async function generateRoutineTasks(targetDateStr = null) {
                     endPos = r.totalItems;
                 }
 
-                // 意図的な二重生成を防ぐため、通信前にローカルに仮追加
-                state.tasks.push({ sourceRoutineId: r.id, isRoutine: true, date: todayStr });
-
                 const docId = `routine_${r.id}_${todayStr}`;
-                const newDocRef = doc(getAppCollectionRef('tasks'), docId);
-                
-                await setDoc(newDocRef, {
+                const newTaskData = {
+                    id: docId,
                     title: r.title,
                     subject: r.subject,
                     estimatedTime: r.estimatedTime,
@@ -286,11 +282,28 @@ async function generateRoutineTasks(targetDateStr = null) {
                     plannedStart: startPos,
                     plannedEnd: endPos,
                     unit: r.unit || '問',
-                    totalItems: r.totalItems || null,
-                    createdAt: new Date().toISOString()
-                }, { merge: true }).catch(err => console.warn("Task generation delayed:", err));
+                    totalItems: r.totalItems || null
+                };
+
+                // ★ 修正: DB通信前にすべての情報をローカルに追加する
+                // これにより、DB制限で弾かれても画面には青いバッジが表示されます
+                state.tasks.push(newTaskData);
+                updateAllViews();
+
+                const newDocRef = doc(getAppCollectionRef('tasks'), docId);
+                await setDoc(newDocRef, Object.assign({}, newTaskData, { createdAt: new Date().toISOString() }), { merge: true })
+                    .catch(err => console.warn("DB保存に失敗しましたが、画面上には追加しました:", err));
+            } else {
+                // ★ DB制限対策: 古いタスクに範囲データがなければ、メモリ上で補完してバッジを表示させる
+                if (!existingTask.plannedStart) {
+                    existingTask.plannedStart = r.currentPosition || 1;
+                    existingTask.plannedEnd = (r.currentPosition || 1) + (r.dailyPace || 1) - 1;
+                    existingTask.unit = r.unit || '問';
+                    existingTask.totalItems = r.totalItems || null;
+                }
             }
         }
+        updateAllViews(); // ★ 追加: 画面を強制的に最新化して反映させる
     } finally {
         isGeneratingTasks = false; // ロック解除
     }
@@ -526,35 +539,41 @@ function openAddRoutineModal() {
 }
 
 async function saveNewRoutine() {
-    const title = document.getElementById('input-routine-title').value.trim();
-    const subject = document.getElementById('input-routine-subject').value;
-    const time = parseInt(document.getElementById('input-routine-time').value, 10) || 0;
-    // 新しい入力項目の値を取得
-    const total = parseInt(document.getElementById('input-routine-total').value, 10) || 0;
-    const unit = document.getElementById('input-routine-unit').value;
-    const pace = parseInt(document.getElementById('input-routine-pace').value, 10) || 0;
+    const title = document.getElementById('input-routine-title').value.trim();
+    const subject = document.getElementById('input-routine-subject').value;
+    const time = parseInt(document.getElementById('input-routine-time').value, 10) || 0;
+    const totalItems = parseInt(document.getElementById('input-routine-total').value, 10) || null;
+    const unit = document.getElementById('input-routine-unit').value;
+    const dailyPace = parseInt(document.getElementById('input-routine-pace').value, 10) || 1;
 
-    // エラーチェックに新しい項目を追加
-    if (!title || !subject || time <= 0 || total <= 0 || pace <= 0) return showToast("入力内容を確認してください（全体量やペースも必須です）", "error");
+    if (!title || !subject || time <= 0) return showToast("入力内容を確認してください", "error");
 
-    const btn = document.getElementById('btn-save-new-routine');
-    if(btn) btn.disabled = true;
-    try {
-        const newDocRef = doc(getAppCollectionRef('routines'));
-        await setDoc(newDocRef, {
-            title, subject, estimatedTime: time,
-            // 新しい項目をデータベースに保存 (現在の位置を1からスタートさせる)
-            totalItems: total, unit: unit, dailyPace: pace, currentPosition: 1,
-            createdAt: new Date().toISOString()
-        });
-        closeModal('modal-add-routine');
-        showToast("ルーティンを追加しました");
-    } catch (e) {
-        console.error(e);
-        showToast("追加に失敗しました", "error");
-    } finally {
-        if(btn) btn.disabled = false;
-    }
+    const btn = document.getElementById('btn-save-new-routine');
+    if(btn) btn.disabled = true;
+
+    const routineData = {
+        title, subject, estimatedTime: time,
+        totalItems, unit, dailyPace, currentPosition: 1,
+        createdAt: new Date().toISOString()
+    };
+
+    try {
+        const newDocRef = doc(getAppCollectionRef('routines'));
+        await setDoc(newDocRef, routineData);
+        closeModal('modal-add-routine');
+        showToast("ルーティンを追加しました");
+    } catch (e) {
+        console.error("DB制限エラー:", e);
+        // ★ 修正: DB制限時でも、画面のメモリ上だけに追加して処理を進められるようにする
+        const tempId = 'temp_' + Date.now();
+        state.routines.push({ id: tempId, ...routineData });
+        generateRoutineTasks();
+        updateAllViews();
+        closeModal('modal-add-routine');
+        showToast("DB制限中のため、画面上のみに追加しました", "info");
+    } finally {
+        if(btn) btn.disabled = false;
+    }
 }
 
 function updateCountdowns() {
