@@ -464,35 +464,46 @@ function deleteTask() {
 }
 
 function openAddRoutineModal() {
-    document.getElementById('input-routine-title').value = '';
-    document.getElementById('input-routine-time').value = '';
-    const subjectSelect = document.getElementById('input-routine-subject');
-    if(subjectSelect) subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800">${s}</option>`).join('');
-    openModal('modal-add-routine');
+    document.getElementById('input-routine-title').value = '';
+    document.getElementById('input-routine-time').value = '';
+    // 新しい入力欄のリセットを追加
+    document.getElementById('input-routine-total').value = '';
+    document.getElementById('input-routine-pace').value = '';
+    const subjectSelect = document.getElementById('input-routine-subject');
+    if(subjectSelect) subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800">${s}</option>`).join('');
+    openModal('modal-add-routine');
 }
 
 async function saveNewRoutine() {
-    const title = document.getElementById('input-routine-title').value.trim();
-    const subject = document.getElementById('input-routine-subject').value;
-    const time = parseInt(document.getElementById('input-routine-time').value, 10) || 0;
+    const title = document.getElementById('input-routine-title').value.trim();
+    const subject = document.getElementById('input-routine-subject').value;
+    const time = parseInt(document.getElementById('input-routine-time').value, 10) || 0;
+    // 新しい入力項目の値を取得
+    const total = parseInt(document.getElementById('input-routine-total').value, 10) || 0;
+    const unit = document.getElementById('input-routine-unit').value;
+    const pace = parseInt(document.getElementById('input-routine-pace').value, 10) || 0;
 
-    if (!title || !subject || time <= 0) return showToast("入力内容を確認してください", "error");
+    // エラーチェックに新しい項目を追加
+    if (!title || !subject || time <= 0 || total <= 0 || pace <= 0) return showToast("入力内容を確認してください（全体量やペースも必須です）", "error");
 
-    const btn = document.getElementById('btn-save-new-routine');
-    if(btn) btn.disabled = true;
-    try {
-        const newDocRef = doc(getAppCollectionRef('routines'));
-        await setDoc(newDocRef, {
-            title, subject, estimatedTime: time, createdAt: new Date().toISOString()
-        });
-        closeModal('modal-add-routine');
-        showToast("ルーティンを追加しました");
-    } catch (e) {
-        console.error(e);
-        showToast("追加に失敗しました", "error");
-    } finally {
-        if(btn) btn.disabled = false;
-    }
+    const btn = document.getElementById('btn-save-new-routine');
+    if(btn) btn.disabled = true;
+    try {
+        const newDocRef = doc(getAppCollectionRef('routines'));
+        await setDoc(newDocRef, {
+            title, subject, estimatedTime: time,
+            // 新しい項目をデータベースに保存 (現在の位置を1からスタートさせる)
+            totalItems: total, unit: unit, dailyPace: pace, currentPosition: 1,
+            createdAt: new Date().toISOString()
+        });
+        closeModal('modal-add-routine');
+        showToast("ルーティンを追加しました");
+    } catch (e) {
+        console.error(e);
+        showToast("追加に失敗しました", "error");
+    } finally {
+        if(btn) btn.disabled = false;
+    }
 }
 
 function updateCountdowns() {
