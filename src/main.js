@@ -249,19 +249,17 @@ async function generateRoutineTasks(targetDateStr = null) {
                 t.date < todayStr
             );
 
-            // 並列で削除を実行
-            const deletePromises = pastIncompleteTasks.map(async (pastTask) => {
+            // 並列で削除を実行（★DBの返答を待たずに即時反映）
+            pastIncompleteTasks.forEach(pastTask => {
                 pastTask.deleted = true; 
                 try {
-                    // IDが仮IDの場合はDB処理をスキップ
                     if(!pastTask.id.startsWith('temp_')) {
-                        await setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true });
+                        setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true }).catch(e=>console.warn(e));
                     }
                 } catch(e) {
                     console.error("Error deleting past routine task:", e);
                 }
             });
-            await Promise.all(deletePromises);
 
             // 今日のタスクがすでに存在するかチェック
             const existingTask = state.tasks.find(t => t.sourceRoutineId === r.id && t.isRoutine === true && t.date === todayStr && !t.deleted);
@@ -296,14 +294,14 @@ async function generateRoutineTasks(targetDateStr = null) {
                 // これにより、DB制限で弾かれても画面には青いバッジが表示されます
                 state.tasks.push(newTaskData);
 
-                // DBへの保存処理
+                // DBへの保存処理（★待たずに裏で実行する）
                 try {
                     if(!r.id.startsWith('temp_')) {
                         const newDocRef = doc(getAppCollectionRef('tasks'), docId);
-                        await setDoc(newDocRef, Object.assign({}, newTaskData, { createdAt: new Date().toISOString() }), { merge: true });
+                        setDoc(newDocRef, Object.assign({}, newTaskData, { createdAt: new Date().toISOString() }), { merge: true }).catch(e=>console.warn(e));
                     }
                 } catch(err) {
-                    console.warn("DB保存に失敗しましたが、画面上には追加しました:", err);
+                    console.warn("DB保存に失敗:", err);
                 }
             } else {
                 // ★ DB制限対策: 古いタスクに範囲データがなければ、メモリ上で補完してバッジを表示させる
@@ -556,12 +554,12 @@ function openAddRoutineModal() {
     openModal('modal-add-routine');
 }
 
-async function saveNewRoutine() {
+// ★ 修正: DBブロックを回避するための非同期処理へ変更
+function saveNewRoutine() {
     const title = document.getElementById('input-routine-title').value.trim();
     const subject = document.getElementById('input-routine-subject').value;
     const time = parseInt(document.getElementById('input-routine-time').value, 10) || 0;
     
-    // 追加: 新規項目
     const totalItems = parseInt(document.getElementById('input-routine-total').value, 10) || null;
     const unit = document.getElementById('input-routine-unit').value || '問';
     const dailyPace = parseInt(document.getElementById('input-routine-pace').value, 10) || 1;
@@ -573,26 +571,28 @@ async function saveNewRoutine() {
 
     const routineData = {
         title, subject, estimatedTime: time,
-        totalItems, unit, dailyPace, currentPosition: 1, // 初期位置を1に設定
+        totalItems, unit, dailyPace, currentPosition: 1,
         createdAt: new Date().toISOString()
     };
 
+    // ▼ 1. DBの返答を待たずに、先にローカルに反映して画面を更新する (UIブロック回避)
+    const tempId = 'temp_' + Date.now();
+    state.routines.push({ id: tempId, ...routineData });
+    closeModal('modal-add-routine');
+    showToast("ルーティンを追加しました");
+    
+    // ▼ 2. 続いてタスクを生成して画面更新 (裏で非同期実行)
+    generateRoutineTasks().then(() => {
+        updateAllViews();
+        if(btn) btn.disabled = false;
+    });
+
+    // ▼ 3. 裏でDB保存を試みる (Quotaエラーで待機し続けてもUIは止まらない)
     try {
         const newDocRef = doc(getAppCollectionRef('routines'));
-        await setDoc(newDocRef, routineData);
-        closeModal('modal-add-routine');
-        showToast("ルーティンを追加しました");
+        setDoc(newDocRef, routineData).catch(e => console.warn("DB保存待機中:", e));
     } catch (e) {
-        console.error("DB制限エラー:", e);
-        // DB制限時でも、画面のメモリ上だけに追加して処理を進められるようにする（オフラインフォールバック）
-        const tempId = 'temp_' + Date.now();
-        state.routines.push({ id: tempId, ...routineData });
-        generateRoutineTasks();
-        updateAllViews();
-        closeModal('modal-add-routine');
-        showToast("オフラインモードで追加しました", "info");
-    } finally {
-        if(btn) btn.disabled = false;
+        console.warn(e);
     }
 }
 
