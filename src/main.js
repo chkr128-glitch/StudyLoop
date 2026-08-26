@@ -206,29 +206,29 @@ function switchView(viewName) {
 }
 
 function updateAllViews() {
-    if (state.currentView === 'dashboard') renderDashboard(state.tasks);
-    if (state.currentView === 'calendar') {
-        renderCalendar(state.tasks);
-        renderCalendarTasks(state.tasks);
-    }
-    if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
-    if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
-    if (state.currentView === 'store') renderStore(state.storeSets);
-    
-    if (state.currentView === 'flashcard-app') {
-        const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
-        showFcView(activeFcView);
-    }
+    if (state.currentView === 'dashboard') renderDashboard(state.tasks);
+    if (state.currentView === 'calendar') {
+        renderCalendar(state.tasks);
+        renderCalendarTasks(state.tasks);
+    }
+    if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
+    if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
+    if (state.currentView === 'store') renderStore(state.storeSets);
+    
+    if (state.currentView === 'flashcard-app') {
+        const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
+        showFcView(activeFcView);
+    }
 }
 
-// ★ 追加: 無限ループを防ぐためのロック変数
+// ★ 修正: 不足していたロック用変数を追加
 let isGeneratingTasks = false;
 
 async function generateRoutineTasks(targetDateStr = null) {
-    // 実行中ならスキップ（無限ループ防止）
-    if (isGeneratingTasks) return;
-    
-    const todayStr = formatDate(new Date());
+    // 実行中ならスキップ（無限ループ防止）
+    if (isGeneratingTasks) return;
+    
+    const todayStr = formatDate(new Date());
     const dateStr = targetDateStr || todayStr;
     
     if (dateStr !== todayStr) return;
