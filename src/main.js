@@ -206,88 +206,94 @@ function switchView(viewName) {
 }
 
 function updateAllViews() {
-    if (state.currentView === 'dashboard') renderDashboard(state.tasks);
-    if (state.currentView === 'calendar') {
-        renderCalendar(state.tasks);
-        renderCalendarTasks(state.tasks);
-    }
-    if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
-    if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
-    if (state.currentView === 'store') renderStore(state.storeSets);
-    
-    if (state.currentView === 'flashcard-app') {
-        const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
-        showFcView(activeFcView);
-    }
+    if (state.currentView === 'dashboard') renderDashboard(state.tasks);
+    if (state.currentView === 'calendar') {
+        renderCalendar(state.tasks);
+        renderCalendarTasks(state.tasks);
+    }
+    if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
+    if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
+    if (state.currentView === 'store') renderStore(state.storeSets);
+    
+    if (state.currentView === 'flashcard-app') {
+        const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
+        showFcView(activeFcView);
+    }
 }
 
+// ★ 追加: 無限ループを防ぐためのロック変数
+let isGeneratingTasks = false;
+
 async function generateRoutineTasks(targetDateStr = null) {
-    const todayStr = formatDate(new Date());
-    const dateStr = targetDateStr || todayStr;
-    
-    // 自動追跡機能のため、未来のタスクはあらかじめ生成せず、今日の日付でのみ生成処理を行う
-    if (dateStr !== todayStr) return;
+    // 実行中ならスキップ（無限ループ防止）
+    if (isGeneratingTasks) return;
+    
+    const todayStr = formatDate(new Date());
+    const dateStr = targetDateStr || todayStr;
+    
+    if (dateStr !== todayStr) return;
 
-    for (const r of state.routines) {
-        // すでに全体量に到達（完了）しているルーティンは生成しない
-        if (r.totalItems && r.currentPosition > r.totalItems) continue;
+    isGeneratingTasks = true; // ロックをかける
+    try {
+        for (const r of state.routines) {
+            if (r.totalItems && r.currentPosition > r.totalItems) continue;
 
-        // 1. 過去の未完了ルーティンタスクを整理（タスクの山積みを防ぎ、最新位置からリスタートさせるため）
-        const pastIncompleteTasks = state.tasks.filter(t => 
-            t.sourceRoutineId === r.id && 
-            t.isRoutine === true && 
-            !t.completed && 
-            !t.deleted && 
-            t.date < todayStr
-        );
+            const pastIncompleteTasks = state.tasks.filter(t => 
+                t.sourceRoutineId === r.id && 
+                t.isRoutine === true && 
+                !t.completed && 
+                !t.deleted && 
+                t.date < todayStr
+            );
 
-        for (const pastTask of pastIncompleteTasks) {
-            try {
-                // 論理削除して見えなくする
-                await setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true });
-                pastTask.deleted = true; // ローカルも更新
-            } catch(e) {
-                console.error("Error deleting past routine task:", e);
-            }
-        }
+            // 並列で削除を実行（ローカルを先に更新して重複処理を防ぐ）
+            const deletePromises = pastIncompleteTasks.map(async (pastTask) => {
+                pastTask.deleted = true; 
+                try {
+                    await setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true });
+                } catch(e) {
+                    console.error("Error deleting past routine task:", e);
+                }
+            });
+            await Promise.all(deletePromises);
 
-        // 2. 今日のタスク生成判定
-        const isGenerated = state.tasks.some(t => t.sourceRoutineId === r.id && t.isRoutine === true && t.date === todayStr && !t.deleted);
-        
-        if (!isGenerated) {
-            // ペースと範囲の計算
-            const startPos = r.currentPosition || 1;
-            let endPos = startPos + (r.dailyPace || 1) - 1;
-            
-            // 予定終了位置が全体量を超えないように調整
-            if (r.totalItems && endPos > r.totalItems) {
-                endPos = r.totalItems;
-            }
+            // 重複生成を防ぐための確認
+            const isGenerated = state.tasks.some(t => t.sourceRoutineId === r.id && t.isRoutine === true && t.date === todayStr && !t.deleted);
+            
+            if (!isGenerated) {
+                const startPos = r.currentPosition || 1;
+                let endPos = startPos + (r.dailyPace || 1) - 1;
+                
+                if (r.totalItems && endPos > r.totalItems) {
+                    endPos = r.totalItems;
+                }
 
-            // ローカルへの仮追加（リアルタイム同期までの間の重複生成防止）
-            state.tasks.push({ sourceRoutineId: r.id, isRoutine: true, date: todayStr });
+                // 意図的な二重生成を防ぐため、通信前にローカルに仮追加
+                state.tasks.push({ sourceRoutineId: r.id, isRoutine: true, date: todayStr });
 
-            const docId = `routine_${r.id}_${todayStr}`;
-            const newDocRef = doc(getAppCollectionRef('tasks'), docId);
-            
-            await setDoc(newDocRef, {
-                title: r.title, // 素のタイトル
-                subject: r.subject,
-                estimatedTime: r.estimatedTime,
-                date: todayStr,
-                completed: false,
-                isReview: false,
-                isRoutine: true,
-                sourceRoutineId: r.id,
-                // ▼ 追加：範囲データ
-                plannedStart: startPos,
-                plannedEnd: endPos,
-                unit: r.unit || '問',
-                totalItems: r.totalItems || null,
-                createdAt: new Date().toISOString()
-            }, { merge: true }).catch(err => console.error("Error generating routine:", err));
-        }
-    }
+                const docId = `routine_${r.id}_${todayStr}`;
+                const newDocRef = doc(getAppCollectionRef('tasks'), docId);
+                
+                await setDoc(newDocRef, {
+                    title: r.title,
+                    subject: r.subject,
+                    estimatedTime: r.estimatedTime,
+                    date: todayStr,
+                    completed: false,
+                    isReview: false,
+                    isRoutine: true,
+                    sourceRoutineId: r.id,
+                    plannedStart: startPos,
+                    plannedEnd: endPos,
+                    unit: r.unit || '問',
+                    totalItems: r.totalItems || null,
+                    createdAt: new Date().toISOString()
+                }, { merge: true }).catch(err => console.warn("Task generation delayed:", err));
+            }
+        }
+    } finally {
+        isGeneratingTasks = false; // ロック解除
+    }
 }
 
 function openAddTaskModal() {
