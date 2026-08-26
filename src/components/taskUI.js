@@ -31,7 +31,7 @@ export function getTaskImportance(t, todayStr) {
 
 export function createImportantTaskHTML(t, imp) {
     const subjectBadge = `<span class="text-[10px] px-2 py-0.5 rounded-sm font-bold ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span>`;
-    const rangeBadge = getRangeBadge(t); // 追加
+    const rangeBadge = getRangeBadge(t);
     return `
         <div class="flex items-center p-4 rounded-xl shadow-sm hover:shadow-md transition-all relative overflow-hidden mb-3 ${imp.colorClass}">
             <input type="checkbox" ${t.completed ? 'checked' : ''} class="task-checkbox w-6 h-6 text-pink-500 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-pink-500 mr-4 flex-shrink-0 transition-colors" data-task-id="${t.id}">
@@ -47,7 +47,7 @@ export function createTaskHTML(t, hideSubjectBadge = false) {
     let detailBadge = '';
     if (t.subEvaluations && t.subEvaluations.length > 0) detailBadge = `<span class="ml-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-1.5 py-0.5 rounded-md font-bold border border-purple-100 dark:border-purple-800">問題別記録あり</span>`;
     const subjectBadge = hideSubjectBadge ? '' : `<span class="text-[10px] px-2.5 py-1 rounded-full font-bold ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span>`;
-    const rangeBadge = getRangeBadge(t); // 追加
+    const rangeBadge = getRangeBadge(t);
     return `
         <div class="flex items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-gray-700 relative overflow-hidden mb-3">
             ${t.isReview ? '<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-400"></div>' : ''}
