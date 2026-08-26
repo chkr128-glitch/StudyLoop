@@ -206,38 +206,41 @@ function switchView(viewName) {
 }
 
 function updateAllViews() {
-    if (state.currentView === 'dashboard') renderDashboard(state.tasks);
-    if (state.currentView === 'calendar') {
-        renderCalendar(state.tasks);
-        renderCalendarTasks(state.tasks);
-    }
-    if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
-    if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
-    if (state.currentView === 'store') renderStore(state.storeSets);
-    
-    if (state.currentView === 'flashcard-app') {
-        const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
-        showFcView(activeFcView);
-    }
+    if (state.currentView === 'dashboard') renderDashboard(state.tasks);
+    if (state.currentView === 'calendar') {
+        renderCalendar(state.tasks);
+        renderCalendarTasks(state.tasks);
+    }
+    if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
+    if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
+    if (state.currentView === 'store') renderStore(state.storeSets);
+    
+    if (state.currentView === 'flashcard-app') {
+        const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
+        showFcView(activeFcView);
+    }
 }
 
-// ★ 修正: 不足していたロック用変数を追加
+// ★ 不足していたロック用変数を追加
 let isGeneratingTasks = false;
 
 async function generateRoutineTasks(targetDateStr = null) {
-    // 実行中ならスキップ（無限ループ防止）
-    if (isGeneratingTasks) return;
-    
-    const todayStr = formatDate(new Date());
+    // 実行中ならスキップ（無限ループ防止）
+    if (isGeneratingTasks) return;
+    
+    const todayStr = formatDate(new Date());
     const dateStr = targetDateStr || todayStr;
     
+    // 今日以外のタスクは自動生成しない（追跡システムのため）
     if (dateStr !== todayStr) return;
 
     isGeneratingTasks = true; // ロックをかける
     try {
         for (const r of state.routines) {
+            // 全範囲が完了している場合は生成しない
             if (r.totalItems && r.currentPosition > r.totalItems) continue;
 
+            // 過去の未完了タスクを見つけて整理する（論理削除）
             const pastIncompleteTasks = state.tasks.filter(t => 
                 t.sourceRoutineId === r.id && 
                 t.isRoutine === true && 
@@ -250,17 +253,21 @@ async function generateRoutineTasks(targetDateStr = null) {
             const deletePromises = pastIncompleteTasks.map(async (pastTask) => {
                 pastTask.deleted = true; 
                 try {
-                    await setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true });
+                    // IDが仮IDの場合はDB処理をスキップ
+                    if(!pastTask.id.startsWith('temp_')) {
+                        await setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true });
+                    }
                 } catch(e) {
                     console.error("Error deleting past routine task:", e);
                 }
             });
             await Promise.all(deletePromises);
 
-            // ★ 修正: 既存タスクを取得して判定する形に変更
+            // 今日のタスクがすでに存在するかチェック
             const existingTask = state.tasks.find(t => t.sourceRoutineId === r.id && t.isRoutine === true && t.date === todayStr && !t.deleted);
             
             if (!existingTask) {
+                // タスクが存在しない場合、新しい範囲を計算して生成
                 const startPos = r.currentPosition || 1;
                 let endPos = startPos + (r.dailyPace || 1) - 1;
                 
@@ -285,14 +292,19 @@ async function generateRoutineTasks(targetDateStr = null) {
                     totalItems: r.totalItems || null
                 };
 
-                // ★ 修正: DB通信前にすべての情報をローカルに追加する
+                // ★ DB通信前にすべての情報をローカルに追加する
                 // これにより、DB制限で弾かれても画面には青いバッジが表示されます
                 state.tasks.push(newTaskData);
-                updateAllViews();
 
-                const newDocRef = doc(getAppCollectionRef('tasks'), docId);
-                await setDoc(newDocRef, Object.assign({}, newTaskData, { createdAt: new Date().toISOString() }), { merge: true })
-                    .catch(err => console.warn("DB保存に失敗しましたが、画面上には追加しました:", err));
+                // DBへの保存処理
+                try {
+                    if(!r.id.startsWith('temp_')) {
+                        const newDocRef = doc(getAppCollectionRef('tasks'), docId);
+                        await setDoc(newDocRef, Object.assign({}, newTaskData, { createdAt: new Date().toISOString() }), { merge: true });
+                    }
+                } catch(err) {
+                    console.warn("DB保存に失敗しましたが、画面上には追加しました:", err);
+                }
             } else {
                 // ★ DB制限対策: 古いタスクに範囲データがなければ、メモリ上で補完してバッジを表示させる
                 if (!existingTask.plannedStart) {
@@ -303,7 +315,7 @@ async function generateRoutineTasks(targetDateStr = null) {
                 }
             }
         }
-        updateAllViews(); // ★ 追加: 画面を強制的に最新化して反映させる
+        updateAllViews(); // 画面を強制的に最新化して反映させる
     } finally {
         isGeneratingTasks = false; // ロック解除
     }
@@ -528,22 +540,30 @@ function deleteTask() {
 }
 
 function openAddRoutineModal() {
-    document.getElementById('input-routine-title').value = '';
-    document.getElementById('input-routine-time').value = '';
-    // 新しい入力欄のリセットを追加
-    document.getElementById('input-routine-total').value = '';
-    document.getElementById('input-routine-pace').value = '';
-    const subjectSelect = document.getElementById('input-routine-subject');
-    if(subjectSelect) subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800">${s}</option>`).join('');
-    openModal('modal-add-routine');
+    document.getElementById('input-routine-title').value = '';
+    document.getElementById('input-routine-time').value = '';
+    
+    // 追加: 新しい入力欄のリセット
+    const totalEl = document.getElementById('input-routine-total');
+    if(totalEl) totalEl.value = '';
+    const unitEl = document.getElementById('input-routine-unit');
+    if(unitEl) unitEl.value = '問';
+    const paceEl = document.getElementById('input-routine-pace');
+    if(paceEl) paceEl.value = '';
+    
+    const subjectSelect = document.getElementById('input-routine-subject');
+    if(subjectSelect) subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800">${s}</option>`).join('');
+    openModal('modal-add-routine');
 }
 
 async function saveNewRoutine() {
     const title = document.getElementById('input-routine-title').value.trim();
     const subject = document.getElementById('input-routine-subject').value;
     const time = parseInt(document.getElementById('input-routine-time').value, 10) || 0;
+    
+    // 追加: 新規項目
     const totalItems = parseInt(document.getElementById('input-routine-total').value, 10) || null;
-    const unit = document.getElementById('input-routine-unit').value;
+    const unit = document.getElementById('input-routine-unit').value || '問';
     const dailyPace = parseInt(document.getElementById('input-routine-pace').value, 10) || 1;
 
     if (!title || !subject || time <= 0) return showToast("入力内容を確認してください", "error");
@@ -553,7 +573,7 @@ async function saveNewRoutine() {
 
     const routineData = {
         title, subject, estimatedTime: time,
-        totalItems, unit, dailyPace, currentPosition: 1,
+        totalItems, unit, dailyPace, currentPosition: 1, // 初期位置を1に設定
         createdAt: new Date().toISOString()
     };
 
@@ -564,13 +584,13 @@ async function saveNewRoutine() {
         showToast("ルーティンを追加しました");
     } catch (e) {
         console.error("DB制限エラー:", e);
-        // ★ 修正: DB制限時でも、画面のメモリ上だけに追加して処理を進められるようにする
+        // DB制限時でも、画面のメモリ上だけに追加して処理を進められるようにする（オフラインフォールバック）
         const tempId = 'temp_' + Date.now();
         state.routines.push({ id: tempId, ...routineData });
         generateRoutineTasks();
         updateAllViews();
         closeModal('modal-add-routine');
-        showToast("DB制限中のため、画面上のみに追加しました", "info");
+        showToast("オフラインモードで追加しました", "info");
     } finally {
         if(btn) btn.disabled = false;
     }
