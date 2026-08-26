@@ -90,21 +90,25 @@ export function renderSettings(routines, userProfile) {
         ['国語', '数学IA', '数学IIBC', '英語R', '英語L', '情報'].forEach(s => { const el = document.getElementById(`c-${s}`); if(el) el.value = cs[s] || ''; });
         ['soc1', 'soc2', 'sci1', 'sci2'].forEach(key => { const k = key==='soc1'?'社会1':key==='soc2'?'社会2':key==='sci1'?'理科1':'理科2'; const subEl = document.getElementById(`c-${key}-sub`); if(subEl) subEl.value = cs[`${k}_sub`] || ''; const scoreEl = document.getElementById(`c-${key}-score`); if(scoreEl) scoreEl.value = cs[`${k}_score`] || ''; });
         ['国語', '数学', '英語'].forEach(s => { const el = document.getElementById(`s-${s}`); if(el) el.value = ss[s] || ''; });
-        ['soc1', 'soc2', 'sci1', 'sci2'].forEach(key => { const k = key==='soc1'?'社会1':key==='soc2'?'社会2':key==='sci1'?'理科1':'理科2'; const subEl = document.getElementById(`s-${key}-sub`); if(subEl) subEl.value = ss[`${k}_sub`] || ''; const scoreEl = document.getElementById(`s-${key}-score`); if(scoreEl) scoreEl.value = ss[`${k}_score`] || ''; });
-    }
-    
-    document.getElementById('routine-list').innerHTML = routines.map(r => `
-        <li class="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-2xl mb-3 border border-gray-100 dark:border-gray-700 transition-colors">
-            <div>
-                <p class="font-bold text-sm text-gray-800 dark:text-gray-100 mb-1.5 tracking-wide">${escapeHTML(r.title)}</p>
-                <p class="text-[11px] text-gray-500 dark:text-gray-400 font-medium flex items-center"><span class="${SUBJECT_COLORS[r.subject] || SUBJECT_COLORS['その他']} px-2 py-0.5 rounded-full mr-2 font-bold">${escapeHTML(r.subject)}</span>予定: ${formatTime(r.estimatedTime)}</p>
-            </div>
-            <!-- ★ onclick を削除し、class と data-routine-id を付与 -->
-            <button class="routine-delete-btn text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 w-10 h-10 rounded-full flex items-center justify-center transition-colors" data-routine-id="${r.id}">
-                <i class="fas fa-trash pointer-events-none"></i>
-            </button>
-        </li>
-    `).join('');
+         ['soc1', 'soc2', 'sci1', 'sci2'].forEach(key => { const k = key==='soc1'?'社会1':key==='soc2'?'社会2':key==='sci1'?'理科1':'理科2'; const subEl = document.getElementById(`s-${key}-sub`); if(subEl) subEl.value = ss[`${k}_sub`] || ''; const scoreEl = document.getElementById(`s-${key}-score`); if(scoreEl) scoreEl.value = ss[`${k}_score`] || ''; });
+    }
+    
+    document.getElementById('routine-list').innerHTML = routines.map(r => `
+        <li class="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-2xl mb-3 border border-gray-100 dark:border-gray-700 transition-colors">
+            <div>
+                <p class="font-bold text-sm text-gray-800 dark:text-gray-100 mb-1.5 tracking-wide">${escapeHTML(r.title)}</p>
+                <p class="text-[11px] text-gray-500 dark:text-gray-400 font-medium flex items-center flex-wrap gap-y-1">
+                    <span class="${SUBJECT_COLORS[r.subject] || SUBJECT_COLORS['その他']} px-2 py-0.5 rounded-full mr-2 font-bold">${escapeHTML(r.subject)}</span>
+                    <span>予定: ${formatTime(r.estimatedTime)}</span>
+                    ${r.totalItems ? `<span class="mx-1.5 opacity-50">|</span><span>全${r.totalItems}${escapeHTML(r.unit || '問')} (1日${r.dailyPace}${escapeHTML(r.unit || '問')}ペース)</span>` : ''}
+                </p>
+            </div>
+            <!-- ★ onclick を削除し、class と data-routine-id を付与 -->
+            <button class="routine-delete-btn text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 w-10 h-10 rounded-full flex items-center justify-center transition-colors" data-routine-id="${r.id}">
+                <i class="fas fa-trash pointer-events-none"></i>
+            </button>
+        </li>
+    `).join('');
 }
 
 export async function saveUserProfile() {
