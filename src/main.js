@@ -206,43 +206,88 @@ function switchView(viewName) {
 }
 
 function updateAllViews() {
-    if (state.currentView === 'dashboard') renderDashboard(state.tasks);
-    if (state.currentView === 'calendar') {
-        renderCalendar(state.tasks);
-        renderCalendarTasks(state.tasks);
-    }
-    if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
-    if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
-    if (state.currentView === 'store') renderStore(state.storeSets);
-    
-    if (state.currentView === 'flashcard-app') {
-        const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
-        showFcView(activeFcView);
-    }
+    if (state.currentView === 'dashboard') renderDashboard(state.tasks);
+    if (state.currentView === 'calendar') {
+        renderCalendar(state.tasks);
+        renderCalendarTasks(state.tasks);
+    }
+    if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
+    if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
+    if (state.currentView === 'store') renderStore(state.storeSets);
+    
+    if (state.currentView === 'flashcard-app') {
+        const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
+        showFcView(activeFcView);
+    }
 }
 
 async function generateRoutineTasks(targetDateStr = null) {
-    const dateStr = targetDateStr || formatDate(new Date());
-    
-    for (const r of state.routines) {
-        const isGenerated = state.tasks.some(t => t.title === r.title && t.isRoutine === true && t.date === dateStr);
-        if (!isGenerated) {
-            state.tasks.push({ title: r.title, isRoutine: true, date: dateStr });
-            const docId = `routine_${r.id}_${dateStr}`;
-            const newDocRef = doc(getAppCollectionRef('tasks'), docId);
-            await setDoc(newDocRef, {
-                title: r.title,
-                subject: r.subject,
-                estimatedTime: r.estimatedTime,
-                date: dateStr,
-                completed: false,
-                isReview: false,
-                isRoutine: true,
-                sourceRoutineId: r.id,
-                createdAt: new Date().toISOString()
-            }, { merge: true }).catch(err => console.error("Error generating routine:", err));
-        }
-    }
+    const todayStr = formatDate(new Date());
+    const dateStr = targetDateStr || todayStr;
+    
+    // 自動追跡機能のため、未来のタスクはあらかじめ生成せず、今日の日付でのみ生成処理を行う
+    if (dateStr !== todayStr) return;
+
+    for (const r of state.routines) {
+        // すでに全体量に到達（完了）しているルーティンは生成しない
+        if (r.totalItems && r.currentPosition > r.totalItems) continue;
+
+        // 1. 過去の未完了ルーティンタスクを整理（タスクの山積みを防ぎ、最新位置からリスタートさせるため）
+        const pastIncompleteTasks = state.tasks.filter(t => 
+            t.sourceRoutineId === r.id && 
+            t.isRoutine === true && 
+            !t.completed && 
+            !t.deleted && 
+            t.date < todayStr
+        );
+
+        for (const pastTask of pastIncompleteTasks) {
+            try {
+                // 論理削除して見えなくする
+                await setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true });
+                pastTask.deleted = true; // ローカルも更新
+            } catch(e) {
+                console.error("Error deleting past routine task:", e);
+            }
+        }
+
+        // 2. 今日のタスク生成判定
+        const isGenerated = state.tasks.some(t => t.sourceRoutineId === r.id && t.isRoutine === true && t.date === todayStr && !t.deleted);
+        
+        if (!isGenerated) {
+            // ペースと範囲の計算
+            const startPos = r.currentPosition || 1;
+            let endPos = startPos + (r.dailyPace || 1) - 1;
+            
+            // 予定終了位置が全体量を超えないように調整
+            if (r.totalItems && endPos > r.totalItems) {
+                endPos = r.totalItems;
+            }
+
+            // ローカルへの仮追加（リアルタイム同期までの間の重複生成防止）
+            state.tasks.push({ sourceRoutineId: r.id, isRoutine: true, date: todayStr });
+
+            const docId = `routine_${r.id}_${todayStr}`;
+            const newDocRef = doc(getAppCollectionRef('tasks'), docId);
+            
+            await setDoc(newDocRef, {
+                title: r.title, // 素のタイトル
+                subject: r.subject,
+                estimatedTime: r.estimatedTime,
+                date: todayStr,
+                completed: false,
+                isReview: false,
+                isRoutine: true,
+                sourceRoutineId: r.id,
+                // ▼ 追加：範囲データ
+                plannedStart: startPos,
+                plannedEnd: endPos,
+                unit: r.unit || '問',
+                totalItems: r.totalItems || null,
+                createdAt: new Date().toISOString()
+            }, { merge: true }).catch(err => console.error("Error generating routine:", err));
+        }
+    }
 }
 
 function openAddTaskModal() {
