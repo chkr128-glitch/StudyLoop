@@ -221,101 +221,27 @@ function updateAllViews() {
     }
 }
 
-// ★ 不足していたロック用変数を追加
-let isGeneratingTasks = false;
-
 async function generateRoutineTasks(targetDateStr = null) {
-    // 実行中ならスキップ（無限ループ防止）
-    if (isGeneratingTasks) return;
+    const dateStr = targetDateStr || formatDate(new Date());
     
-    const todayStr = formatDate(new Date());
-    const dateStr = targetDateStr || todayStr;
-    
-    // 今日以外のタスクは自動生成しない（追跡システムのため）
-    if (dateStr !== todayStr) return;
-
-    isGeneratingTasks = true; // ロックをかける
-    try {
-        for (const r of state.routines) {
-            // 全範囲が完了している場合は生成しない
-            if (r.totalItems && r.currentPosition > r.totalItems) continue;
-
-            // 過去の未完了タスクを見つけて整理する（論理削除）
-            const pastIncompleteTasks = state.tasks.filter(t => 
-                t.sourceRoutineId === r.id && 
-                t.isRoutine === true && 
-                !t.completed && 
-                !t.deleted && 
-                t.date < todayStr
-            );
-
-            // 並列で削除を実行（★DBの返答を待たずに即時反映）
-            pastIncompleteTasks.forEach(pastTask => {
-                pastTask.deleted = true; 
-                try {
-                    if(!pastTask.id.startsWith('temp_')) {
-                        setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true }).catch(e=>console.warn(e));
-                    }
-                } catch(e) {
-                    console.error("Error deleting past routine task:", e);
-                }
-            });
-
-            // 今日のタスクがすでに存在するかチェック
-            const existingTask = state.tasks.find(t => t.sourceRoutineId === r.id && t.isRoutine === true && t.date === todayStr && !t.deleted);
-            
-            if (!existingTask) {
-                // タスクが存在しない場合、新しい範囲を計算して生成
-                const startPos = r.currentPosition || 1;
-                let endPos = startPos + (r.dailyPace || 1) - 1;
-                
-                if (r.totalItems && endPos > r.totalItems) {
-                    endPos = r.totalItems;
-                }
-
-                const docId = `routine_${r.id}_${todayStr}`;
-                const newTaskData = {
-                    id: docId,
-                    title: r.title,
-                    subject: r.subject,
-                    estimatedTime: r.estimatedTime,
-                    date: todayStr,
-                    completed: false,
-                    isReview: false,
-                    isRoutine: true,
-                    sourceRoutineId: r.id,
-                    plannedStart: startPos,
-                    plannedEnd: endPos,
-                    unit: r.unit || '問',
-                    totalItems: r.totalItems || null
-                };
-
-                // ★ DB通信前にすべての情報をローカルに追加する
-                // これにより、DB制限で弾かれても画面には青いバッジが表示されます
-                state.tasks.push(newTaskData);
-
-                // DBへの保存処理（★待たずに裏で実行する）
-                try {
-                    if(!r.id.startsWith('temp_')) {
-                        const newDocRef = doc(getAppCollectionRef('tasks'), docId);
-                        setDoc(newDocRef, Object.assign({}, newTaskData, { createdAt: new Date().toISOString() }), { merge: true }).catch(e=>console.warn(e));
-                    }
-                } catch(err) {
-                    console.warn("DB保存に失敗:", err);
-                }
-            } else {
-                // ★ DB制限対策: 古いタスクに範囲データがなければ、メモリ上で補完してバッジを表示させる
-                if (!existingTask.plannedStart) {
-                    existingTask.plannedStart = r.currentPosition || 1;
-                    existingTask.plannedEnd = (r.currentPosition || 1) + (r.dailyPace || 1) - 1;
-                    existingTask.unit = r.unit || '問';
-                    existingTask.totalItems = r.totalItems || null;
-                }
-            }
+    for (const r of state.routines) {
+        const isGenerated = state.tasks.some(t => t.title === r.title && t.isRoutine === true && t.date === dateStr);
+        if (!isGenerated) {
+            state.tasks.push({ title: r.title, isRoutine: true, date: dateStr });
+            const docId = `routine_${r.id}_${dateStr}`;
+            const newDocRef = doc(getAppCollectionRef('tasks'), docId);
+            await setDoc(newDocRef, {
+                title: r.title,
+                subject: r.subject,
+                estimatedTime: r.estimatedTime,
+                date: dateStr,
+                completed: false,
+                isReview: false,
+                isRoutine: true,
+                sourceRoutineId: r.id,
+                createdAt: new Date().toISOString()
+            }, { merge: true }).catch(err => console.error("Error generating routine:", err));
         }
-        updateAllViews(); // 画面を強制的に最新化して反映させる
-    } finally {
-        isGeneratingTasks = false; // ロック解除
     }
 }
 
@@ -540,59 +466,32 @@ function deleteTask() {
 function openAddRoutineModal() {
     document.getElementById('input-routine-title').value = '';
     document.getElementById('input-routine-time').value = '';
-    
-    // 追加: 新しい入力欄のリセット
-    const totalEl = document.getElementById('input-routine-total');
-    if(totalEl) totalEl.value = '';
-    const unitEl = document.getElementById('input-routine-unit');
-    if(unitEl) unitEl.value = '問';
-    const paceEl = document.getElementById('input-routine-pace');
-    if(paceEl) paceEl.value = '';
-    
     const subjectSelect = document.getElementById('input-routine-subject');
     if(subjectSelect) subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800">${s}</option>`).join('');
     openModal('modal-add-routine');
 }
 
-// ★ 修正: DBブロックを回避するための非同期処理へ変更
-function saveNewRoutine() {
+async function saveNewRoutine() {
     const title = document.getElementById('input-routine-title').value.trim();
     const subject = document.getElementById('input-routine-subject').value;
     const time = parseInt(document.getElementById('input-routine-time').value, 10) || 0;
-    
-    const totalItems = parseInt(document.getElementById('input-routine-total').value, 10) || null;
-    const unit = document.getElementById('input-routine-unit').value || '問';
-    const dailyPace = parseInt(document.getElementById('input-routine-pace').value, 10) || 1;
 
     if (!title || !subject || time <= 0) return showToast("入力内容を確認してください", "error");
 
     const btn = document.getElementById('btn-save-new-routine');
     if(btn) btn.disabled = true;
-
-    const routineData = {
-        title, subject, estimatedTime: time,
-        totalItems, unit, dailyPace, currentPosition: 1,
-        createdAt: new Date().toISOString()
-    };
-
-    // ▼ 1. DBの返答を待たずに、先にローカルに反映して画面を更新する (UIブロック回避)
-    const tempId = 'temp_' + Date.now();
-    state.routines.push({ id: tempId, ...routineData });
-    closeModal('modal-add-routine');
-    showToast("ルーティンを追加しました");
-    
-    // ▼ 2. 続いてタスクを生成して画面更新 (裏で非同期実行)
-    generateRoutineTasks().then(() => {
-        updateAllViews();
-        if(btn) btn.disabled = false;
-    });
-
-    // ▼ 3. 裏でDB保存を試みる (Quotaエラーで待機し続けてもUIは止まらない)
     try {
         const newDocRef = doc(getAppCollectionRef('routines'));
-        setDoc(newDocRef, routineData).catch(e => console.warn("DB保存待機中:", e));
+        await setDoc(newDocRef, {
+            title, subject, estimatedTime: time, createdAt: new Date().toISOString()
+        });
+        closeModal('modal-add-routine');
+        showToast("ルーティンを追加しました");
     } catch (e) {
-        console.warn(e);
+        console.error(e);
+        showToast("追加に失敗しました", "error");
+    } finally {
+        if(btn) btn.disabled = false;
     }
 }
 
