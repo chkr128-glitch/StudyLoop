@@ -219,7 +219,7 @@ function updateAllViews() {
     }
 }
 
-let isGeneratingTasks = false; // 無限ループ防止用のロック変数
+let isGeneratingTasks = false; 
 
 async function generateRoutineTasks(targetDateStr = null) {
     if (isGeneratingTasks) return;
@@ -276,6 +276,7 @@ async function generateRoutineTasks(targetDateStr = null) {
                 };
 
                 state.tasks.push({ id: docId, ...newTaskData });
+                
                 if (!r.id.startsWith('temp_')) {
                     try {
                         await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
@@ -322,8 +323,9 @@ function openAddTaskModal() {
         dateInput.value = state.currentView === 'calendar' ? getCalendarSelectedDate() : formatDate(new Date());
     }
     
-    // 正しいIDでモーダルを開く
-    openModal('add-task-modal');
+    // 確実なID判定による安全なモーダル起動（ID違いによるクラッシュ防止）
+    const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
+    openModal(targetId);
 }
 
 async function saveNewTask() {
@@ -350,7 +352,9 @@ async function saveNewTask() {
             isRoutine: false,
             createdAt: new Date().toISOString()
         });
-        closeModal('add-task-modal');
+        
+        const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
+        closeModal(targetId);
         showToast("タスクを追加しました");
     } catch(err) {
         console.error("タスク追加エラー:", err);
@@ -369,8 +373,8 @@ function openAddRoutineModal() {
     const startInput = document.getElementById('input-routine-start');
     if (startInput) startInput.value = '1';
 
-    // 正しいIDでモーダルを開く
-    openModal('add-routine-modal');
+    const targetId = document.getElementById('modal-add-routine') ? 'modal-add-routine' : 'add-routine-modal';
+    openModal(targetId);
 }
 
 async function saveNewRoutine() {
@@ -406,7 +410,9 @@ async function saveNewRoutine() {
             currentPosition, 
             createdAt: new Date().toISOString()
         });
-        closeModal('add-routine-modal');
+        
+        const targetId = document.getElementById('modal-add-routine') ? 'modal-add-routine' : 'add-routine-modal';
+        closeModal(targetId);
         showToast("固定ルーティンを追加しました");
     } catch(err) {
         console.error("ルーティン追加エラー:", err);
@@ -469,7 +475,9 @@ function openTaskDetailModal(id) {
             document.getElementById('main-evaluation-section')?.classList.remove('opacity-50', 'pointer-events-none');
         }
     }
-    openModal('modal-task-detail');
+    
+    const targetId = document.getElementById('modal-task-detail') ? 'modal-task-detail' : 'task-detail-modal';
+    openModal(targetId);
 }
 
 function toggleSubEvaluations() {
@@ -577,7 +585,6 @@ async function saveTaskDetail() {
     try {
         const updateData = { actualTime, note, evaluation, subEvaluations, completed: true };
         
-        // ルーティンの現在地の自動更新処理
         if (task.isRoutine && task.sourceRoutineId) {
             const endPosVal = document.getElementById('detail-routine-end')?.value;
             const actualEnd = parseInt(endPosVal, 10);
@@ -585,7 +592,6 @@ async function saveTaskDetail() {
                 updateData.actualEnd = actualEnd;
                 updateData.actualStart = parseInt(document.getElementById('detail-routine-start').innerText, 10) || task.plannedStart;
                 
-                // 親ルーティンの開始位置を「終わった番号の次」に進める
                 try {
                     await setDoc(doc(getAppCollectionRef('routines'), task.sourceRoutineId), { currentPosition: actualEnd + 1 }, { merge: true });
                 } catch (err) {
@@ -600,7 +606,8 @@ async function saveTaskDetail() {
             await scheduleReviews(task, evaluation, subEvaluations);
         }
 
-        closeModal('modal-task-detail');
+        const targetId = document.getElementById('modal-task-detail') ? 'modal-task-detail' : 'task-detail-modal';
+        closeModal(targetId);
         showToast("タスクを記録しました！🎉");
     } catch (e) {
         console.error(e);
@@ -658,7 +665,10 @@ function deleteTask() {
     showConfirm("このタスクを削除しますか？\n(復習タスクも削除されます)", async () => {
         try {
             await setDoc(getAppDocRef('tasks', id), { deleted: true }, { merge: true });
-            closeModal('modal-task-detail');
+            
+            const targetId = document.getElementById('modal-task-detail') ? 'modal-task-detail' : 'task-detail-modal';
+            closeModal(targetId);
+            
             showToast("タスクを削除しました", "info");
         } catch (e) {
             console.error(e);
