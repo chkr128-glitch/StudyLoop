@@ -554,10 +554,20 @@ async function scheduleReviews(originalTask, evaluation, subEvaluations) {
         const dateStr = formatDate(d);
 
         let reviewTitle = `[復習] ${originalTask.title} (評${evaluation})`;
+        let reviewNote = '';
+
         if (subEvaluations && subEvaluations.length > 0) {
-            const weakPoints = subEvaluations.filter(s => s.eval === 'C' || s.eval === 'D').map(s => s.name);
-            if (weakPoints.length > 0) {
+            // タイトル用: 弱点(C, D)のみ抽出して表示
+            const weakSubEvals = subEvaluations.filter(s => s.eval === 'C' || s.eval === 'D');
+            if (weakSubEvals.length > 0) {
+                const weakPoints = weakSubEvals.map(s => s.name);
                 reviewTitle = `[復習] ${originalTask.title} (弱点: ${weakPoints.slice(0, 2).join(', ')}${weakPoints.length > 2 ? '...' : ''})`;
+            }
+
+            // メモ用: 評価(A,B,C,D)に関わらず、メモが入力されているものを全て抽出
+            const itemsWithNotes = subEvaluations.filter(s => s.note && s.note.trim() !== '');
+            if (itemsWithNotes.length > 0) {
+                reviewNote = itemsWithNotes.map(s => `【${s.name}】(評${s.eval})\n${s.note}`).join('\n\n');
             }
         }
 
@@ -572,6 +582,7 @@ async function scheduleReviews(originalTask, evaluation, subEvaluations) {
             isLastReview: i === intervals.length - 1,
             originalTaskId: originalTask.id,
             sourceEval: evaluation,
+            note: reviewNote, // 全ての評価のメモを引き継ぎ
             createdAt: new Date().toISOString()
         });
     }
