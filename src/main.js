@@ -27,6 +27,8 @@ const state = {
     unsubscribeStore: null
 };
 
+// localPendingTasks などは削除してクリーンな状態に戻します
+
 function initApp() {
     initUI(() => updateChartColors());
     initAuthUI();
@@ -138,6 +140,7 @@ function subscribeToData() {
     
     let tutorialChecked = false; // チュートリアル判定を1度だけ行うためのフラグ
 
+    // シンプルな同期処理に戻します
     state.unsubscribeTasks = onSnapshot(getAppCollectionRef('tasks'), (snapshot) => {
         state.tasks = [];
         snapshot.forEach(doc => state.tasks.push({ id: doc.id, ...doc.data() }));
@@ -221,28 +224,99 @@ function updateAllViews() {
     }
 }
 
+// 堅牢に書き直したタスク生成処理
 async function generateRoutineTasks(targetDateStr = null) {
-    const dateStr = targetDateStr || formatDate(new Date());
+    const todayStr = formatDate(new Date());
+    const dateStr = targetDateStr || todayStr;
     
+    // 今日以外のタスクは自動生成・整理しない
+    if (dateStr !== todayStr) return;
+
     for (const r of state.routines) {
-        const isGenerated = state.tasks.some(t => t.title === r.title && t.isRoutine === true && t.date === dateStr);
-        if (!isGenerated) {
-            state.tasks.push({ title: r.title, isRoutine: true, date: dateStr });
-            const docId = `routine_${r.id}_${dateStr}`;
-            const newDocRef = doc(getAppCollectionRef('tasks'), docId);
-            await setDoc(newDocRef, {
+        // 全範囲が完了している場合は生成しない
+        if (r.totalItems && r.currentPosition > r.totalItems) continue;
+
+        // 1. 過去の未完了タスクの整理（論理削除）
+        const pastIncompleteTasks = state.tasks.filter(t => 
+            t.sourceRoutineId === r.id && t.isRoutine === true && !t.completed && !t.deleted && t.date < todayStr
+        );
+
+        for (const pastTask of pastIncompleteTasks) {
+            if (pastTask.deleted) continue; // 既に削除済みならスキップ
+            pastTask.deleted = true; // メモリ上で即座に反映して重複処理を防ぐ
+            if (!pastTask.id.startsWith('temp_')) {
+                try {
+                    await setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true });
+                } catch(e) {
+                    console.error("Error deleting past routine task:", e);
+                }
+            }
+        }
+
+        // 2. 今日のタスクの生成または範囲の補完
+        const existingTask = state.tasks.find(t => 
+            t.sourceRoutineId === r.id && t.isRoutine === true && t.date === todayStr && !t.deleted
+        );
+        
+        const startPos = r.currentPosition || 1;
+        let endPos = startPos + (r.dailyPace || 1) - 1;
+        if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
+
+        if (!existingTask) {
+            // タスクが存在しない場合、新規作成
+            const docId = `routine_${r.id}_${todayStr}`;
+            const newTaskData = {
                 title: r.title,
                 subject: r.subject,
                 estimatedTime: r.estimatedTime,
-                date: dateStr,
+                date: todayStr,
                 completed: false,
                 isReview: false,
                 isRoutine: true,
                 sourceRoutineId: r.id,
+                plannedStart: startPos,
+                plannedEnd: endPos,
+                unit: r.unit || '問',
+                totalItems: r.totalItems || null,
                 createdAt: new Date().toISOString()
-            }, { merge: true }).catch(err => console.error("Error generating routine:", err));
+            };
+
+            // ローカルに仮追加してUIに即反映し、DB書き込み時のonSnapshotループを防ぐ
+            state.tasks.push({ id: docId, ...newTaskData });
+            
+            if (!r.id.startsWith('temp_')) {
+                try {
+                    await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
+                } catch(err) {
+                    console.warn("DB保存に失敗:", err);
+                }
+            }
+        } else {
+            // 既存タスクがあるが、範囲データが古い/無い場合の補完
+            // 【重要】差分がある場合のみDBに書き込むことで無限ループを阻止
+            let needsUpdate = false;
+            const updateData = {};
+
+            if (existingTask.plannedStart !== startPos) {
+                existingTask.plannedStart = startPos; updateData.plannedStart = startPos; needsUpdate = true;
+            }
+            if (existingTask.plannedEnd !== endPos) {
+                existingTask.plannedEnd = endPos; updateData.plannedEnd = endPos; needsUpdate = true;
+            }
+            if (!existingTask.unit && r.unit) {
+                existingTask.unit = r.unit; updateData.unit = r.unit; needsUpdate = true;
+            }
+
+            if (needsUpdate && !existingTask.id.startsWith('temp_')) {
+                try {
+                    await setDoc(doc(getAppCollectionRef('tasks'), existingTask.id), updateData, { merge: true });
+                } catch(err) {
+                    console.warn("タスクの範囲更新に失敗:", err);
+                }
+            }
         }
     }
+    updateAllViews();
 }
 
 function openAddTaskModal() {
@@ -466,6 +540,15 @@ function deleteTask() {
 function openAddRoutineModal() {
     document.getElementById('input-routine-title').value = '';
     document.getElementById('input-routine-time').value = '';
+    
+    // 追加: 新しい入力欄のリセット
+    const totalEl = document.getElementById('input-routine-total');
+    if(totalEl) totalEl.value = '';
+    const unitEl = document.getElementById('input-routine-unit');
+    if(unitEl) unitEl.value = '問';
+    const paceEl = document.getElementById('input-routine-pace');
+    if(paceEl) paceEl.value = '';
+    
     const subjectSelect = document.getElementById('input-routine-subject');
     if(subjectSelect) subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800">${s}</option>`).join('');
     openModal('modal-add-routine');
@@ -475,21 +558,37 @@ async function saveNewRoutine() {
     const title = document.getElementById('input-routine-title').value.trim();
     const subject = document.getElementById('input-routine-subject').value;
     const time = parseInt(document.getElementById('input-routine-time').value, 10) || 0;
+    
+    // 追加: 新規項目
+    const totalItems = parseInt(document.getElementById('input-routine-total').value, 10) || null;
+    const unit = document.getElementById('input-routine-unit').value || '問';
+    const dailyPace = parseInt(document.getElementById('input-routine-pace').value, 10) || 1;
 
     if (!title || !subject || time <= 0) return showToast("入力内容を確認してください", "error");
 
     const btn = document.getElementById('btn-save-new-routine');
     if(btn) btn.disabled = true;
+
+    const routineData = {
+        title, subject, estimatedTime: time,
+        totalItems, unit, dailyPace, currentPosition: 1, // 初期位置を1に設定
+        createdAt: new Date().toISOString()
+    };
+
     try {
         const newDocRef = doc(getAppCollectionRef('routines'));
-        await setDoc(newDocRef, {
-            title, subject, estimatedTime: time, createdAt: new Date().toISOString()
-        });
+        await setDoc(newDocRef, routineData);
         closeModal('modal-add-routine');
         showToast("ルーティンを追加しました");
     } catch (e) {
-        console.error(e);
-        showToast("追加に失敗しました", "error");
+        console.error("DB制限エラー:", e);
+        // DB制限時でも、画面のメモリ上だけに追加して処理を進められるようにする（オフラインフォールバック）
+        const tempId = 'temp_' + Date.now();
+        state.routines.push({ id: tempId, ...routineData });
+        generateRoutineTasks();
+        updateAllViews();
+        closeModal('modal-add-routine');
+        showToast("オフラインモードで追加しました", "info");
     } finally {
         if(btn) btn.disabled = false;
     }
