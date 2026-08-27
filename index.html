@@ -718,6 +718,31 @@
         </div>
     </div>
 
+    <!-- モーダル: 復習履歴 -->
+    <div id="modal-review-history" class="modal-overlay fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] justify-center items-center">
+        <div class="modal-content bg-white dark:bg-gray-800 w-11/12 max-w-md rounded-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl relative border border-gray-100 dark:border-gray-700">
+            <button class="modal-close-btn absolute top-6 right-6 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><i class="fas fa-times pointer-events-none"></i></button>
+            <h3 class="text-xl font-black mb-1 text-gray-800 dark:text-white pr-10" id="history-task-title">タスク名</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-6 font-medium">復習と定着度の履歴</p>
+            
+            <div class="space-y-6">
+                <!-- 元の学習メモ -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1"><i class="fas fa-sticky-note text-pink-500 mr-1.5"></i>最初の学習メモ</label>
+                    <div id="history-original-note" class="w-full bg-gray-50 dark:bg-gray-700/80 dark:text-gray-200 p-4 rounded-2xl text-sm leading-relaxed border border-gray-100 dark:border-gray-600 min-h-[4rem] whitespace-pre-wrap"></div>
+                </div>
+                
+                <!-- 定着度の推移 -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 ml-1"><i class="fas fa-chart-line text-purple-500 mr-1.5"></i>評価の推移</label>
+                    <div id="history-timeline-list" class="space-y-3 max-h-48 overflow-y-auto pr-1">
+                        <!-- ここにJSで履歴アイテムが動的追加されます -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- モーダル: 独自確認モーダル -->
     <div id="custom-confirm-modal" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] justify-center items-center">
         <div class="modal-content bg-white dark:bg-slate-800 w-11/12 max-w-xs rounded-2xl p-6 transform transition-transform shadow-2xl text-center border border-white/40 dark:border-slate-700">
