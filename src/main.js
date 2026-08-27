@@ -27,8 +27,6 @@ const state = {
     unsubscribeStore: null
 };
 
-// localPendingTasks などは削除してクリーンな状態に戻します
-
 function initApp() {
     initUI(() => updateChartColors());
     initAuthUI();
@@ -36,7 +34,7 @@ function initApp() {
     initDrill();
     initFlashcard();
     initStore();
-    initTutorial(); // チュートリアルの初期化
+    initTutorial();
     
     initCalendar(
         () => state.tasks, 
@@ -108,13 +106,11 @@ function setupEventListeners() {
         if (deleteBtn) deleteBtn.closest('.flex-col').remove();
     });
 
-    // ▼▼ ここから追加 (再生成ボタンのイベント) ▼▼
     document.getElementById('btn-sync-sub-evals')?.addEventListener('click', () => {
         showConfirm("明細を再生成しますか？\n(入力済みのメモはリセットされます)", () => {
             generateRoutineSubEvaluations();
         });
     });
-    // ▲▲ ここまで追加 ▲▲
 
     ['dashboard-tasks-container', 'calendar-tasks-container'].forEach(containerId => {
         const container = document.getElementById(containerId);
@@ -130,7 +126,6 @@ function setupEventListeners() {
         }
     });
     
-    // 運営ツール：公式パック生成
     document.getElementById('btn-seed-official')?.addEventListener('click', async () => {
         const { seedOfficialPacks } = await import('./components/store.js');
         seedOfficialPacks();
@@ -145,10 +140,8 @@ if (document.readyState === 'loading') {
 
 function subscribeToData() {
     unsubscribeAll();
-    
-    let tutorialChecked = false; // チュートリアル判定を1度だけ行うためのフラグ
+    let tutorialChecked = false;
 
-    // シンプルな同期処理に戻します
     state.unsubscribeTasks = onSnapshot(getAppCollectionRef('tasks'), (snapshot) => {
         state.tasks = [];
         snapshot.forEach(doc => state.tasks.push({ id: doc.id, ...doc.data() }));
@@ -167,17 +160,13 @@ function subscribeToData() {
     state.unsubscribeProfile = onSnapshot(getAppDocRef('profile', 'data'), (docSnap) => {
         if (docSnap.exists()) {
             state.userProfile = docSnap.data();
-            
-            // 初回ロード時のみチュートリアル判定
             if (!tutorialChecked) {
                 checkAndShowTutorial(state.userProfile);
                 tutorialChecked = true;
             }
-
             if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
             if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
         } else {
-            // プロフィールが存在しない（完全な新規ユーザー）場合もチュートリアル表示
             if (!tutorialChecked) {
                 checkAndShowTutorial({});
                 tutorialChecked = true;
@@ -209,10 +198,8 @@ function unsubscribeAll() {
 function switchView(viewName) {
     state.currentView = viewName;
     switchViewUI(viewName);
-
     if (viewName !== 'drill') stopDrillTimer();
     if (viewName === 'drill') focusDrillInput();
-
     updateAllViews();
 }
 
@@ -232,119 +219,152 @@ function updateAllViews() {
     }
 }
 
-let isGeneratingTasks = false; // ★追加: 無限ループ防止用のロック変数
+let isGeneratingTasks = false; // 無限ループ防止用のロック変数
 
-// 堅牢に書き直したタスク生成処理
 async function generateRoutineTasks(targetDateStr = null) {
-    if (isGeneratingTasks) return; // ★追加: すでに処理中ならここで弾く
-    isGeneratingTasks = true;      // ★追加: 処理中フラグを立てる
+    if (isGeneratingTasks) return;
+    isGeneratingTasks = true;
 
-    try {                          // ★追加: エラー時でも確実にフラグを下ろすためのtryブロック
+    try {
         const todayStr = formatDate(new Date());
         const dateStr = targetDateStr || todayStr;
-        
-        // 今日以外のタスクは自動生成・整理しない
         if (dateStr !== todayStr) return;
 
         for (const r of state.routines) {
-        // 全範囲が完了している場合は生成しない
-        if (r.totalItems && r.currentPosition > r.totalItems) continue;
+            if (r.totalItems && r.currentPosition > r.totalItems) continue;
 
-        // 1. 過去の未完了タスクの整理（論理削除）
-        const pastIncompleteTasks = state.tasks.filter(t => 
-            t.sourceRoutineId === r.id && t.isRoutine === true && !t.completed && !t.deleted && t.date < todayStr
-        );
+            const pastIncompleteTasks = state.tasks.filter(t => 
+                t.sourceRoutineId === r.id && t.isRoutine === true && !t.completed && !t.deleted && t.date < todayStr
+            );
 
-        for (const pastTask of pastIncompleteTasks) {
-            if (pastTask.deleted) continue; // 既に削除済みならスキップ
-            pastTask.deleted = true; // メモリ上で即座に反映して重複処理を防ぐ
-            if (!pastTask.id.startsWith('temp_')) {
-                try {
-                    await setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true });
-                } catch(e) {
-                    console.error("Error deleting past routine task:", e);
+            for (const pastTask of pastIncompleteTasks) {
+                if (pastTask.deleted) continue;
+                pastTask.deleted = true;
+                if (!pastTask.id.startsWith('temp_')) {
+                    try {
+                        await setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true });
+                    } catch(e) {
+                        console.error("Error deleting past routine task:", e);
+                    }
                 }
             }
-        }
 
-        // 2. 今日のタスクの生成または範囲の補完
-        const existingTask = state.tasks.find(t => 
-            t.sourceRoutineId === r.id && t.isRoutine === true && t.date === todayStr && !t.deleted
-        );
-        
-        const startPos = r.currentPosition || 1;
-        let endPos = startPos + (r.dailyPace || 1) - 1;
-        if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
-
-        if (!existingTask) {
-            // タスクが存在しない場合、新規作成
-            const docId = `routine_${r.id}_${todayStr}`;
-            const newTaskData = {
-                title: r.title,
-                subject: r.subject,
-                estimatedTime: r.estimatedTime,
-                date: todayStr,
-                completed: false,
-                isReview: false,
-                isRoutine: true,
-                sourceRoutineId: r.id,
-                plannedStart: startPos,
-                plannedEnd: endPos,
-                unit: r.unit || '問',
-                totalItems: r.totalItems || null,
-                createdAt: new Date().toISOString()
-            };
-
-            // ローカルに仮追加してUIに即反映し、DB書き込み時のonSnapshotループを防ぐ
-            state.tasks.push({ id: docId, ...newTaskData });
+            const existingTask = state.tasks.find(t => 
+                t.sourceRoutineId === r.id && t.isRoutine === true && t.date === todayStr && !t.deleted
+            );
             
-            if (!r.id.startsWith('temp_')) {
-                try {
-                    await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
-                } catch(err) {
-                    console.warn("DB保存に失敗:", err);
+            const startPos = r.currentPosition || 1;
+            let endPos = startPos + (r.dailyPace || 1) - 1;
+            if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
+
+            if (!existingTask) {
+                const docId = `routine_${r.id}_${todayStr}`;
+                const newTaskData = {
+                    title: r.title,
+                    subject: r.subject,
+                    estimatedTime: r.estimatedTime,
+                    date: todayStr,
+                    completed: false,
+                    isReview: false,
+                    isRoutine: true,
+                    sourceRoutineId: r.id,
+                    plannedStart: startPos,
+                    plannedEnd: endPos,
+                    unit: r.unit || '問',
+                    totalItems: r.totalItems || null,
+                    createdAt: new Date().toISOString()
+                };
+
+                state.tasks.push({ id: docId, ...newTaskData });
+                if (!r.id.startsWith('temp_')) {
+                    try {
+                        await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
+                    } catch(err) {
+                        console.warn("DB保存に失敗:", err);
+                    }
                 }
-            }
-        } else {
-            // 既存タスクがあるが、範囲データが古い/無い場合の補完
-            // 【重要】差分がある場合のみDBに書き込むことで無限ループを阻止
-            let needsUpdate = false;
-            const updateData = {};
+            } else {
+                let needsUpdate = false;
+                const updateData = {};
 
-            if (existingTask.plannedStart !== startPos) {
-                existingTask.plannedStart = startPos; updateData.plannedStart = startPos; needsUpdate = true;
-            }
-            if (existingTask.plannedEnd !== endPos) {
-                existingTask.plannedEnd = endPos; updateData.plannedEnd = endPos; needsUpdate = true;
-            }
-            if (!existingTask.unit && r.unit) {
-                existingTask.unit = r.unit; updateData.unit = r.unit; needsUpdate = true;
-            }
+                if (existingTask.plannedStart !== startPos) {
+                    existingTask.plannedStart = startPos; updateData.plannedStart = startPos; needsUpdate = true;
+                }
+                if (existingTask.plannedEnd !== endPos) {
+                    existingTask.plannedEnd = endPos; updateData.plannedEnd = endPos; needsUpdate = true;
+                }
+                if (!existingTask.unit && r.unit) {
+                    existingTask.unit = r.unit; updateData.unit = r.unit; needsUpdate = true;
+                }
 
-            if (needsUpdate && !existingTask.id.startsWith('temp_')) {
-                try {
-                    await setDoc(doc(getAppCollectionRef('tasks'), existingTask.id), updateData, { merge: true });
-                } catch(err) {
-                    console.warn("タスクの範囲更新に失敗:", err);
+                if (needsUpdate && !existingTask.id.startsWith('temp_')) {
+                    try {
+                        await setDoc(doc(getAppCollectionRef('tasks'), existingTask.id), updateData, { merge: true });
+                    } catch(err) {
+                        console.warn("タスクの範囲更新に失敗:", err);
+                    }
                 }
             }
         }
-    }
-    updateAllViews();
-    } finally {                    // ★追加: tryブロックの終了と、処理終了時のフラグ解除
+        updateAllViews();
+    } finally {
         isGeneratingTasks = false;
+    }
+}
+
+function openAddTaskModal() {
+    document.getElementById('input-task-title').value = '';
+    document.getElementById('input-task-subject').value = '英語';
+    document.getElementById('input-task-time').value = '30';
+    
+    const dateInput = document.getElementById('input-task-date');
+    if (dateInput) {
+        dateInput.value = state.currentView === 'calendar' ? getCalendarSelectedDate() : formatDate(new Date());
+    }
+    
+    openModal('add-task-modal');
+}
+
+async function saveNewTask() {
+    const title = document.getElementById('input-task-title').value.trim();
+    const subject = document.getElementById('input-task-subject').value;
+    const timeVal = document.getElementById('input-task-time').value;
+    const dateVal = document.getElementById('input-task-date')?.value || formatDate(new Date());
+
+    if (!title) {
+        showToast("タスク名を入力してください", "error");
+        return;
+    }
+
+    const estimatedTime = parseInt(timeVal, 10) || 30;
+
+    try {
+        const newRef = doc(getAppCollectionRef('tasks'));
+        await setDoc(newRef, {
+            title,
+            subject,
+            estimatedTime,
+            date: dateVal,
+            completed: false,
+            isReview: false,
+            createdAt: new Date().toISOString()
+        });
+        closeModal('add-task-modal');
+        showToast("タスクを追加しました");
+    } catch (e) {
+        console.error(e);
+        showToast("追加に失敗しました", "error");
     }
 }
 
 function openAddRoutineModal() {
     document.getElementById('input-routine-title').value = '';
-    document.getElementById('input-routine-subject').value = '英語'; // 初期値
+    document.getElementById('input-routine-subject').value = '英語';
     document.getElementById('input-routine-time').value = '30';
     document.getElementById('input-routine-total').value = '';
     document.getElementById('input-routine-unit').value = '問';
     document.getElementById('input-routine-pace').value = '';
     
-    // ▼ 追加: 開くたびに開始位置を「1」にリセットする
     const startInput = document.getElementById('input-routine-start');
     if (startInput) startInput.value = '1';
 
@@ -359,8 +379,6 @@ async function saveNewRoutine() {
     const totalItemsStr = document.getElementById('input-routine-total').value;
     const unit = document.getElementById('input-routine-unit').value;
     const dailyPaceStr = document.getElementById('input-routine-pace').value;
-    
-    // ▼ 追加: 開始位置の入力を取得する
     const startPosStr = document.getElementById('input-routine-start')?.value;
 
     if (!title) {
@@ -371,8 +389,6 @@ async function saveNewRoutine() {
     const estimatedTime = parseInt(timeVal, 10) || 30;
     const totalItems = totalItemsStr ? parseInt(totalItemsStr, 10) : null;
     const dailyPace = dailyPaceStr ? parseInt(dailyPaceStr, 10) : null;
-    
-    // ▼ 追加: 数値に変換し、空や無効な値なら「1」にする
     const currentPosition = parseInt(startPosStr, 10) || 1;
 
     try {
@@ -385,7 +401,7 @@ async function saveNewRoutine() {
             totalItems,
             unit,
             dailyPace,
-            currentPosition, // ▼ ここで指定した開始位置をデータベースに保存
+            currentPosition, 
             createdAt: new Date().toISOString()
         });
         closeModal('add-routine-modal');
@@ -395,6 +411,7 @@ async function saveNewRoutine() {
         showToast("追加に失敗しました", "error");
     }
 }
+
 async function toggleTaskComplete(id, checked) {
     try {
         await setDoc(getAppDocRef('tasks', id), { completed: checked }, { merge: true });
@@ -484,7 +501,6 @@ function toggleSubEvaluations() {
     }
 }
 
-// ▼▼ 新規追加する関数 ▼▼
 function generateRoutineSubEvaluations() {
     const list = document.getElementById('sub-evaluations-list');
     if(!list) return;
@@ -493,13 +509,11 @@ function generateRoutineSubEvaluations() {
     const end = parseInt(document.getElementById('detail-routine-end').value, 10) || start;
     const unit = document.getElementById('detail-routine-unit').innerText || '問';
     
-    // 多すぎる場合の安全措置
     const limit = Math.min(end, start + 50); 
     for (let i = start; i <= limit; i++) {
         addSubEvaluation(`${i}${unit}`, 'A', '');
     }
 }
-// ▲▲ 新規追加する関数 ▲▲
 
 function addSubEvaluation(name = '', evalVal = 'A', note = '') {
     const list = document.getElementById('sub-evaluations-list');
@@ -560,6 +574,24 @@ async function saveTaskDetail() {
 
     try {
         const updateData = { actualTime, note, evaluation, subEvaluations, completed: true };
+        
+        // ★修復: Step5 ルーティンの現在地の自動更新
+        if (task.isRoutine && task.sourceRoutineId) {
+            const endPosVal = document.getElementById('detail-routine-end')?.value;
+            const actualEnd = parseInt(endPosVal, 10);
+            if (!isNaN(actualEnd)) {
+                updateData.actualEnd = actualEnd;
+                updateData.actualStart = parseInt(document.getElementById('detail-routine-start').innerText, 10) || task.plannedStart;
+                
+                // 親ルーティンの開始位置を「終わった番号の次」に進める
+                try {
+                    await setDoc(doc(getAppCollectionRef('routines'), task.sourceRoutineId), { currentPosition: actualEnd + 1 }, { merge: true });
+                } catch (err) {
+                    console.error("Routine position update failed:", err);
+                }
+            }
+        }
+
         await setDoc(getAppDocRef('tasks', id), updateData, { merge: true });
 
         if (!task.isReview && evaluation) {
@@ -590,14 +622,12 @@ async function scheduleReviews(originalTask, evaluation, subEvaluations) {
         let reviewNote = '';
 
         if (subEvaluations && subEvaluations.length > 0) {
-            // タイトル用: 弱点(C, D)のみ抽出して表示
             const weakSubEvals = subEvaluations.filter(s => s.eval === 'C' || s.eval === 'D');
             if (weakSubEvals.length > 0) {
                 const weakPoints = weakSubEvals.map(s => s.name);
                 reviewTitle = `[復習] ${originalTask.title} (弱点: ${weakPoints.slice(0, 2).join(', ')}${weakPoints.length > 2 ? '...' : ''})`;
             }
 
-            // メモ用: 評価(A,B,C,D)に関わらず、メモが入力されているものを全て抽出
             const itemsWithNotes = subEvaluations.filter(s => s.note && s.note.trim() !== '');
             if (itemsWithNotes.length > 0) {
                 reviewNote = itemsWithNotes.map(s => `【${s.name}】(評${s.eval})\n${s.note}`).join('\n\n');
@@ -615,7 +645,7 @@ async function scheduleReviews(originalTask, evaluation, subEvaluations) {
             isLastReview: i === intervals.length - 1,
             originalTaskId: originalTask.id,
             sourceEval: evaluation,
-            note: reviewNote, // 全ての評価のメモを引き継ぎ
+            note: reviewNote, 
             createdAt: new Date().toISOString()
         });
     }
