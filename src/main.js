@@ -105,8 +105,16 @@ function setupEventListeners() {
     
     document.getElementById('sub-evaluations-list')?.addEventListener('click', (e) => {
         const deleteBtn = e.target.closest('.sub-eval-delete-btn');
-        if (deleteBtn) deleteBtn.closest('.flex').remove();
+        if (deleteBtn) deleteBtn.closest('.flex-col').remove();
     });
+
+    // ▼▼ ここから追加 (再生成ボタンのイベント) ▼▼
+    document.getElementById('btn-sync-sub-evals')?.addEventListener('click', () => {
+        showConfirm("明細を再生成しますか？\n(入力済みのメモはリセットされます)", () => {
+            generateRoutineSubEvaluations();
+        });
+    });
+    // ▲▲ ここまで追加 ▲▲
 
     ['dashboard-tasks-container', 'calendar-tasks-container'].forEach(containerId => {
         const container = document.getElementById(containerId);
@@ -378,6 +386,18 @@ function openTaskDetailModal(id) {
     document.getElementById('detail-actual-time').value = task.actualTime || task.estimatedTime || '';
     document.getElementById('detail-note').value = task.note || '';
 
+    const progSec = document.getElementById('routine-progress-section');
+    const btnSync = document.getElementById('btn-sync-sub-evals');
+    if (task.isRoutine && task.plannedStart) {
+        progSec.classList.remove('hidden');
+        document.getElementById('detail-routine-start').innerText = task.actualStart || task.plannedStart;
+        document.getElementById('detail-routine-end').value = task.actualEnd || task.plannedEnd;
+        document.getElementById('detail-routine-unit').innerText = task.unit || '問';
+    } else {
+        progSec.classList.add('hidden');
+    }
+    if (btnSync) btnSync.classList.add('hidden');
+
     document.querySelectorAll('input[name="evaluation"]').forEach(r => r.checked = false);
     if (task.evaluation) {
         const radio = document.querySelector(`input[name="evaluation"][value="${task.evaluation}"]`);
@@ -390,7 +410,8 @@ function openTaskDetailModal(id) {
         if (task.subEvaluations && task.subEvaluations.length > 0) {
             document.getElementById('sub-evaluations-section')?.classList.remove('hidden');
             document.getElementById('main-evaluation-section')?.classList.add('opacity-50', 'pointer-events-none');
-            task.subEvaluations.forEach(sub => addSubEvaluation(sub.name, sub.eval));
+            if (task.isRoutine && btnSync) btnSync.classList.remove('hidden');
+            task.subEvaluations.forEach(sub => addSubEvaluation(sub.name, sub.eval, sub.note));
         } else {
             document.getElementById('sub-evaluations-section')?.classList.add('hidden');
             document.getElementById('main-evaluation-section')?.classList.remove('opacity-50', 'pointer-events-none');
@@ -402,35 +423,68 @@ function openTaskDetailModal(id) {
 function toggleSubEvaluations() {
     const sec = document.getElementById('sub-evaluations-section');
     const mainSec = document.getElementById('main-evaluation-section');
+    const btnSync = document.getElementById('btn-sync-sub-evals');
     if(!sec || !mainSec) return;
     
     if (sec.classList.contains('hidden')) {
         sec.classList.remove('hidden');
         mainSec.classList.add('opacity-50', 'pointer-events-none');
         document.querySelectorAll('input[name="evaluation"]').forEach(r => r.checked = false);
-        if (document.getElementById('sub-evaluations-list')?.children.length === 0) addSubEvaluation();
+        
+        const list = document.getElementById('sub-evaluations-list');
+        if (list && list.children.length === 0) {
+            const taskId = document.getElementById('detail-task-id').value;
+            const task = state.tasks.find(t => t.id === taskId);
+            if (task && task.isRoutine && task.plannedStart) {
+                if (btnSync) btnSync.classList.remove('hidden');
+                generateRoutineSubEvaluations();
+            } else {
+                addSubEvaluation();
+            }
+        }
     } else {
         sec.classList.add('hidden');
         mainSec.classList.remove('opacity-50', 'pointer-events-none');
+        if (btnSync) btnSync.classList.add('hidden');
         const list = document.getElementById('sub-evaluations-list');
         if(list) list.innerHTML = '';
     }
 }
 
-function addSubEvaluation(name = '', evalVal = 'A') {
+// ▼▼ 新規追加する関数 ▼▼
+function generateRoutineSubEvaluations() {
+    const list = document.getElementById('sub-evaluations-list');
+    if(!list) return;
+    list.innerHTML = '';
+    const start = parseInt(document.getElementById('detail-routine-start').innerText, 10) || 1;
+    const end = parseInt(document.getElementById('detail-routine-end').value, 10) || start;
+    const unit = document.getElementById('detail-routine-unit').innerText || '問';
+    
+    // 多すぎる場合の安全措置
+    const limit = Math.min(end, start + 50); 
+    for (let i = start; i <= limit; i++) {
+        addSubEvaluation(`${i}${unit}`, 'A', '');
+    }
+}
+// ▲▲ 新規追加する関数 ▲▲
+
+function addSubEvaluation(name = '', evalVal = 'A', note = '') {
     const list = document.getElementById('sub-evaluations-list');
     if(!list) return;
     const item = document.createElement('div');
-    item.className = 'flex space-x-2 items-center';
+    item.className = 'flex flex-col space-y-1.5 mb-3 bg-white dark:bg-gray-700/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-600 shadow-sm';
     item.innerHTML = `
-        <input type="text" class="sub-eval-name flex-grow border-none bg-white dark:bg-gray-700 dark:text-white p-2.5 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none text-xs" placeholder="問題番号など" value="${name}">
-        <select class="sub-eval-val w-20 appearance-none bg-white dark:bg-gray-700 border-none rounded-xl text-xs font-bold p-2.5 outline-none dark:text-white text-center focus:ring-2 focus:ring-pink-500">
-            <option value="A" ${evalVal === 'A' ? 'selected' : ''}>評A</option>
-            <option value="B" ${evalVal === 'B' ? 'selected' : ''}>評B</option>
-            <option value="C" ${evalVal === 'C' ? 'selected' : ''}>評C</option>
-            <option value="D" ${evalVal === 'D' ? 'selected' : ''}>評D</option>
-        </select>
-        <button class="sub-eval-delete-btn text-gray-400 hover:text-red-500 p-2"><i class="fas fa-times pointer-events-none"></i></button>
+        <div class="flex space-x-2 items-center">
+            <input type="text" class="sub-eval-name flex-grow border-none bg-gray-50 dark:bg-gray-800 dark:text-white p-2 rounded-lg focus:ring-2 focus:ring-pink-500 outline-none text-xs font-bold" placeholder="問題番号" value="${name}">
+            <select class="sub-eval-val w-20 appearance-none bg-gray-50 dark:bg-gray-800 border-none rounded-lg text-xs font-bold p-2 outline-none dark:text-white text-center focus:ring-2 focus:ring-pink-500">
+                <option value="A" ${evalVal === 'A' ? 'selected' : ''}>評A</option>
+                <option value="B" ${evalVal === 'B' ? 'selected' : ''}>評B</option>
+                <option value="C" ${evalVal === 'C' ? 'selected' : ''}>評C</option>
+                <option value="D" ${evalVal === 'D' ? 'selected' : ''}>評D</option>
+            </select>
+            <button class="sub-eval-delete-btn text-gray-400 hover:text-red-500 p-1.5"><i class="fas fa-times pointer-events-none"></i></button>
+        </div>
+        <input type="text" class="sub-eval-note w-full text-[11px] bg-transparent border-b border-gray-200 dark:border-gray-600 p-1.5 outline-none text-gray-600 dark:text-gray-300 focus:border-pink-500 transition-colors" placeholder="メモ・間違えた理由などを入力 (任意)" value="${note}">
     `;
     list.appendChild(item);
 }
