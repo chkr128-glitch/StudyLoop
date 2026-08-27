@@ -635,63 +635,6 @@ function deleteTask() {
     });
 }
 
-function openAddRoutineModal() {
-    document.getElementById('input-routine-title').value = '';
-    document.getElementById('input-routine-time').value = '';
-    
-    // 追加: 新しい入力欄のリセット
-    const totalEl = document.getElementById('input-routine-total');
-    if(totalEl) totalEl.value = '';
-    const unitEl = document.getElementById('input-routine-unit');
-    if(unitEl) unitEl.value = '問';
-    const paceEl = document.getElementById('input-routine-pace');
-    if(paceEl) paceEl.value = '';
-    
-    const subjectSelect = document.getElementById('input-routine-subject');
-    if(subjectSelect) subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800">${s}</option>`).join('');
-    openModal('modal-add-routine');
-}
-
-async function saveNewRoutine() {
-    const title = document.getElementById('input-routine-title').value.trim();
-    const subject = document.getElementById('input-routine-subject').value;
-    const time = parseInt(document.getElementById('input-routine-time').value, 10) || 0;
-    
-    // 追加: 新規項目
-    const totalItems = parseInt(document.getElementById('input-routine-total').value, 10) || null;
-    const unit = document.getElementById('input-routine-unit').value || '問';
-    const dailyPace = parseInt(document.getElementById('input-routine-pace').value, 10) || 1;
-
-    if (!title || !subject || time <= 0) return showToast("入力内容を確認してください", "error");
-
-    const btn = document.getElementById('btn-save-new-routine');
-    if(btn) btn.disabled = true;
-
-    const routineData = {
-        title, subject, estimatedTime: time,
-        totalItems, unit, dailyPace, currentPosition: 1, // 初期位置を1に設定
-        createdAt: new Date().toISOString()
-    };
-
-    try {
-        const newDocRef = doc(getAppCollectionRef('routines'));
-        await setDoc(newDocRef, routineData);
-        closeModal('modal-add-routine');
-        showToast("ルーティンを追加しました");
-    } catch (e) {
-        console.error("DB制限エラー:", e);
-        // DB制限時でも、画面のメモリ上だけに追加して処理を進められるようにする（オフラインフォールバック）
-        const tempId = 'temp_' + Date.now();
-        state.routines.push({ id: tempId, ...routineData });
-        generateRoutineTasks();
-        updateAllViews();
-        closeModal('modal-add-routine');
-        showToast("オフラインモードで追加しました", "info");
-    } finally {
-        if(btn) btn.disabled = false;
-    }
-}
-
 function updateCountdowns() {
     const now = new Date();
     const cd = (dateStr, elId) => {
