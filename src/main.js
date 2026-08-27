@@ -143,6 +143,14 @@ function setupEventListeners() {
             });
             container.addEventListener('click', (e) => {
                 if (e.target.matches('.task-checkbox')) return; 
+                
+                const historyBtn = e.target.closest('.history-btn');
+                if (historyBtn) {
+                    e.stopPropagation(); // 親要素へのクリック伝播を防ぐ
+                    openReviewHistoryModal(historyBtn.dataset.originalTaskId);
+                    return;
+                }
+
                 const targetEl = e.target.closest('.task-row-clickable, .task-edit-btn');
                 if (targetEl && targetEl.dataset.taskId) openTaskDetailModal(targetEl.dataset.taskId);
             });
@@ -709,4 +717,70 @@ function updateCountdowns() {
     };
     cd('2027-01-16T00:00:00', 'cd-common');
     cd('2027-02-25T00:00:00', 'cd-second');
+}
+
+function openReviewHistoryModal(originalTaskId) {
+    if (!originalTaskId) return;
+
+    // 元のタスクを取得
+    const originalTask = state.tasks.find(t => t.id === originalTaskId);
+    if (!originalTask) {
+        showToast("元のタスクが見つかりません", "error");
+        return;
+    }
+
+    document.getElementById('history-task-title').innerText = originalTask.title;
+
+    // 初回の学習メモをセット
+    const noteEl = document.getElementById('history-original-note');
+    noteEl.innerText = originalTask.note || '学習メモは登録されていません。';
+
+    // 関連タスク（初回＋全復習）を収集し、日付順にソート
+    const relatedTasks = state.tasks.filter(t => t.id === originalTaskId || t.originalTaskId === originalTaskId);
+    relatedTasks.sort((a, b) => new Date(a.date) - new Date(b.date) || new Date(a.createdAt) - new Date(b.createdAt));
+
+    const timelineEl = document.getElementById('history-timeline-list');
+    timelineEl.innerHTML = '';
+
+    // タイムラインHTMLを生成
+    const html = relatedTasks.map((t, index) => {
+        const isOriginal = t.id === originalTaskId;
+        
+        let evalBadge = '';
+        if (t.completed && t.evaluation) {
+            const colors = { 'A': 'text-pink-500', 'B': 'text-purple-500', 'C': 'text-yellow-500', 'D': 'text-red-500' };
+            const color = colors[t.evaluation] || 'text-gray-500';
+            evalBadge = `<span class="font-bold ${color}">評${t.evaluation}</span>`;
+        } else {
+            evalBadge = `<span class="text-[10px] text-gray-400 font-bold border border-gray-200 dark:border-gray-700 px-1.5 py-0.5 rounded-md bg-white dark:bg-gray-800">未完了</span>`;
+        }
+
+        const titlePrefix = isOriginal ? '初回学習' : `${index}回目 復習`;
+        const iconColor = isOriginal ? 'text-pink-500' : 'text-purple-500';
+        const bgCircle = isOriginal ? 'bg-pink-100 dark:bg-pink-900/30' : 'bg-purple-100 dark:bg-purple-900/30';
+
+        return `
+            <div class="flex items-start relative">
+                <div class="absolute left-3 top-6 bottom-[-16px] w-0.5 bg-gray-200 dark:bg-gray-700 ${index === relatedTasks.length -1 ? 'hidden' : ''}"></div>
+                <div class="${bgCircle} w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mr-3 z-10 mt-0.5">
+                    <i class="fas ${isOriginal ? 'fa-book-open' : 'fa-redo'} text-[10px] ${iconColor}"></i>
+                </div>
+                <div class="flex-grow bg-gray-50 dark:bg-gray-700/40 p-3 rounded-2xl border border-gray-100 dark:border-gray-600 shadow-sm mb-4">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-xs font-bold text-gray-700 dark:text-gray-300">${titlePrefix}</span>
+                        <span class="text-[10px] text-gray-500 dark:text-gray-400 font-mono font-medium">${t.date}</span>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <span class="text-[10px] font-bold text-gray-500 dark:text-gray-400">実績: ${t.actualTime || '-'}分</span>
+                        ${evalBadge}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    timelineEl.innerHTML = html;
+
+    const targetId = document.getElementById('modal-review-history') ? 'modal-review-history' : 'review-history-modal';
+    openModal(targetId);
 }
