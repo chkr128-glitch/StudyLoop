@@ -232,15 +232,21 @@ function updateAllViews() {
     }
 }
 
+let isGeneratingTasks = false; // ★追加: 無限ループ防止用のロック変数
+
 // 堅牢に書き直したタスク生成処理
 async function generateRoutineTasks(targetDateStr = null) {
-    const todayStr = formatDate(new Date());
-    const dateStr = targetDateStr || todayStr;
-    
-    // 今日以外のタスクは自動生成・整理しない
-    if (dateStr !== todayStr) return;
+    if (isGeneratingTasks) return; // ★追加: すでに処理中ならここで弾く
+    isGeneratingTasks = true;      // ★追加: 処理中フラグを立てる
 
-    for (const r of state.routines) {
+    try {                          // ★追加: エラー時でも確実にフラグを下ろすためのtryブロック
+        const todayStr = formatDate(new Date());
+        const dateStr = targetDateStr || todayStr;
+        
+        // 今日以外のタスクは自動生成・整理しない
+        if (dateStr !== todayStr) return;
+
+        for (const r of state.routines) {
         // 全範囲が完了している場合は生成しない
         if (r.totalItems && r.currentPosition > r.totalItems) continue;
 
@@ -325,6 +331,9 @@ async function generateRoutineTasks(targetDateStr = null) {
         }
     }
     updateAllViews();
+    } finally {                    // ★追加: tryブロックの終了と、処理終了時のフラグ解除
+        isGeneratingTasks = false;
+    }
 }
 
 function openAddTaskModal() {
