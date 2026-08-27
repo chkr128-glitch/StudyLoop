@@ -34,8 +34,10 @@ function initApp() {
     initDrill();
     initFlashcard();
     initStore();
-    initTutorial();
+    initTutorial(); // チュートリアルの初期化
     
+    populateSubjectDropdowns(); // ★追加: 空になってしまった科目リストを復元する
+
     initCalendar(
         () => state.tasks, 
         (dateStr) => generateRoutineTasks(dateStr), 
@@ -80,6 +82,27 @@ function toggleVisibility(id, isVisible) {
         el.classList.add('hidden');
         el.classList.remove('flex');
     }
+}
+
+function populateSubjectDropdowns() {
+    const taskSubject = document.getElementById('input-task-subject');
+    const routineSubject = document.getElementById('input-routine-subject');
+    
+    // SUBJECTS定数から科目リストを取得（万が一取得できない場合の保険付き）
+    const subjectList = Array.isArray(SUBJECTS) ? SUBJECTS : Object.keys(SUBJECTS || {});
+    const finalSubjects = subjectList.length > 0 ? subjectList : ['英語', '数学', '国語', '理科', '社会', '情報', 'その他'];
+
+    [taskSubject, routineSubject].forEach(selectEl => {
+        // 中身が空の場合のみ、選択肢を生成して追加する
+        if (selectEl && selectEl.options.length === 0) {
+            finalSubjects.forEach(subject => {
+                const opt = document.createElement('option');
+                opt.value = subject;
+                opt.innerText = subject;
+                selectEl.appendChild(opt);
+            });
+        }
+    });
 }
 
 function setupEventListeners() {
