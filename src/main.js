@@ -336,41 +336,65 @@ async function generateRoutineTasks(targetDateStr = null) {
     }
 }
 
-function openAddTaskModal() {
-    const todayStr = state.currentView === 'calendar' ? getCalendarSelectedDate() : formatDate(new Date());
-    document.getElementById('input-task-title').value = '';
-    document.getElementById('input-task-time').value = '';
-    const subjectSelect = document.getElementById('input-task-subject');
-    if(subjectSelect) subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}" class="bg-white dark:bg-gray-800">${s}</option>`).join('');
-    openModal('modal-add-task');
+function openAddRoutineModal() {
+    document.getElementById('input-routine-title').value = '';
+    document.getElementById('input-routine-subject').value = '英語'; // 初期値
+    document.getElementById('input-routine-time').value = '30';
+    document.getElementById('input-routine-total').value = '';
+    document.getElementById('input-routine-unit').value = '問';
+    document.getElementById('input-routine-pace').value = '';
+    
+    // ▼ 追加: 開くたびに開始位置を「1」にリセットする
+    const startInput = document.getElementById('input-routine-start');
+    if (startInput) startInput.value = '1';
+
+    openModal('add-routine-modal');
 }
 
-async function saveNewTask() {
-    const title = document.getElementById('input-task-title').value.trim();
-    const subject = document.getElementById('input-task-subject').value;
-    const time = parseInt(document.getElementById('input-task-time').value, 10) || 0;
-    const dateStr = state.currentView === 'calendar' ? getCalendarSelectedDate() : formatDate(new Date());
+async function saveNewRoutine() {
+    const title = document.getElementById('input-routine-title').value.trim();
+    const subject = document.getElementById('input-routine-subject').value;
+    const timeVal = document.getElementById('input-routine-time').value;
+    
+    const totalItemsStr = document.getElementById('input-routine-total').value;
+    const unit = document.getElementById('input-routine-unit').value;
+    const dailyPaceStr = document.getElementById('input-routine-pace').value;
+    
+    // ▼ 追加: 開始位置の入力を取得する
+    const startPosStr = document.getElementById('input-routine-start')?.value;
 
-    if (!title || !subject || time <= 0) return showToast("入力内容を確認してください", "error");
+    if (!title) {
+        showToast("ルーティンのタイトルを入力してください。", "error");
+        return;
+    }
 
-    const btn = document.getElementById('btn-save-new-task');
-    if(btn) btn.disabled = true;
+    const estimatedTime = parseInt(timeVal, 10) || 30;
+    const totalItems = totalItemsStr ? parseInt(totalItemsStr, 10) : null;
+    const dailyPace = dailyPaceStr ? parseInt(dailyPaceStr, 10) : null;
+    
+    // ▼ 追加: 数値に変換し、空や無効な値なら「1」にする
+    const currentPosition = parseInt(startPosStr, 10) || 1;
+
     try {
-        const newDocRef = doc(getAppCollectionRef('tasks'));
-        await setDoc(newDocRef, {
-            title, subject, estimatedTime: time, date: dateStr,
-            completed: false, isReview: false, createdAt: new Date().toISOString()
+        const newRef = doc(getAppCollectionRef('routines'));
+        await setDoc(newRef, {
+            id: newRef.id,
+            title,
+            subject,
+            estimatedTime,
+            totalItems,
+            unit,
+            dailyPace,
+            currentPosition, // ▼ ここで指定した開始位置をデータベースに保存
+            createdAt: new Date().toISOString()
         });
-        closeModal('modal-add-task');
-        showToast("タスクを追加しました");
-    } catch (e) {
-        console.error(e);
-        showToast("タスクの追加に失敗しました", "error");
-    } finally {
-        if(btn) btn.disabled = false;
+        closeModal('add-routine-modal');
+        showToast("固定ルーティンを追加しました");
+    } catch(err) {
+        console.error("ルーティン追加エラー:", err);
+        showToast("追加に失敗しました", "error");
     }
 }
-
 async function toggleTaskComplete(id, checked) {
     try {
         await setDoc(getAppDocRef('tasks', id), { completed: checked }, { merge: true });
