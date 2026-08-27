@@ -322,6 +322,7 @@ function openAddTaskModal() {
         dateInput.value = state.currentView === 'calendar' ? getCalendarSelectedDate() : formatDate(new Date());
     }
     
+    // 正しいIDでモーダルを開く
     openModal('add-task-modal');
 }
 
@@ -332,34 +333,34 @@ async function saveNewTask() {
     const dateVal = document.getElementById('input-task-date')?.value || formatDate(new Date());
 
     if (!title) {
-        showToast("タスク名を入力してください", "error");
+        showToast("タスクのタイトルを入力してください。", "error");
         return;
     }
-
-    const estimatedTime = parseInt(timeVal, 10) || 30;
 
     try {
         const newRef = doc(getAppCollectionRef('tasks'));
         await setDoc(newRef, {
+            id: newRef.id,
             title,
             subject,
-            estimatedTime,
+            estimatedTime: parseInt(timeVal, 10) || 30,
             date: dateVal,
             completed: false,
             isReview: false,
+            isRoutine: false,
             createdAt: new Date().toISOString()
         });
         closeModal('add-task-modal');
         showToast("タスクを追加しました");
-    } catch (e) {
-        console.error(e);
+    } catch(err) {
+        console.error("タスク追加エラー:", err);
         showToast("追加に失敗しました", "error");
     }
 }
 
 function openAddRoutineModal() {
     document.getElementById('input-routine-title').value = '';
-    document.getElementById('input-routine-subject').value = '英語';
+    document.getElementById('input-routine-subject').value = '英語'; 
     document.getElementById('input-routine-time').value = '30';
     document.getElementById('input-routine-total').value = '';
     document.getElementById('input-routine-unit').value = '問';
@@ -368,6 +369,7 @@ function openAddRoutineModal() {
     const startInput = document.getElementById('input-routine-start');
     if (startInput) startInput.value = '1';
 
+    // 正しいIDでモーダルを開く
     openModal('add-routine-modal');
 }
 
@@ -575,7 +577,7 @@ async function saveTaskDetail() {
     try {
         const updateData = { actualTime, note, evaluation, subEvaluations, completed: true };
         
-        // ★修復: Step5 ルーティンの現在地の自動更新
+        // ルーティンの現在地の自動更新処理
         if (task.isRoutine && task.sourceRoutineId) {
             const endPosVal = document.getElementById('detail-routine-end')?.value;
             const actualEnd = parseInt(endPosVal, 10);
