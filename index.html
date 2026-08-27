@@ -142,9 +142,23 @@
         </div>
     </div>
 
-    <div id="main-app" class="flex-1 flex-col hidden w-full h-full relative">
+   <div id="main-app" class="flex-1 flex-col hidden w-full h-full relative">
         <header class="bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 text-white px-3 sm:px-4 shadow-md fixed w-full z-20 top-0 flex justify-between items-center h-16 rounded-b-3xl transition-colors">
-            <div class="flex items-center z-10">
+            <div class="flex items-center gap-2 z-20">
+                <button id="btn-toggle-theme" class="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors focus:outline-none shadow-sm">
+                    <i id="theme-icon" class="fas fa-moon text-xs"></i>
+                </button>
+                <button id="btn-open-settings" class="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors focus:outline-none shadow-sm" title="設定">
+                    <i class="fas fa-cog text-xs pointer-events-none"></i>
+                </button>
+            </div>
+            <div id="btn-go-home" class="absolute inset-0 flex justify-center items-center cursor-pointer z-10 hover:opacity-80 transition-opacity" title="ホームに戻る">
+                <div class="flex items-center space-x-1.5 sm:space-x-2 pointer-events-none">
+                    <img src="icon.png" alt="Logo" class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg shadow-sm" onerror="this.style.display='none'">
+                    <h1 class="text-base sm:text-lg font-black tracking-wider opacity-90">StudyLoop</h1>
+                </div>
+            </div>
+            <div class="flex items-center space-x-1.5 sm:space-x-3 text-right z-20">
                 <button id="btn-toggle-theme" class="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors focus:outline-none">
                     <i id="theme-icon" class="fas fa-moon text-xs"></i>
                 </button>
@@ -173,10 +187,55 @@
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto mt-20 pb-28 relative w-full max-w-lg mx-auto" id="main-content">
+        <main class="flex-1 overflow-y-auto mt-20 pb-10 relative w-full max-w-lg mx-auto" id="main-content">
             
+            <!-- ホーム画面 (プラットフォーム) -->
+            <div id="view-home" class="view-section active p-5 pb-10">
+                <div class="flex justify-between items-end mb-6">
+                    <h2 class="text-2xl font-black text-gray-800 dark:text-white ml-1 tracking-tight">ホーム</h2>
+                    <p class="text-xs font-bold text-gray-500 dark:text-gray-400">何を学習しますか？</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button class="nav-tile bg-gradient-to-br from-pink-500 to-rose-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="dashboard">
+                        <i class="fas fa-list-check text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">今日のタスク</span>
+                    </button>
+                    
+                    <button class="nav-tile bg-gradient-to-br from-blue-500 to-indigo-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="calendar">
+                        <i class="far fa-calendar-alt text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">カレンダー</span>
+                    </button>
+                    
+                    <button class="nav-tile bg-gradient-to-br from-amber-500 to-orange-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="past-exams">
+                        <i class="fas fa-history text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">過去問ログ</span>
+                    </button>
+                    
+                    <button class="nav-tile bg-gradient-to-br from-emerald-400 to-teal-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="analytics">
+                        <i class="fas fa-chart-pie text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">学習分析</span>
+                    </button>
+                    
+                    <button class="nav-tile bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="drill">
+                        <i class="fas fa-calculator text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">計算ドリル</span>
+                    </button>
+                    
+                    <button class="nav-tile bg-gradient-to-br from-purple-500 to-pink-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="flashcard-app">
+                        <i class="fa-solid fa-layer-group text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">単語帳</span>
+                    </button>
+                    
+                    <button class="nav-tile bg-gradient-to-br from-slate-700 to-slate-900 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg col-span-2" data-target="store">
+                        <i class="fa-solid fa-pen-nib text-3xl mb-1 pointer-events-none drop-shadow-sm"></i>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">英作文サポート・ストア</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- ダッシュボード -->
-            <div id="view-dashboard" class="view-section active p-5">
+            <div id="view-dashboard" class="view-section p-5">
                 <h2 id="current-date-display" class="text-2xl font-black text-gray-800 dark:text-white mb-3 ml-1 tracking-tight transition-colors">今日のタスク</h2>
                 
                 <div id="quote-container" class="mb-5 bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800 transition-colors animate-pop-in">
@@ -503,35 +562,20 @@
                 </div>
             </div>
 
+            <!-- 過去問ログ (新設) -->
+            <div id="view-past-exams" class="view-section p-5">
+                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">過去問ログ</h2>
+                <div class="text-center py-20 text-gray-400 dark:text-gray-500 font-bold">
+                    <i class="fas fa-tools text-5xl mb-4 text-gray-300 dark:text-gray-600"></i>
+                    <p>この画面に過去問ログ機能が追加されます。<br>（次のステップで実装します）</p>
+                </div>
+            </div>
+
         </main>
 
-        <div id="toast-container" class="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center space-y-3 pointer-events-none w-full max-w-xs px-4"></div>
+        <div id="toast-container" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center space-y-3 pointer-events-none w-full max-w-xs px-4"></div>
 
-        <nav class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 fixed bottom-0 w-full z-20 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.05)] flex rounded-t-3xl transition-colors">
-            <div class="flex justify-around w-full max-w-lg mx-auto px-1 sm:px-2">
-                <button id="nav-dashboard" class="tab-btn active flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
-                    <i class="fas fa-list-check text-xl mb-1.5 transition-transform duration-200 pointer-events-none"></i><span class="text-[10px] font-bold tracking-wider pointer-events-none">今日</span>
-                </button>
-                <button id="nav-drill" class="tab-btn flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
-                    <i class="fas fa-calculator text-xl mb-1.5 transition-transform duration-200 pointer-events-none"></i><span class="text-[10px] font-bold tracking-wider pointer-events-none">計算</span>
-                </button>
-                <button id="nav-calendar" class="tab-btn flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
-                    <i class="far fa-calendar-alt text-xl mb-1.5 transition-transform duration-200 pointer-events-none"></i><span class="text-[10px] font-bold tracking-wider pointer-events-none">予定</span>
-                </button>
-                <button id="nav-analytics" class="tab-btn flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
-                    <i class="fas fa-chart-pie text-xl mb-1.5 transition-transform duration-200 pointer-events-none"></i><span class="text-[10px] font-bold tracking-wider pointer-events-none">分析</span>
-                </button>
-                <button id="nav-flashcard-app" class="tab-btn flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
-                    <i class="fa-solid fa-layer-group text-xl mb-1.5 transition-transform duration-200 pointer-events-none"></i><span class="text-[10px] font-bold tracking-wider pointer-events-none">単語</span>
-                </button>
-                <button id="nav-store" class="tab-btn flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
-                    <i class="fa-solid fa-pen-nib text-xl mb-1.5 transition-transform duration-200 pointer-events-none"></i><span class="text-[10px] font-bold tracking-wider pointer-events-none">英作文</span>
-                </button>
-                <button id="nav-settings" class="tab-btn flex flex-col items-center py-3.5 flex-1 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
-                    <i class="fas fa-cog text-xl mb-1.5 transition-transform duration-200 pointer-events-none"></i><span class="text-[10px] font-bold tracking-wider pointer-events-none">設定</span>
-                </button>
-            </div>
-        </nav>
+        <!-- ボトムナビゲーションは廃止 -->
     </div>
     
     <!-- チュートリアル・オーバーレイ -->
