@@ -607,6 +607,19 @@
                     <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">実際の学習時間 (分)</label>
                     <input type="number" id="detail-actual-time" min="0" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 outline-none transition-all font-bold text-lg text-center">
                 </div>
+                <div id="routine-progress-section" class="hidden bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800 transition-all duration-300 mt-2">
+                    <div class="flex justify-between items-end mb-2">
+                        <label class="block text-sm font-bold text-blue-800 dark:text-blue-300">今日の進捗（到達番号）</label>
+                        <button id="btn-sync-sub-evals" class="hidden text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-2 py-1 rounded-md hover:bg-blue-200 transition-colors"><i class="fas fa-sync-alt mr-1"></i>明細を再生成</button>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span id="detail-routine-start" class="text-xl font-black text-blue-600 dark:text-blue-400">1</span>
+                        <span class="text-gray-500 font-bold">〜</span>
+                        <input type="number" id="detail-routine-end" class="w-24 bg-white dark:bg-gray-800 border-none rounded-xl text-center font-black text-blue-600 dark:text-blue-400 p-3 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm" min="1">
+                        <span id="detail-routine-unit" class="text-sm font-bold text-gray-500 dark:text-gray-400">問</span>
+                    </div>
+                    <p class="text-[10px] text-blue-600/80 dark:text-blue-400/80 mt-2 font-medium leading-tight">予定より多く/少なく進んだ場合、ここを修正すると明日の予定が自動調整されます。</p>
+                </div>
                 <div>
                     <div class="flex justify-between items-center mb-2 ml-1">
                         <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">定着度評価</label>
