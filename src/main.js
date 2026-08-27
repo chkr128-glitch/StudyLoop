@@ -19,7 +19,7 @@ const state = {
     routines: [],
     userProfile: {},
     storeSets: [],
-    currentView: 'dashboard',
+    currentView: 'home',
     unsubscribeTasks: null,
     unsubscribeRoutines: null,
     unsubscribeProfile: null,
@@ -59,7 +59,7 @@ function initApp() {
             toggleVisibility('main-app', true);
             
             subscribeToData();
-            switchView('dashboard');
+            switchView('home');
             if (loading) loading.classList.add('hidden');
             showToast('ログインしました');
         } else {
@@ -106,12 +106,15 @@ function populateSubjectDropdowns() {
 }
 
 function setupEventListeners() {
-    document.querySelectorAll('nav .tab-btn').forEach(btn => {
+    document.querySelectorAll('.nav-tile').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const viewId = e.currentTarget.id.replace('nav-', '');
+            const viewId = e.currentTarget.dataset.target;
             switchView(viewId);
         });
     });
+
+    document.getElementById('btn-go-home')?.addEventListener('click', () => switchView('home'));
+    document.getElementById('btn-open-settings')?.addEventListener('click', () => switchView('settings'));
 
     document.getElementById('btn-open-add-task')?.addEventListener('click', openAddTaskModal);
     document.getElementById('btn-save-new-task')?.addEventListener('click', saveNewTask);
