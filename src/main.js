@@ -19,7 +19,7 @@ const state = {
     routines: [],
     userProfile: {},
     storeSets: [],
-    currentView: 'home',
+    currentView: 'home', // 初期画面を 'dashboard' から 'home' に変更
     unsubscribeTasks: null,
     unsubscribeRoutines: null,
     unsubscribeProfile: null,
@@ -106,6 +106,7 @@ function populateSubjectDropdowns() {
 }
 
 function setupEventListeners() {
+    // ホーム画面のタイルをクリックした時の遷移
     document.querySelectorAll('.nav-tile').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const viewId = e.currentTarget.dataset.target;
@@ -113,7 +114,11 @@ function setupEventListeners() {
         });
     });
 
+    // ヘッダーのホームボタン、ロゴをクリックした時の遷移
     document.getElementById('btn-go-home')?.addEventListener('click', () => switchView('home'));
+    document.getElementById('btn-header-logo')?.addEventListener('click', () => switchView('home'));
+    
+    // ヘッダーの設定ボタンをクリックした時の遷移
     document.getElementById('btn-open-settings')?.addEventListener('click', () => switchView('settings'));
 
     document.getElementById('btn-open-add-task')?.addEventListener('click', openAddTaskModal);
@@ -238,6 +243,16 @@ function switchView(viewName) {
 }
 
 function updateAllViews() {
+    // ホーム画面が選ばれたとき、今日の日付を表示する
+    if (state.currentView === 'home') {
+        const dateEl = document.getElementById('home-date-display');
+        if (dateEl) {
+            const today = new Date();
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            dateEl.innerText = `${today.getMonth() + 1}月${today.getDate()}日(${days[today.getDay()]})`;
+        }
+    }
+
     if (state.currentView === 'dashboard') renderDashboard(state.tasks);
     if (state.currentView === 'calendar') {
         renderCalendar(state.tasks);
