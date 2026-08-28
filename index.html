@@ -873,6 +873,80 @@
         </div>
     </div>
 
+    <!-- モーダル: 過去問記録ウィザード -->
+    <div id="modal-pe-wizard" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] justify-center items-end sm:items-center">
+        <div class="modal-content bg-white dark:bg-slate-800 w-full sm:max-w-2xl sm:rounded-3xl rounded-t-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl border border-slate-200 dark:border-slate-700 relative overflow-y-auto max-h-[90vh]">
+            <button class="modal-close-btn absolute top-6 right-6 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors z-10"><i class="fas fa-times pointer-events-none"></i></button>
+
+            <h3 class="text-xl font-black mb-6 text-slate-800 dark:text-white pr-10 border-b border-slate-100 dark:border-slate-700 pb-4">
+                <i class="fas fa-edit text-pink-500 mr-2"></i>過去問ログを記録
+            </h3>
+
+            <!-- ウィザードSTEP1: 基本情報 -->
+            <div id="pe-step-1" class="pe-wizard-step space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">得点</label>
+                        <input type="number" id="pe-score-input" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-lg font-black text-center p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white" placeholder="0">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">解答時間 (分)</label>
+                        <input type="number" id="pe-time-input" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-lg font-black text-center p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white" placeholder="0">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">本番度 (環境・緊張感)</label>
+                    <select id="pe-seriousness-select" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-sm font-bold p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white appearance-none">
+                        <option value="未選択">- 選択してください -</option>
+                        <option value="本番同様">本番同様 (時間制限あり・環境整備)</option>
+                        <option value="時間制限あり">時間制限あり</option>
+                        <option value="時間制限なし">時間制限なし</option>
+                        <option value="途中中断あり">途中中断あり</option>
+                        <option value="一部のみ実施">一部のみ実施</option>
+                    </select>
+                </div>
+                <button id="btn-pe-next-step" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold py-4 rounded-xl shadow-md mt-4 transition-all hover:opacity-90">次へ: 問題ごとの分析 <i class="fas fa-arrow-right ml-1"></i></button>
+            </div>
+
+            <!-- ウィザードSTEP2: 問題ごとの振り返り -->
+            <div id="pe-step-2" class="pe-wizard-step hidden space-y-5">
+                
+                <!-- 時間配分・解答戦略の全体評価 -->
+                <div class="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800">
+                    <h4 class="text-xs font-bold text-indigo-800 dark:text-indigo-300 mb-3"><i class="fas fa-chess-knight mr-1"></i>時間配分・解答戦略の評価</h4>
+                    <div class="flex space-x-3 mb-2">
+                        <select id="pe-strategy-eval" class="w-1/3 bg-white dark:bg-gray-800 border-none rounded-xl text-xs font-bold p-3 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm dark:text-white appearance-none text-center">
+                            <option value="未設定">- 評価 -</option>
+                            <option value="大成功" class="text-pink-500">◎ 大成功</option>
+                            <option value="成功" class="text-emerald-500">○ 成功</option>
+                            <option value="失敗" class="text-rose-500">× 失敗</option>
+                            <option value="大失敗" class="text-purple-500">×× 大失敗</option>
+                        </select>
+                        <input type="text" id="pe-strategy-note" class="w-2/3 bg-white dark:bg-gray-800 border-none rounded-xl text-xs p-3 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm dark:text-white" placeholder="反省点（例: 大問2に時間を使いすぎた）">
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-end mb-2 border-b border-gray-100 dark:border-gray-700 pb-2">
+                    <div>
+                        <h4 class="font-bold text-gray-700 dark:text-gray-200 flex items-center"><i class="fas fa-list-check text-pink-500 mr-2"></i>問題ごとの分析</h4>
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 font-medium">※大問の順序は↑↓で実際の解答順に並び替えられます。</p>
+                    </div>
+                    <button id="btn-pe-add-section" class="text-xs bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-300 font-bold px-4 py-2 rounded-full hover:bg-pink-100 dark:hover:bg-pink-900/50 transition-colors border border-pink-100 dark:border-pink-800 shadow-sm whitespace-nowrap"><i class="fas fa-plus mr-1"></i>大問追加</button>
+                </div>
+                
+                <div id="pe-questions-container" class="space-y-4 pb-6">
+                    <!-- ここに大問ブロックがJSで追加されます -->
+                </div>
+
+                <div class="flex space-x-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <button id="btn-pe-prev-step" class="w-1/3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 font-bold py-3.5 rounded-xl transition-colors hover:bg-slate-200 dark:hover:bg-slate-600"><i class="fas fa-arrow-left mr-1"></i> 戻る</button>
+                    <button id="btn-pe-save" class="w-2/3 bg-gradient-to-r from-emerald-400 to-teal-500 text-white font-bold py-3.5 rounded-xl shadow-md transition-all hover:opacity-90"><i class="fas fa-check mr-1"></i> 完了して保存</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
     <!-- モーダル: 単語帳クイック追加 -->
     <div id="modal-fc-quick-add" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] justify-center items-center">
         <div class="modal-content bg-white dark:bg-slate-800 w-11/12 max-w-sm rounded-3xl p-6 transform transition-transform shadow-2xl relative border border-slate-200 dark:border-slate-700">
