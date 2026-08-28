@@ -10,7 +10,7 @@ import { initDrill, stopDrillTimer, focusDrillInput } from './components/drill.j
 import { initFlashcard, updateFcSets, showFcView } from './components/flashcard.js';
 import { initStore, renderStore } from './components/store.js';
 import { initTutorial, checkAndShowTutorial } from './components/tutorial.js';
-import { initPastExams, updatePastExamsData } from './components/pastExams.js'; // ★ 追加
+import { initPastExams, updatePastExamsData } from './components/pastExams.js';
 import { SUBJECTS, REVIEW_INTERVALS } from './utils/constants.js';
 import { formatDate } from './utils/helpers.js';
 import { onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -20,17 +20,17 @@ const state = {
     routines: [],
     userProfile: {},
     storeSets: [],
-    pastExams: [], // ★ 追加
+    pastExams: [],
     currentView: 'home',
     unsubscribeTasks: null,
     unsubscribeRoutines: null,
     unsubscribeProfile: null,
     unsubscribeFc: null,
     unsubscribeStore: null,
-    unsubscribePastExams: null // ★ 追加
+    unsubscribePastExams: null
 };
 
-function initApp() {
+export function initApp() {
     initUI(() => updateChartColors());
     initAuthUI();
     initSettings(() => getCurrentUserId());
@@ -38,7 +38,7 @@ function initApp() {
     initFlashcard();
     initStore();
     initTutorial(); 
-    initPastExams(); // ★ 追加
+    initPastExams();
     
     populateSubjectDropdowns(); 
 
@@ -63,7 +63,7 @@ function initApp() {
             toggleVisibility('main-app', true);
             
             subscribeToData();
-            switchView('home'); // ★ログイン時にもホームを開く
+            switchView('home');
             if (loading) loading.classList.add('hidden');
             showToast('ログインしました');
         } else {
@@ -108,7 +108,6 @@ function populateSubjectDropdowns() {
 }
 
 function setupEventListeners() {
-    // ★ホーム画面のタイルメニューの遷移処理
     document.querySelectorAll('.nav-tile').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const viewId = e.currentTarget.dataset.target;
@@ -116,11 +115,8 @@ function setupEventListeners() {
         });
     });
 
-    // ★ヘッダーのホームボタン、ロゴをクリックした時の遷移
     document.getElementById('btn-go-home')?.addEventListener('click', () => switchView('home'));
     document.getElementById('btn-header-logo')?.addEventListener('click', () => switchView('home'));
-    
-    // ★設定ボタンをクリックした時の遷移
     document.getElementById('btn-open-settings')?.addEventListener('click', () => switchView('settings'));
 
     document.getElementById('btn-open-add-task')?.addEventListener('click', openAddTaskModal);
@@ -200,7 +196,6 @@ function subscribeToData() {
             if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
             if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
             
-            // ★ プロフィールが更新されたら過去問の科目タブも更新する
             updatePastExamsData(state.userProfile, state.pastExams);
         } else {
             if (!tutorialChecked) {
@@ -210,7 +205,6 @@ function subscribeToData() {
         }
     }, (err) => console.error("Profile sync error:", err));
 
-    // ★ 過去問データのリアルタイム同期を追加
     state.unsubscribePastExams = onSnapshot(getAppCollectionRef('past_exams'), (snapshot) => {
         state.pastExams = [];
         snapshot.forEach(doc => state.pastExams.push({ id: doc.id, ...doc.data() }));
@@ -236,17 +230,37 @@ function unsubscribeAll() {
     if (state.unsubscribeProfile) state.unsubscribeProfile();
     if (state.unsubscribeFc) state.unsubscribeFc();
     if (state.unsubscribeStore) state.unsubscribeStore();
-    if (state.unsubscribePastExams) state.unsubscribePastExams(); // ★ 追加
+    if (state.unsubscribePastExams) state.unsubscribePastExams();
 }
 
 function switchView(viewName) {
-// ... existing code ...
+    state.currentView = viewName;
+    switchViewUI(viewName);
+    if (viewName !== 'drill') stopDrillTimer();
+    if (viewName === 'drill') focusDrillInput();
+    updateAllViews();
+}
+
 function updateAllViews() {
-// ... existing code ...
+    if (state.currentView === 'home') {
+        const dateEl = document.getElementById('home-date-display');
+        if (dateEl) {
+            const today = new Date();
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            dateEl.innerText = `${today.getMonth() + 1}月${today.getDate()}日(${days[today.getDay()]})`;
+        }
+        displayDailyQuote();
+    }
+
+    if (state.currentView === 'dashboard') renderDashboard(state.tasks);
+    if (state.currentView === 'calendar') {
+        renderCalendar(state.tasks);
+        renderCalendarTasks(state.tasks);
+    }
+    if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
     if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
     if (state.currentView === 'store') renderStore(state.storeSets);
     
-    // ★ 過去問画面の表示更新を追加
     if (state.currentView === 'past-exams') {
         updatePastExamsData(state.userProfile, state.pastExams);
     }
