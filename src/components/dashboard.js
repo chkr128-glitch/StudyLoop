@@ -42,8 +42,11 @@ export function displayDailyQuote() {
     const today = new Date();
     const daysSinceEpoch = Math.floor(today.getTime() / (1000 * 60 * 60 * 24));
     const quote = QUOTES[daysSinceEpoch % QUOTES.length];
-    const elText = document.getElementById('daily-quote-text'); 
-    const elAuthor = document.getElementById('daily-quote-author');
+    
+    // index.htmlの新しいID名に修正
+    const elText = document.getElementById('home-daily-quote-text'); 
+    const elAuthor = document.getElementById('home-daily-quote-author');
+    
     if (elText) elText.innerText = `"${quote.text}"`; 
     if (elAuthor) elAuthor.innerText = `- ${quote.author}`;
 }
@@ -74,12 +77,15 @@ export function updateStreak(tasks) {
         headerContainer.classList.add('hidden'); headerContainer.classList.remove('flex'); 
     }
 
-    const dashContainer = document.getElementById('dashboard-streak-container');
-    if (streak > 0) {
-        dashContainer.classList.remove('hidden');
-        dashContainer.innerHTML = `<div class="flex items-center"><div class="text-4xl mr-4 drop-shadow-md animate-bounce-slight">${emoji}</div><div><p class="text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-0.5">${msg}</p><p class="text-lg font-black text-gray-800 dark:text-gray-100">現在 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 text-2xl mx-1">${streak}</span> 日連続学習中！</p></div></div>`;
-    } else { 
-        dashContainer.classList.add('hidden'); 
+    // index.htmlの新しいID名に修正
+    const dashContainer = document.getElementById('home-dashboard-streak-container');
+    if (dashContainer) { // dashContainerが存在するかどうか（nullチェック）を追加して安全にする
+        if (streak > 0) {
+            dashContainer.classList.remove('hidden');
+            dashContainer.innerHTML = `<div class="flex items-center"><div class="text-4xl mr-4 drop-shadow-md animate-bounce-slight">${emoji}</div><div><p class="text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-0.5">${msg}</p><p class="text-lg font-black text-gray-800 dark:text-gray-100">現在 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 text-2xl mx-1">${streak}</span> 日連続学習中！</p></div></div>`;
+        } else { 
+            dashContainer.classList.add('hidden'); 
+        }
     }
 }
 
@@ -90,9 +96,8 @@ export function renderDashboard(tasks) {
     const incomplete = dashboardTasks.filter(t => !t.completed); 
     const completed = dashboardTasks.filter(t => t.date === todayStr && t.completed);
     
-    const todayDate = new Date(); const days = ['日', '月', '火', '水', '木', '金', '土'];
-    document.getElementById('current-date-display').innerText = `${todayDate.getMonth() + 1}月${todayDate.getDate()}日(${days[todayDate.getDay()]}) のタスク`; 
-    displayDailyQuote();
+    // ★ここにあった「日付の更新」と「displayDailyQuote()」の呼び出しを削除しました。
+    // （日付の更新は main.js で行うようになり、名言の更新はストリークと同じくタスクの読み込み時に呼ばれる仕組みになっています）
 
     const totalMinutes = incomplete.reduce((sum, t) => sum + (Number(t.estimatedTime) || 0), 0); 
     const hours = Math.floor(totalMinutes / 60); const mins = totalMinutes % 60;
