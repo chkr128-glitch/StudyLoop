@@ -545,36 +545,32 @@
             </div>
 
            <!-- <selection-tag>過去問ログ</selection-tag> (新設) -->
-            <div id="view-past-exams" class="view-section p-5 flex flex-col h-full overflow-hidden">
-                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-4 ml-1 tracking-tight transition-colors flex-shrink-0">過去問ログ</h2>
+            <!-- 過去問ログ -->
+            <div id="view-past-exams" class="view-section p-5">
+                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-4 ml-1 tracking-tight transition-colors">過去問ログ</h2>
                 
-                <!-- 科目タブ (JSで動的生成) -->
-                <div class="overflow-x-auto flex-shrink-0 mb-4 pb-2 border-b border-gray-100 dark:border-gray-700" style="scrollbar-width: none;">
+                <!-- 科目タブ -->
+                <div class="overflow-x-auto mb-4 pb-2 border-b border-gray-100 dark:border-gray-700" style="scrollbar-width: none;">
                     <div id="pe-subject-tabs" class="flex space-x-3 w-max px-1">
                         <!-- タブがここに挿入されます -->
                     </div>
                 </div>
 
-                <!-- スクロール領域 -->
-                <div class="flex-1 overflow-y-auto pb-32">
-                    
-                    <!-- 分析グラフエリア (修正版) -->
-                    <div id="pe-analytics-container" class="hidden flex-col gap-4 mb-6 px-1 animate-pop-in">
-                        <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
-                            <h3 id="pe-chart1-title" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center"><i class="fas fa-chart-line text-pink-500 mr-2"></i>得点推移</h3>
-                            <!-- touch-action: pan-y; を追加してスクロールを可能に -->
-                            <div class="relative h-48 w-full" style="touch-action: pan-y;"><canvas id="pe-trend-chart"></canvas></div>
-                        </div>
-                        <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
-                            <h3 id="pe-chart2-title" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center"><i class="fas fa-chart-pie text-purple-500 mr-2"></i>失点原因 (弱点分析)</h3>
-                            <div class="relative h-48 w-full" style="touch-action: pan-y;"><canvas id="pe-weakness-chart"></canvas></div>
-                        </div>
+                <!-- 分析グラフエリア -->
+                <div id="pe-analytics-container" class="hidden flex-col gap-4 mb-6 px-1 animate-pop-in">
+                    <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
+                        <h3 id="pe-chart1-title" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center"><i class="fas fa-chart-line text-pink-500 mr-2"></i>得点推移</h3>
+                        <div class="relative h-48 w-full"><canvas id="pe-trend-chart"></canvas></div>
                     </div>
+                    <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
+                        <h3 id="pe-chart2-title" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center"><i class="fas fa-chart-pie text-purple-500 mr-2"></i>失点原因 (弱点分析)</h3>
+                        <div class="relative h-48 w-full"><canvas id="pe-weakness-chart"></canvas></div>
+                    </div>
+                </div>
 
-                    <!-- 年度リスト (JSで動的生成) -->
-                    <div id="pe-years-list" class="space-y-3">
-                        <!-- 2026年〜2007年のリストがここに挿入されます -->
-                    </div>
+                <!-- 年度リスト -->
+                <div id="pe-years-list" class="space-y-3 pb-32">
+                    <!-- 2026年〜2007年のリストがここに挿入されます -->
                 </div>
             </div>
 
