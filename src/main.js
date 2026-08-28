@@ -10,6 +10,7 @@ import { initDrill, stopDrillTimer, focusDrillInput } from './components/drill.j
 import { initFlashcard, updateFcSets, showFcView } from './components/flashcard.js';
 import { initStore, renderStore } from './components/store.js';
 import { initTutorial, checkAndShowTutorial } from './components/tutorial.js';
+import { initPastExams, updatePastExamsData } from './components/pastExams.js'; // ★ 追加
 import { SUBJECTS, REVIEW_INTERVALS } from './utils/constants.js';
 import { formatDate } from './utils/helpers.js';
 import { onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -19,12 +20,14 @@ const state = {
     routines: [],
     userProfile: {},
     storeSets: [],
-    currentView: 'home', // ★初期画面をホームに設定
+    pastExams: [], // ★ 追加
+    currentView: 'home',
     unsubscribeTasks: null,
     unsubscribeRoutines: null,
     unsubscribeProfile: null,
     unsubscribeFc: null,
-    unsubscribeStore: null
+    unsubscribeStore: null,
+    unsubscribePastExams: null // ★ 追加
 };
 
 function initApp() {
@@ -35,6 +38,7 @@ function initApp() {
     initFlashcard();
     initStore();
     initTutorial(); 
+    initPastExams(); // ★ 追加
     
     populateSubjectDropdowns(); 
 
@@ -195,6 +199,9 @@ function subscribeToData() {
             }
             if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
             if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
+            
+            // ★ プロフィールが更新されたら過去問の科目タブも更新する
+            updatePastExamsData(state.userProfile, state.pastExams);
         } else {
             if (!tutorialChecked) {
                 checkAndShowTutorial({});
@@ -202,6 +209,13 @@ function subscribeToData() {
             }
         }
     }, (err) => console.error("Profile sync error:", err));
+
+    // ★ 過去問データのリアルタイム同期を追加
+    state.unsubscribePastExams = onSnapshot(getAppCollectionRef('past_exams'), (snapshot) => {
+        state.pastExams = [];
+        snapshot.forEach(doc => state.pastExams.push({ id: doc.id, ...doc.data() }));
+        updatePastExamsData(state.userProfile, state.pastExams);
+    }, (err) => console.error("PastExams sync error:", err));
 
     state.unsubscribeFc = onSnapshot(getAppCollectionRef('flashcard_sets'), (snapshot) => {
         const sets = [];
@@ -222,36 +236,20 @@ function unsubscribeAll() {
     if (state.unsubscribeProfile) state.unsubscribeProfile();
     if (state.unsubscribeFc) state.unsubscribeFc();
     if (state.unsubscribeStore) state.unsubscribeStore();
+    if (state.unsubscribePastExams) state.unsubscribePastExams(); // ★ 追加
 }
 
 function switchView(viewName) {
-    state.currentView = viewName;
-    switchViewUI(viewName);
-    if (viewName !== 'drill') stopDrillTimer();
-    if (viewName === 'drill') focusDrillInput();
-    updateAllViews();
-}
-
+// ... existing code ...
 function updateAllViews() {
-    if (state.currentView === 'home') {
-        const dateEl = document.getElementById('home-date-display');
-        if (dateEl) {
-            const today = new Date();
-            const days = ['日', '月', '火', '水', '木', '金', '土'];
-            dateEl.innerText = `${today.getMonth() + 1}月${today.getDate()}日(${days[today.getDay()]})`;
-        }
-        // ★ホーム画面表示時に名言を更新
-        displayDailyQuote();
-    }
-
-    if (state.currentView === 'dashboard') renderDashboard(state.tasks);
-    if (state.currentView === 'calendar') {
-        renderCalendar(state.tasks);
-        renderCalendarTasks(state.tasks);
-    }
-    if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
+// ... existing code ...
     if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
     if (state.currentView === 'store') renderStore(state.storeSets);
+    
+    // ★ 過去問画面の表示更新を追加
+    if (state.currentView === 'past-exams') {
+        updatePastExamsData(state.userProfile, state.pastExams);
+    }
     
     if (state.currentView === 'flashcard-app') {
         const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
