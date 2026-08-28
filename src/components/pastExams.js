@@ -120,7 +120,7 @@ function renderYears(subject) {
         const record = pastExams.find(e => e.subject === subject && e.year === String(year));
         
         return `
-            <div class="pe-year-row flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer hover:border-pink-300 transition-colors mx-1" data-year="${year}">
+            <button type="button" class="pe-year-row w-full text-left flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer hover:border-pink-300 transition-colors mx-1" data-year="${year}">
                 <div>
                     <h4 class="font-black text-gray-800 dark:text-gray-100 text-lg">${year}年度</h4>
                     <p class="text-xs font-bold ${record ? 'text-emerald-500' : 'text-gray-400'} mt-1">
@@ -128,9 +128,9 @@ function renderYears(subject) {
                     </p>
                 </div>
                 <div class="text-gray-300 dark:text-gray-600">
-                    <i class="fas fa-chevron-right"></i>
+                    <i class="fas fa-chevron-right pointer-events-none"></i>
                 </div>
-            </div>
+            </button>
         `;
     }).join('');
 }
