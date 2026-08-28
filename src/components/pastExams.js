@@ -9,9 +9,9 @@ let pastExams = [];
 let currentSubject = '';
 let currentYear = '';
 let wizardData = {
-    sections: [] // 大問と小問のデータを保持する配列
+    sections: []
 };
-let fcSetsCache = []; // 単語帳セットのキャッシュ
+let fcSetsCache = [];
 
 // --- 初期化 ---
 export function initPastExams() {
@@ -38,7 +38,7 @@ function getAvailableSubjects() {
     const ss = userProfile.examScores.second || {};
     const subjects = new Set();
     
-    // 文理共通の主要科目（配点が設定されていれば追加）
+    // 文理共通の主要科目
     if (ss['英語'] > 0) subjects.add('英語');
     if (ss['国語'] > 0) subjects.add('国語');
     if (ss['数学'] > 0) subjects.add('数学');
@@ -118,63 +118,46 @@ function setupEventListeners() {
         }
     });
 
-    // 大問追加
-    document.getElementById('btn-pe-add-section')?.addEventListener('click', () => {
-        const secId = Date.now().toString();
-        wizardData.sections.push({ id: secId, name: `大問 ${wizardData.sections.length + 1}`, plannedTime: '', actualTime: '', questions: [] });
-        renderSections();
-    });
-
-    // 大問コンテナのイベント委譲（小問追加、削除、単語帳、並び替え）
+    // 大問コンテナ内の小問追加・削除・並び替え等 (イベント委譲)
     document.getElementById('pe-questions-container')?.addEventListener('click', handleSectionEvents);
     document.getElementById('pe-questions-container')?.addEventListener('change', handleDataChange);
 
-    // 単語帳クイック追加の保存
-    document.getElementById('btn-quick-fc-save')?.addEventListener('click', saveQuickFlashcard);
-}
-
-// ウィザードのSTEP切り替え
-    document.getElementById('btn-pe-next-step')?.addEventListener('click', () => {
-        document.getElementById('pe-step-1').classList.add('hidden');
-        document.getElementById('pe-step-2').classList.remove('hidden');
-    });
-    document.getElementById('btn-pe-prev-step')?.addEventListener('click', () => {
-        document.getElementById('pe-step-2').classList.add('hidden');
-        document.getElementById('pe-step-1').classList.remove('hidden');
-    });
-
-    // --- 過去問データの保存 ---
-async function savePastExam() {
-    // STEP1のデータを取得
-    wizardData.score = document.getElementById('pe-score-input').value;
-    wizardData.actualTime = document.getElementById('pe-time-input').value;
-    wizardData.seriousness = document.getElementById('pe-seriousness-select').value;
-    
-    // STEP2の戦略データを取得
-    wizardData.strategyEval = document.getElementById('pe-strategy-eval').value;
-    wizardData.strategyNote = document.getElementById('pe-strategy-note').value;
-
-    const userId = getCurrentUserId();
-    if (!userId) {
-        showToast("エラー: ユーザー情報が取得できません", "error");
-        return;
-    }
-
-    try {
-        // ドキュメントIDを "科目_年度" として保存（上書き・新規作成を容易にするため）
-        const docId = `${wizardData.subject}_${wizardData.year}`;
-        await setDoc(doc(getAppCollectionRef('past_exams'), docId), {
-            ...wizardData,
-            updatedAt: serverTimestamp()
-        });
+    // ドキュメント全体でのクリック監視 (確実なボタン検知)
+    document.addEventListener('click', (e) => {
+        // 大問追加
+        if (e.target.closest('#btn-pe-add-section')) {
+            e.preventDefault();
+            const secId = Date.now().toString();
+            wizardData.sections.push({ id: secId, name: `大問 ${wizardData.sections.length + 1}`, plannedTime: '', actualTime: '', questions: [] });
+            renderSections();
+        }
         
-        showToast(`${wizardData.year}年度 ${wizardData.subject} の記録を保存しました！`);
-        closeModal('modal-pe-wizard');
-        // ※ 保存後の画面更新は main.js の onSnapshot によって自動的に行われます
-    } catch (e) {
-        console.error(e);
-        showToast("保存に失敗しました", "error");
-    }
+        // ウィザードのSTEP切り替え: 次へ
+        if (e.target.closest('#btn-pe-next-step')) {
+            e.preventDefault();
+            document.getElementById('pe-step-1')?.classList.add('hidden');
+            document.getElementById('pe-step-2')?.classList.remove('hidden');
+        }
+        
+        // ウィザードのSTEP切り替え: 戻る
+        if (e.target.closest('#btn-pe-prev-step')) {
+            e.preventDefault();
+            document.getElementById('pe-step-2')?.classList.add('hidden');
+            document.getElementById('pe-step-1')?.classList.remove('hidden');
+        }
+        
+        // 過去問データの保存
+        if (e.target.closest('#btn-pe-save')) {
+            e.preventDefault();
+            savePastExam();
+        }
+
+        // 単語帳クイック追加の保存
+        if (e.target.closest('#btn-quick-fc-save')) {
+            e.preventDefault();
+            saveQuickFlashcard();
+        }
+    });
 }
 
 // --- 大問・小問の動的レンダリング ---
@@ -196,7 +179,7 @@ function renderSections() {
                 </div>
                 <div class="flex items-center space-x-2 text-xs">
                     <span class="text-gray-500 font-bold">予定:</span>
-                    <input type="number" class="input-sec-planned w-14 bg-gray-50 dark:bg-gray-700 p-1.5 rounded-lg border-none text-center font-bold outline-none" value="${sec.plannedTime}" placeholder="分">
+                    <input type="number" class="input-sec-planned w-14 bg-gray-50 dark:bg-gray-700 p-1.5 rounded-lg border-none text-center font-bold outline-none dark:text-white" value="${sec.plannedTime}" placeholder="分">
                     <span class="text-gray-500 font-bold ml-2">実際:</span>
                     <input type="number" class="input-sec-actual w-14 bg-gray-50 dark:bg-gray-700 p-1.5 rounded-lg border-none text-center font-bold text-rose-500 outline-none" value="${sec.actualTime}" placeholder="分">
                     <button class="btn-sec-delete ml-2 text-gray-400 hover:text-red-500 p-2"><i class="fas fa-trash pointer-events-none"></i></button>
@@ -220,7 +203,7 @@ function renderSections() {
                                 <option value="△" ${q.result === '△' ? 'selected' : ''}>△ 不確実</option>
                                 <option value="×" ${q.result === '×' ? 'selected' : ''}>× 不正解</option>
                             </select>
-                            <select class="select-q-conf text-xs font-bold p-1.5 rounded-lg outline-none cursor-pointer bg-white dark:bg-gray-800 border">
+                            <select class="select-q-conf text-xs font-bold p-1.5 rounded-lg outline-none cursor-pointer bg-white dark:bg-gray-800 dark:text-white border border-gray-200 dark:border-gray-600">
                                 <option value="0" ${q.confidence === '0' ? 'selected' : ''}>- 確信度 -</option>
                                 <option value="5" ${q.confidence === '5' ? 'selected' : ''}>5: 完全に確信</option>
                                 <option value="4" ${q.confidence === '4' ? 'selected' : ''}>4: かなり自信あり</option>
@@ -231,7 +214,7 @@ function renderSections() {
                         </div>
                         <div class="flex flex-wrap gap-1">
                             ${tags.map(tag => `
-                                <label class="text-[10px] font-bold border border-gray-300 dark:border-gray-500 rounded px-1.5 py-0.5 cursor-pointer has-[:checked]:bg-pink-100 has-[:checked]:border-pink-400 has-[:checked]:text-pink-600 transition-colors">
+                                <label class="text-[10px] font-bold border border-gray-300 dark:border-gray-500 dark:text-gray-300 rounded px-1.5 py-0.5 cursor-pointer has-[:checked]:bg-pink-100 has-[:checked]:border-pink-400 has-[:checked]:text-pink-600 transition-colors">
                                     <input type="checkbox" class="check-q-tag hidden" value="${tag}" ${q.tags.includes(tag) ? 'checked' : ''}> ${tag}
                                 </label>
                             `).join('')}
@@ -247,13 +230,13 @@ function renderSections() {
 }
 
 function getResultColor(result) {
-    if (result === '○') return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-    if (result === '△') return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-    if (result === '×') return 'bg-rose-100 text-rose-700 border-rose-200';
-    return 'bg-white dark:bg-gray-800 border-gray-200';
+    if (result === '○') return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800';
+    if (result === '△') return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
+    if (result === '×') return 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-800';
+    return 'bg-white dark:bg-gray-800 dark:text-white border-gray-200 dark:border-gray-600';
 }
 
-// --- UI操作ハンドラー (イベント委譲) ---
+// --- UI操作ハンドラー (大問内のイベント検知) ---
 function handleSectionEvents(e) {
     const secEl = e.target.closest('.pe-section-block');
     if (!secEl) return;
@@ -262,16 +245,19 @@ function handleSectionEvents(e) {
 
     // 並び替え（上）
     if (e.target.classList.contains('btn-sec-up') && secIndex > 0) {
+        e.preventDefault();
         [wizardData.sections[secIndex - 1], wizardData.sections[secIndex]] = [wizardData.sections[secIndex], wizardData.sections[secIndex - 1]];
         renderSections();
     }
     // 並び替え（下）
     else if (e.target.classList.contains('btn-sec-down') && secIndex < wizardData.sections.length - 1) {
+        e.preventDefault();
         [wizardData.sections[secIndex], wizardData.sections[secIndex + 1]] = [wizardData.sections[secIndex + 1], wizardData.sections[secIndex]];
         renderSections();
     }
     // 大問削除
     else if (e.target.classList.contains('btn-sec-delete')) {
+        e.preventDefault();
         showConfirm("この大問を削除しますか？", () => {
             wizardData.sections.splice(secIndex, 1);
             renderSections();
@@ -279,17 +265,20 @@ function handleSectionEvents(e) {
     }
     // 小問追加
     else if (e.target.classList.contains('btn-q-add')) {
+        e.preventDefault();
         wizardData.sections[secIndex].questions.push({ id: Date.now().toString(), result: '未', confidence: '0', tags: [] });
         renderSections();
     }
     // 小問削除
     else if (e.target.classList.contains('btn-q-delete')) {
+        e.preventDefault();
         const qId = e.target.closest('.pe-question-item').dataset.qId;
         wizardData.sections[secIndex].questions = wizardData.sections[secIndex].questions.filter(q => q.id !== qId);
         renderSections();
     }
     // 単語帳に追加ボタン
     else if (e.target.classList.contains('btn-q-fc')) {
+        e.preventDefault();
         openQuickAddFlashcard();
     }
 }
@@ -320,13 +309,12 @@ function handleDataChange(e) {
 }
 
 // --- ウィザード表示・復元 ---
-// --- ウィザード表示・復元 ---
 function openWizard(subject, year) {
     // 既存データがあれば復元、なければ初期化
     const existingData = pastExams.find(e => e.subject === subject && e.year === year);
     
     if (existingData) {
-        wizardData = JSON.parse(JSON.stringify(existingData)); // ディープコピー
+        wizardData = JSON.parse(JSON.stringify(existingData)); // ディープコピーしてUI操作用に保持
     } else {
         wizardData = {
             subject,
@@ -355,19 +343,54 @@ function openWizard(subject, year) {
     openModal('modal-pe-wizard');
 }
 
+// --- 過去問データの保存 ---
+async function savePastExam() {
+    // STEP1のデータを取得
+    wizardData.score = document.getElementById('pe-score-input').value;
+    wizardData.actualTime = document.getElementById('pe-time-input').value;
+    wizardData.seriousness = document.getElementById('pe-seriousness-select').value;
+    
+    // STEP2の戦略データを取得
+    wizardData.strategyEval = document.getElementById('pe-strategy-eval').value;
+    wizardData.strategyNote = document.getElementById('pe-strategy-note').value;
+
+    const userId = getCurrentUserId();
+    if (!userId) {
+        showToast("エラー: ユーザー情報が取得できません", "error");
+        return;
+    }
+
+    try {
+        // ドキュメントIDを "科目_年度" として保存（上書き・新規作成を容易にするため）
+        const docId = `${wizardData.subject}_${wizardData.year}`;
+        await setDoc(doc(getAppCollectionRef('past_exams'), docId), {
+            ...wizardData,
+            updatedAt: serverTimestamp()
+        });
+        
+        showToast(`${wizardData.year}年度 ${wizardData.subject} の記録を保存しました！`);
+        closeModal('modal-pe-wizard');
+        // 保存後の画面更新は main.js の onSnapshot によって自動的に行われます
+    } catch (e) {
+        console.error(e);
+        showToast("保存に失敗しました", "error");
+    }
+}
+
 // --- 単語帳クイック追加 ---
 async function openQuickAddFlashcard() {
     const userId = getCurrentUserId();
     if (!userId) return;
     
     try {
+        // 単語帳セットの一覧を取得
         const snap = await getDocs(collection(getAppDocRef('flashcard_sets', 'dummy').parent));
         fcSetsCache = [];
         snap.forEach(doc => fcSetsCache.push({ id: doc.id, ...doc.data() }));
 
         const select = document.getElementById('quick-fc-set-select');
         if (fcSetsCache.length === 0) {
-            select.innerHTML = `<option value="">セットがありません。先に作成してください。</option>`;
+            select.innerHTML = `<option value="">セットがありません。先に単語帳画面で作成してください。</option>`;
             document.getElementById('btn-quick-fc-save').disabled = true;
         } else {
             select.innerHTML = fcSetsCache.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
