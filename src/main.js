@@ -2,8 +2,9 @@ import { observeAuthState } from './services/auth.js';
 import { setCurrentUserId, getCurrentUserId, getAppCollectionRef, getAppDocRef } from './services/db.js';
 import { showToast, showConfirm, closeConfirm, executeConfirm, openModal, closeModal, initUI, switchViewUI } from './components/ui.js';
 import { initAuthUI } from './components/authUI.js';
-import { renderDashboard, updateStreak } from './components/dashboard.js';
-import { initCalendar, renderCalendar, renderCalendarTasks, changeMonth, selectCalendarDate, getCalendarSelectedDate } from './components/calendar.js';
+// ★ displayDailyQuote を追加でインポートします
+import { renderDashboard, updateStreak, displayDailyQuote } from './components/dashboard.js';
+import { initCalendar, renderCalendar, renderCalendarTasks, changeMonth, selectCalendarDate, getCalendarSelectedDate } from './components/calendar.js'; from './components/calendar.js';
 import { renderAnalytics, updateChartColors } from './components/analytics.js';
 import { initSettings, renderSettings, saveUserProfile, buildWeightInputs } from './components/settings.js';
 import { initDrill, stopDrillTimer, focusDrillInput } from './components/drill.js';
@@ -251,6 +252,8 @@ function updateAllViews() {
             const days = ['日', '月', '火', '水', '木', '金', '土'];
             dateEl.innerText = `${today.getMonth() + 1}月${today.getDate()}日(${days[today.getDay()]})`;
         }
+        // ★ ホーム画面の更新時に名言も表示させる
+        displayDailyQuote();
     }
 
     if (state.currentView === 'dashboard') renderDashboard(state.tasks);
