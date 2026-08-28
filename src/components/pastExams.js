@@ -8,9 +8,13 @@ let userProfile = null;
 let pastExams = [];
 let currentSubject = '';
 let currentYear = '';
-let currentStep = 1; // ウィザードの現在のステップ (1 or 2)
+let currentStep = 1; 
 let wizardData = { sections: [] };
 let fcSetsCache = []; 
+
+// グラフインスタンス保持用
+let trendChartInstance = null;
+let weaknessChartInstance = null;
 
 // --- 初期化 ---
 export function initPastExams() {
@@ -20,12 +24,15 @@ export function initPastExams() {
 export function updatePastExamsData(profile, exams) {
     userProfile = profile;
     pastExams = exams;
-    renderTabs();
+    
     if (!currentSubject && getAvailableSubjects().length > 0) {
         currentSubject = getAvailableSubjects()[0];
     }
+    
+    renderTabs();
     if (currentSubject) {
         renderYears(currentSubject);
+        renderCharts(currentSubject); // グラフの描画を呼び出し
     }
 }
 
@@ -50,6 +57,25 @@ function getAvailableSubjects() {
     }
     
     return Array.from(subjects).length > 0 ? Array.from(subjects) : ['英語', '数学', '国語'];
+}
+
+// --- 目標点と配点の取得 ---
+function getSubjectTargetAndFullScore(subject) {
+    if (!userProfile || !userProfile.examScores || !userProfile.examScores.second) return { full: 0, target: 0 };
+    const ss = userProfile.examScores.second;
+    
+    // 固定科目
+    if (subject === '英語' || subject === '数学' || subject === '国語') {
+        return { full: ss[subject] || 0, target: ss[`${subject}_target`] || 0 };
+    }
+    
+    // 選択科目 (社会・理科)
+    for (let i = 1; i <= 2; i++) {
+        if (ss[`社会${i}_sub`] === subject) return { full: ss[`社会${i}_score`] || 0, target: ss[`社会${i}_target`] || 0 };
+        if (ss[`理科${i}_sub`] === subject) return { full: ss[`理科${i}_score`] || 0, target: ss[`理科${i}_target`] || 0 };
+    }
+    
+    return { full: 0, target: 0 };
 }
 
 // --- 画面描画 ---
@@ -95,16 +121,152 @@ function renderYears(subject) {
     }).join('');
 }
 
+// --- ★分析グラフの描画 ---
+function renderCharts(subject) {
+    const container = document.getElementById('pe-analytics-container');
+    if (!container) return;
+
+    // 対象科目の「点数が入力されている」データのみを年度の古い順（昇順）に並び替え
+    const subjectExams = pastExams
+        .filter(e => e.subject === subject && e.score !== '')
+        .sort((a, b) => parseInt(a.year) - parseInt(b.year));
+
+    // データが0件ならグラフエリアごと隠す
+    if (subjectExams.length === 0) {
+        container.classList.add('hidden');
+        container.classList.remove('flex');
+        return;
+    } else {
+        container.classList.remove('hidden');
+        container.classList.add('flex');
+    }
+
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    const textColor = isDarkMode ? '#9ca3af' : '#4b5563';
+    const gridColor = isDarkMode ? '#374151' : '#f3f4f6';
+
+    // 1. 得点推移グラフ (Line Chart)
+    const ctxTrend = document.getElementById('pe-trend-chart')?.getContext('2d');
+    if (ctxTrend) {
+        if (trendChartInstance) trendChartInstance.destroy();
+        
+        const labels = subjectExams.map(e => `${e.year}年`);
+        const scores = subjectExams.map(e => parseInt(e.score) || 0);
+        const { target } = getSubjectTargetAndFullScore(subject);
+        const targetScores = subjectExams.map(() => parseInt(target) || 0);
+
+        trendChartInstance = new Chart(ctxTrend, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: '得点',
+                        data: scores,
+                        borderColor: '#ec4899', // pink-500
+                        backgroundColor: 'rgba(236, 72, 153, 0.15)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ec4899',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: '目標点',
+                        data: targetScores,
+                        borderColor: '#8b5cf6', // purple-500
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, labels: { color: textColor, font: { size: 10, weight: 'bold' } } },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: { ticks: { color: textColor, font: { size: 10, weight: 'bold' } }, grid: { display: false } },
+                    y: { ticks: { color: textColor, font: { size: 10, weight: 'bold' } }, grid: { color: gridColor }, min: 0 }
+                }
+            }
+        });
+    }
+
+    // 2. 失点原因グラフ (Doughnut Chart)
+    const ctxWeakness = document.getElementById('pe-weakness-chart')?.getContext('2d');
+    if (ctxWeakness) {
+        if (weaknessChartInstance) weaknessChartInstance.destroy();
+
+        // 記録された小問から、「不正解(×)」または「不確実(△)」のタグを集計
+        const tagCounts = {};
+        subjectExams.forEach(exam => {
+            if (exam.sections) {
+                exam.sections.forEach(sec => {
+                    if (sec.questions) {
+                        sec.questions.forEach(q => {
+                            if (q.result === '×' || q.result === '△') {
+                                q.tags.forEach(tag => {
+                                    tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        // 降順にソートし、上位6件を抽出
+        const sortedTags = Object.keys(tagCounts).sort((a, b) => tagCounts[b] - tagCounts[a]);
+        const weaknessLabels = sortedTags.slice(0, 6);
+        const weaknessData = weaknessLabels.map(tag => tagCounts[tag]);
+
+        // もし該当データがない場合はプレースホルダー
+        if (weaknessData.length === 0) {
+            weaknessLabels.push("データなし");
+            weaknessData.push(1);
+        }
+
+        weaknessChartInstance = new Chart(ctxWeakness, {
+            type: 'doughnut',
+            data: {
+                labels: weaknessLabels,
+                datasets: [{
+                    data: weaknessData,
+                    backgroundColor: weaknessData[0] === 1 && weaknessLabels[0] === "データなし" 
+                        ? ['#e5e7eb'] // gray-200
+                        : ['#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#f43f5e'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { color: textColor, font: { size: 10, weight: 'bold' }, padding: 12 } }
+                },
+                cutout: '65%'
+            }
+        });
+    }
+}
+
 // --- イベントリスナー ---
 function setupEventListeners() {
-    // 画面全体でクリックを監視（イベント委譲）
     document.addEventListener('click', (e) => {
-        
         // 1. 科目タブ切り替え
         if (e.target.classList.contains('pe-tab-btn')) {
             currentSubject = e.target.dataset.subject;
             renderTabs();
             renderYears(currentSubject);
+            renderCharts(currentSubject);
         }
 
         // 2. 年度クリックでウィザード開く
@@ -114,40 +276,34 @@ function setupEventListeners() {
             openWizard(currentSubject, currentYear);
         }
 
-        // 3. ウィザード フッターの「次へ / 保存」ボタン
-        const nextBtn = e.target.closest('#pe-btn-next') || e.target.closest('#btn-pe-next-step') || e.target.closest('#btn-pe-save');
+        // 3. ウィザード フッターの「次へ」ボタン
+        const nextBtn = e.target.closest('#btn-pe-next-step');
         if (nextBtn) {
             e.preventDefault();
-            if (currentStep === 1) {
-                goToStep(2);
-            } else {
-                savePastExam();
-            }
+            goToStep(2);
         }
 
         // 4. ウィザード フッターの「戻る」ボタン
-        const prevBtn = e.target.closest('#pe-btn-prev') || e.target.closest('#btn-pe-prev-step');
+        const prevBtn = e.target.closest('#btn-pe-prev-step');
         if (prevBtn) {
             e.preventDefault();
-            if (currentStep === 2) {
-                goToStep(1);
-            }
+            goToStep(1);
         }
 
-        // 5. 大問追加ボタン
-        const addQBtn = e.target.closest('#btn-pe-add-q') || e.target.closest('#btn-pe-add-section');
+        // 5. 完了して保存ボタン
+        const saveBtn = e.target.closest('#btn-pe-save');
+        if (saveBtn) {
+            e.preventDefault();
+            savePastExam();
+        }
+
+        // 6. 大問追加ボタン
+        const addQBtn = e.target.closest('#btn-pe-add-section');
         if (addQBtn) {
             e.preventDefault();
             const secId = Date.now().toString();
             wizardData.sections.push({ id: secId, name: `大問 ${wizardData.sections.length + 1}`, plannedTime: '', actualTime: '', questions: [] });
             renderSections();
-        }
-
-        // 6. ウィザード閉じるボタン
-        const closeBtn = e.target.closest('.pe-wizard-close-btn') || e.target.closest('.modal-close-btn');
-        if (closeBtn && e.target.closest('#modal-pe-wizard')) {
-            e.preventDefault();
-            closeModal('modal-pe-wizard');
         }
 
         // 7. 単語帳クイック追加保存
@@ -157,7 +313,7 @@ function setupEventListeners() {
             saveQuickFlashcard();
         }
 
-        // 8. 大問・小問内の操作 (上,下,削除,追加)
+        // 8. 大問・小問内の操作
         handleSectionEvents(e);
     });
 
@@ -172,56 +328,20 @@ function goToStep(step) {
     currentStep = step;
     const step1El = document.getElementById('pe-step-1');
     const step2El = document.getElementById('pe-step-2');
-    const progress = document.getElementById('pe-wizard-progress');
 
     if (!step1El || !step2El) return;
 
     if (step === 1) {
         step1El.classList.remove('hidden');
         step2El.classList.add('hidden');
-        if (progress) progress.style.width = '50%';
     } else if (step === 2) {
         step1El.classList.add('hidden');
         step2El.classList.remove('hidden');
-        if (progress) progress.style.width = '100%';
     }
-}
-
-// --- 目標点と配点の取得 ---
-function getSubjectTargetAndFullScore(subject) {
-    if (!userProfile || !userProfile.examScores || !userProfile.examScores.second) return { full: 0, target: 0 };
-    const ss = userProfile.examScores.second;
-    
-    // 固定科目
-    if (subject === '英語' || subject === '数学' || subject === '国語') {
-        return { full: ss[subject] || 0, target: ss[`${subject}_target`] || 0 };
-    }
-    
-    // 選択科目 (社会・理科)
-    for (let i = 1; i <= 2; i++) {
-        if (ss[`社会${i}_sub`] === subject) return { full: ss[`社会${i}_score`] || 0, target: ss[`社会${i}_target`] || 0 };
-        if (ss[`理科${i}_sub`] === subject) return { full: ss[`理科${i}_score`] || 0, target: ss[`理科${i}_target`] || 0 };
-    }
-    
-    return { full: 0, target: 0 };
 }
 
 // --- ウィザード表示・復元 ---
 function openWizard(subject, year) {
-    const titleEl = document.getElementById('pe-wizard-title');
-    const subjectEl = document.getElementById('pe-wizard-subject');
-    
-    if (titleEl) titleEl.innerText = `${userProfile.targetUniv || ''} ${userProfile.targetFaculty || ''} ${year}年度`;
-    if (subjectEl) subjectEl.innerText = subject;
-
-    // 設定画面から配点と目標点を同期
-    const scoreData = getSubjectTargetAndFullScore(subject);
-    const fullScoreEl = document.getElementById('pe-display-full-score');
-    const targetScoreEl = document.getElementById('pe-display-target-score');
-    if (fullScoreEl) fullScoreEl.innerText = scoreData.full;
-    if (targetScoreEl) targetScoreEl.innerText = scoreData.target;
-
-    // 既存データのロード
     const existingData = pastExams.find(e => e.subject === subject && e.year === String(year));
     if (existingData) {
         wizardData = JSON.parse(JSON.stringify(existingData));
@@ -229,30 +349,31 @@ function openWizard(subject, year) {
         wizardData = { subject, year, score: '', actualTime: '', seriousness: '未選択', strategyEval: '未設定', strategyNote: '', sections: [] };
     }
 
-    // UIへ値をセット（index.htmlのIDを使用）
-    const scoreInput = document.getElementById('pe-input-score') || document.getElementById('pe-score-input');
-    const timeInput = document.getElementById('pe-input-time') || document.getElementById('pe-time-input');
-    const seriousInput = document.getElementById('pe-input-seriousness') || document.getElementById('pe-seriousness-select');
+    // 設定画面から配点と目標点を同期
+    const scoreData = getSubjectTargetAndFullScore(subject);
     
-    if (scoreInput) scoreInput.value = wizardData.score || '';
-    if (timeInput) timeInput.value = wizardData.actualTime || '';
-    if (seriousInput) {
-        // 本番度の選択肢を動的生成
-        seriousInput.innerHTML = `<option value="未選択">- 選択してください -</option>` + 
-            EXAM_SERIOUSNESS_LEVELS.map(l => `<option value="${l.label}" ${wizardData.seriousness === l.label ? 'selected' : ''}>${l.label}</option>`).join('');
+    // UIへの反映（プレースホルダーにも満点を反映）
+    const scoreInput = document.getElementById('pe-score-input');
+    if (scoreInput) {
+        scoreInput.value = wizardData.score || '';
+        scoreInput.placeholder = `満点: ${scoreData.full}点`;
     }
+    
+    const timeInput = document.getElementById('pe-time-input');
+    if (timeInput) timeInput.value = wizardData.actualTime || '';
+    
+    const seriousInput = document.getElementById('pe-seriousness-select');
+    if (seriousInput) seriousInput.value = wizardData.seriousness || '未選択';
 
-    // 戦略の反映
     const evalInput = document.getElementById('pe-strategy-eval');
-    const noteInput = document.getElementById('pe-strategy-note');
     if (evalInput) evalInput.value = wizardData.strategyEval || '未設定';
+    
+    const noteInput = document.getElementById('pe-strategy-note');
     if (noteInput) noteInput.value = wizardData.strategyNote || '';
 
     goToStep(1);
     renderSections();
-    
-    const modalId = document.getElementById('modal-past-exam-wizard') ? 'modal-past-exam-wizard' : 'modal-pe-wizard';
-    openModal(modalId);
+    openModal('modal-pe-wizard');
 }
 
 // --- 大問・小問の動的レンダリング ---
@@ -399,9 +520,9 @@ function handleDataChange(e) {
 
 // --- 保存処理 ---
 async function savePastExam() {
-    const scoreInput = document.getElementById('pe-input-score') || document.getElementById('pe-score-input');
-    const timeInput = document.getElementById('pe-input-time') || document.getElementById('pe-time-input');
-    const seriousInput = document.getElementById('pe-input-seriousness') || document.getElementById('pe-seriousness-select');
+    const scoreInput = document.getElementById('pe-score-input');
+    const timeInput = document.getElementById('pe-time-input');
+    const seriousInput = document.getElementById('pe-seriousness-select');
     
     wizardData.score = scoreInput ? scoreInput.value : '';
     wizardData.actualTime = timeInput ? timeInput.value : '';
@@ -426,9 +547,7 @@ async function savePastExam() {
         });
         
         showToast(`${wizardData.year}年度 ${wizardData.subject} の記録を保存しました！`);
-        
-        const modalId = document.getElementById('modal-past-exam-wizard') ? 'modal-past-exam-wizard' : 'modal-pe-wizard';
-        closeModal(modalId);
+        closeModal('modal-pe-wizard');
     } catch (e) {
         console.error(e);
         showToast("保存に失敗しました", "error");
