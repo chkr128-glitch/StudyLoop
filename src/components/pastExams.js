@@ -133,6 +133,50 @@ function setupEventListeners() {
     document.getElementById('btn-quick-fc-save')?.addEventListener('click', saveQuickFlashcard);
 }
 
+// ウィザードのSTEP切り替え
+    document.getElementById('btn-pe-next-step')?.addEventListener('click', () => {
+        document.getElementById('pe-step-1').classList.add('hidden');
+        document.getElementById('pe-step-2').classList.remove('hidden');
+    });
+    document.getElementById('btn-pe-prev-step')?.addEventListener('click', () => {
+        document.getElementById('pe-step-2').classList.add('hidden');
+        document.getElementById('pe-step-1').classList.remove('hidden');
+    });
+
+    // --- 過去問データの保存 ---
+async function savePastExam() {
+    // STEP1のデータを取得
+    wizardData.score = document.getElementById('pe-score-input').value;
+    wizardData.actualTime = document.getElementById('pe-time-input').value;
+    wizardData.seriousness = document.getElementById('pe-seriousness-select').value;
+    
+    // STEP2の戦略データを取得
+    wizardData.strategyEval = document.getElementById('pe-strategy-eval').value;
+    wizardData.strategyNote = document.getElementById('pe-strategy-note').value;
+
+    const userId = getCurrentUserId();
+    if (!userId) {
+        showToast("エラー: ユーザー情報が取得できません", "error");
+        return;
+    }
+
+    try {
+        // ドキュメントIDを "科目_年度" として保存（上書き・新規作成を容易にするため）
+        const docId = `${wizardData.subject}_${wizardData.year}`;
+        await setDoc(doc(getAppCollectionRef('past_exams'), docId), {
+            ...wizardData,
+            updatedAt: serverTimestamp()
+        });
+        
+        showToast(`${wizardData.year}年度 ${wizardData.subject} の記録を保存しました！`);
+        closeModal('modal-pe-wizard');
+        // ※ 保存後の画面更新は main.js の onSnapshot によって自動的に行われます
+    } catch (e) {
+        console.error(e);
+        showToast("保存に失敗しました", "error");
+    }
+}
+
 // --- 大問・小問の動的レンダリング ---
 function renderSections() {
     const container = document.getElementById('pe-questions-container');
@@ -276,6 +320,7 @@ function handleDataChange(e) {
 }
 
 // --- ウィザード表示・復元 ---
+// --- ウィザード表示・復元 ---
 function openWizard(subject, year) {
     // 既存データがあれば復元、なければ初期化
     const existingData = pastExams.find(e => e.subject === subject && e.year === year);
@@ -295,8 +340,17 @@ function openWizard(subject, year) {
         };
     }
 
-    // UIへの反映（STEP1、戦略評価など。※省略せずに記載するならIDを取得して値をセットする）
-    // ...
+    // UIへの反映 (STEP1と戦略評価)
+    document.getElementById('pe-score-input').value = wizardData.score || '';
+    document.getElementById('pe-time-input').value = wizardData.actualTime || '';
+    document.getElementById('pe-seriousness-select').value = wizardData.seriousness || '未選択';
+    document.getElementById('pe-strategy-eval').value = wizardData.strategyEval || '未設定';
+    document.getElementById('pe-strategy-note').value = wizardData.strategyNote || '';
+
+    // 常にSTEP1から表示するようにリセット
+    document.getElementById('pe-step-1').classList.remove('hidden');
+    document.getElementById('pe-step-2').classList.add('hidden');
+
     renderSections();
     openModal('modal-pe-wizard');
 }
