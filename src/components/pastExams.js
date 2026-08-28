@@ -80,17 +80,17 @@ function renderTabs() {
     const s = state.profile.examScores.second || {};
     const subjects = [];
 
-    // 文理に基づいた科目判定
+    // 文理に基づいた科目判定 (日本語のキーで正しく読み取る)
     if (courseType === '文系') {
         subjects.push('国語', '英語');
         if (s['数学'] !== undefined && String(s['数学']).trim() !== "") subjects.push('数学'); // 文系は数学任意
-        ['soc1', 'soc2'].forEach(key => {
+        ['社会1', '社会2'].forEach(key => {
             if (s[`${key}_sub`]) subjects.push(s[`${key}_sub`]);
         });
     } else {
         subjects.push('英語', '数学');
         if (s['国語'] !== undefined && String(s['国語']).trim() !== "") subjects.push('国語'); // 理系は国語任意
-        ['sci1', 'sci2'].forEach(key => {
+        ['理科1', '理科2'].forEach(key => {
             if (s[`${key}_sub`]) subjects.push(s[`${key}_sub`]);
         });
     }
@@ -164,7 +164,8 @@ function openWizard(year) {
     else if (state.activeSubject === '数学') { fullScore = s['数学']; targetScore = s['数学_target']; }
     else if (state.activeSubject === '国語') { fullScore = s['国語']; targetScore = s['国語_target']; }
     else {
-        ['soc1', 'soc2', 'sci1', 'sci2'].forEach(key => {
+        // 日本語のキーで正しく目標点と配点を読み取る
+        ['社会1', '社会2', '理科1', '理科2'].forEach(key => {
             if (s[`${key}_sub`] === state.activeSubject) {
                 fullScore = s[`${key}_score`];
                 targetScore = s[`${key}_target`];
@@ -186,7 +187,6 @@ function openWizard(year) {
         if (record.sections) {
             record.sections.forEach(sec => addSection(sec));
         } else if (record.questions) {
-            // 旧バージョンのデータ互換性
             addSection({ name: "第1問", items: record.questions });
         }
     } else {
@@ -366,7 +366,7 @@ async function savePastExam() {
             targetScore,
             timeSpent,
             seriousness,
-            sections, // 新しい階層構造を保存
+            sections,
             updatedAt: new Date().toISOString()
         };
 
