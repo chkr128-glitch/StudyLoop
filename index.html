@@ -544,22 +544,20 @@
                 </div>
             </div>
 
-            <!-- <selection-tag>過去問ログ</selection-tag> (新設) -->
-            <div id="view-past-exams" class="view-section p-5 flex flex-col h-full overflow-hidden">
-                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-4 ml-1 tracking-tight transition-colors flex-shrink-0">過去問ログ</h2>
+           <!-- 過去問ログ (新設) -->
+            <div id="view-past-exams" class="view-section p-5">
+                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-4 ml-1 tracking-tight transition-colors">過去問ログ</h2>
                 
                 <!-- 科目タブ (JSで動的生成) -->
-                <div class="overflow-x-auto flex-shrink-0 mb-4 pb-2 border-b border-gray-100 dark:border-gray-700" style="scrollbar-width: none;">
+                <div class="overflow-x-auto mb-4 pb-2 border-b border-gray-100 dark:border-gray-700" style="scrollbar-width: none;">
                     <div id="pe-subject-tabs" class="flex space-x-3 w-max px-1">
                         <!-- タブがここに挿入されます -->
                     </div>
                 </div>
 
                 <!-- 年度リスト (JSで動的生成) -->
-                <div class="flex-1 overflow-y-auto pb-32">
-                    <div id="pe-years-list" class="space-y-3">
-                        <!-- 2026年〜2007年のリストがここに挿入されます -->
-                    </div>
+                <div id="pe-years-list" class="space-y-3 pb-24">
+                    <!-- 2026年〜2007年のリストがここに挿入されます -->
                 </div>
             </div>
 
@@ -802,13 +800,13 @@
                     <div class="flex justify-between items-end mb-2 border-b border-gray-100 dark:border-gray-700 pb-2">
                         <div>
                             <h4 class="font-bold text-gray-700 dark:text-gray-200 flex items-center"><i class="fas fa-list-check text-pink-500 mr-2"></i>STEP2: 問題ごとの分析</h4>
-                            <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 font-medium">※間違えた問題や、自信がなかった問題を重点的に記録しましょう。</p>
+                            <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 font-medium">※大問の中に小問を追加して記録してください。</p>
                         </div>
-                        <button id="btn-pe-add-q" class="text-xs bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-300 font-bold px-4 py-2 rounded-full hover:bg-pink-100 dark:hover:bg-pink-900/50 transition-colors border border-pink-100 dark:border-pink-800 shadow-sm whitespace-nowrap"><i class="fas fa-plus mr-1"></i>追加</button>
+                        <button id="btn-pe-add-section" class="text-xs bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-300 font-bold px-4 py-2 rounded-full hover:bg-pink-100 dark:hover:bg-pink-900/50 transition-colors border border-pink-100 dark:border-pink-800 shadow-sm whitespace-nowrap"><i class="fas fa-plus mr-1"></i>大問追加</button>
                     </div>
                     
                     <div id="pe-questions-container" class="space-y-4 pb-10">
-                        <!-- ここに問題カードがJSで追加されます -->
+                        <!-- ここに大問ブロックがJSで追加されます -->
                     </div>
                 </div>
 
