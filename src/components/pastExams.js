@@ -383,19 +383,19 @@ function setupEventListeners() {
         }
 
         // ウィザード: 次へボタン
-        if (e.target.closest('#pe-btn-next')) {
+        if (e.target.closest('#btn-pe-next-step')) {
             e.preventDefault();
             goToStep(2);
         }
 
         // ウィザード: 戻るボタン
-        if (e.target.closest('#pe-btn-prev')) {
+        if (e.target.closest('#btn-pe-prev-step')) {
             e.preventDefault();
             goToStep(1);
         }
 
         // ウィザード: 完了して保存ボタン
-        if (e.target.closest('#pe-btn-save')) {
+        if (e.target.closest('#btn-pe-save')) {
             e.preventDefault();
             savePastExam();
         }
@@ -418,21 +418,15 @@ function setupEventListeners() {
 function goToStep(step) {
     const step1El = document.getElementById('pe-step-1');
     const step2El = document.getElementById('pe-step-2');
-    const btnNext = document.getElementById('pe-btn-next');
-    const btnSave = document.getElementById('pe-btn-save');
 
     if (!step1El || !step2El) return;
 
     if (step === 1) {
         step1El.classList.remove('hidden');
         step2El.classList.add('hidden');
-        if (btnNext) btnNext.classList.remove('hidden');
-        if (btnSave) btnSave.classList.add('hidden');
     } else if (step === 2) {
         step1El.classList.add('hidden');
         step2El.classList.remove('hidden');
-        if (btnNext) btnNext.classList.add('hidden');
-        if (btnSave) btnSave.classList.remove('hidden');
     }
 }
 
