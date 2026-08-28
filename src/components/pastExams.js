@@ -590,12 +590,15 @@ function openWizard(subject, year) {
 
     const scoreData = getSubjectTargetAndFullScore(subject);
     
-    document.getElementById('pe-input-score').value = wizardData.score || '';
+    // ▼ IDのズレを修正 (pe-score-input, pe-time-input, pe-seriousness-select)
+    document.getElementById('pe-score-input').value = wizardData.score || '';
     document.getElementById('pe-display-full-score').innerText = scoreData.full || 0;
     document.getElementById('pe-display-target-score').innerText = scoreData.target || 0;
     
-    document.getElementById('pe-input-time').value = wizardData.actualTime || '';
-    document.getElementById('pe-select-seriousness').value = wizardData.seriousness || '未選択';
+    document.getElementById('pe-time-input').value = wizardData.actualTime || '';
+    document.getElementById('pe-seriousness-select').value = wizardData.seriousness || '未選択';
+    // ▲ 修正ここまで
+    
     document.getElementById('pe-strategy-eval').value = wizardData.strategyEval || '未設定';
     document.getElementById('pe-strategy-note').value = wizardData.strategyNote || '';
 
@@ -604,11 +607,13 @@ function openWizard(subject, year) {
     openModal('modal-pe-wizard');
 }
 
-// --- 過去問データの保存 ---
+/// --- 過去問データの保存 ---
 async function savePastExam() {
-    wizardData.score = document.getElementById('pe-input-score').value;
-    wizardData.actualTime = document.getElementById('pe-input-time').value;
-    wizardData.seriousness = document.getElementById('pe-select-seriousness').value;
+    // ▼ 保存時も正しいIDから取得するように修正
+    wizardData.score = document.getElementById('pe-score-input').value;
+    wizardData.actualTime = document.getElementById('pe-time-input').value;
+    wizardData.seriousness = document.getElementById('pe-seriousness-select').value;
+    // ▲ 修正ここまで
     
     wizardData.strategyEval = document.getElementById('pe-strategy-eval').value;
     wizardData.strategyNote = document.getElementById('pe-strategy-note').value;
