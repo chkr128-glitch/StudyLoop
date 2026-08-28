@@ -352,12 +352,15 @@ function openWizard(subject, year) {
     // 設定画面から配点と目標点を同期
     const scoreData = getSubjectTargetAndFullScore(subject);
     
-    // UIへの反映（プレースホルダーにも満点を反映）
+    // UIへの反映
     const scoreInput = document.getElementById('pe-score-input');
-    if (scoreInput) {
-        scoreInput.value = wizardData.score || '';
-        scoreInput.placeholder = `満点: ${scoreData.full}点`;
-    }
+    if (scoreInput) scoreInput.value = wizardData.score || '';
+    
+    const displayFull = document.getElementById('pe-display-full-score');
+    if (displayFull) displayFull.innerText = scoreData.full || 0;
+    
+    const displayTarget = document.getElementById('pe-display-target-score');
+    if (displayTarget) displayTarget.innerText = scoreData.target || 0;
     
     const timeInput = document.getElementById('pe-time-input');
     if (timeInput) timeInput.value = wizardData.actualTime || '';
