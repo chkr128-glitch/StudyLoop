@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>志望大学合格最適化マネージャー</title>
+    <title>StudyLoop - Learning Manager for students</title>
     
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -106,10 +106,10 @@
                     <img src="icon.png" alt="StudyLoop Logo" class="w-full h-full object-contain drop-shadow-xl rounded-3xl" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGFsaWdubWVudC1iYXNlbGluZT0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Mb2dvPC90ZXh0Pjwvc3ZnPg=='">
                 </div>
                 <h1 class="text-3xl font-black text-gray-800 dark:text-white tracking-tight mb-1">StudyLoop</h1>
-                <p class="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 tracking-widest">志望大学合格最適化マネージャー</p>
+                <p class="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 tracking-widest">Learning Manager for students</p>
             </div>
 
-            <h2 class="text-sm font-bold text-center text-gray-500 dark:text-gray-400 mb-6" id="auth-title">ログインして学習を始める</h2>
+            <h2 class="text-sm font-bold text-center text-gray-500 dark:text-gray-400 mb-6" id="auth-title">Sign In and Start Learning</h2>
             
             <div class="space-y-4">
                 <div class="relative">
@@ -171,7 +171,7 @@
                         <p class="font-black text-lg sm:text-xl leading-tight"><span id="cd-common">--</span> <span class="text-[8px] sm:text-xs font-medium">日</span></p>
                     </div>
                     <div>
-                        <p class="opacity-80 font-medium">2次試験</p>
+                        <p class="opacity-80 font-medium">国公立2次</p>
                         <p class="font-black text-lg sm:text-xl leading-tight text-yellow-200"><span id="cd-second">--</span> <span class="text-[8px] sm:text-xs font-medium text-white">日</span></p>
                     </div>
                 </div>
@@ -182,7 +182,7 @@
             <div id="view-home" class="view-section active p-5 pb-10">
                 <div class="flex justify-between items-end mb-6">
                     <h2 id="home-date-display" class="text-2xl font-black text-gray-800 dark:text-white ml-1 tracking-tight">ホーム</h2>
-                    <p class="text-xs font-bold text-gray-500 dark:text-gray-400">Let's Start to Study</p>
+                    <p class="text-xs font-bold text-gray-500 dark:text-gray-400">Let's Start Studying!</p>
                 </div>
 
                 <!-- ホーム画面に移動した名言 -->
@@ -197,52 +197,52 @@
                 <div class="grid grid-cols-2 gap-4">
                     <button class="nav-tile bg-gradient-to-br from-pink-500 to-rose-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="dashboard">
                         <i class="fas fa-list-check text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">今日のタスク</span>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">Today's Tasks</span>
                     </button>
                     
                     <button class="nav-tile bg-gradient-to-br from-blue-500 to-indigo-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="calendar">
                         <i class="far fa-calendar-alt text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">カレンダー</span>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">Calendar</span>
                     </button>
                     
                     <button class="nav-tile bg-gradient-to-br from-amber-500 to-orange-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="past-exams">
                         <i class="fas fa-history text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">過去問ログ</span>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">Past Exam Records</span>
                     </button>
                     
                     <button class="nav-tile bg-gradient-to-br from-emerald-400 to-teal-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="analytics">
                         <i class="fas fa-chart-pie text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">学習分析</span>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">Analysis</span>
                     </button>
                     
                     <button class="nav-tile bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="drill">
                         <i class="fas fa-calculator text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">計算ドリル</span>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">Drills</span>
                     </button>
                     
                     <button class="nav-tile bg-gradient-to-br from-purple-500 to-pink-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="flashcard-app">
                         <i class="fa-solid fa-layer-group text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">単語帳</span>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">FlashCard</span>
                     </button>
                     
                     <button class="nav-tile bg-gradient-to-br from-slate-700 to-slate-900 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg col-span-2" data-target="store">
                         <i class="fa-solid fa-pen-nib text-3xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">英作文サポート・ストア</span>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">English Writing Support</span>
                     </button>
                 </div>
             </div>
 
             <div id="view-dashboard" class="view-section p-5">
-                <h2 id="current-date-display" class="text-2xl font-black text-gray-800 dark:text-white mb-3 ml-1 tracking-tight transition-colors">今日のタスク</h2>
+                <h2 id="current-date-display" class="text-2xl font-black text-gray-800 dark:text-white mb-3 ml-1 tracking-tight transition-colors">Today's Tasks</h2>
                 
                 <div class="mb-8 bg-gradient-to-br from-red-400 via-pink-500 to-purple-500 p-6 rounded-3xl shadow-[0_10px_25px_rgba(236,72,153,0.3)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.5)] text-white relative overflow-hidden animate-pop-in">
                     <div class="absolute -right-4 -top-4 w-24 h-24 bg-white opacity-10 rounded-full"></div>
                     <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-white opacity-10 rounded-full"></div>
-                    <p class="text-sm font-medium opacity-90 relative z-10">本日の残り推定学習時間</p>
-                    <p class="text-4xl font-black mt-2 relative z-10" id="remaining-time-display">0<span class="text-lg font-bold ml-1">分</span></p>
+                    <p class="text-sm font-medium opacity-90 relative z-10">Estimated Learning Time</p>
+                    <p class="text-4xl font-black mt-2 relative z-10" id="remaining-time-display">0<span class="text-lg font-bold ml-1">min</span></p>
                     <div class="mt-4 flex space-x-4 relative z-10 text-xs font-medium opacity-90">
-                        <p><i class="fas fa-list-ul mr-1"></i>未完了: <span id="incomplete-count" class="font-bold text-sm">0</span></p>
-                        <p><i class="fas fa-check-circle mr-1"></i>完了: <span id="completed-count" class="font-bold text-sm">0</span></p>
+                        <p><i class="fas fa-list-ul mr-1"></i>incomplete: <span id="incomplete-count" class="font-bold text-sm">0</span></p>
+                        <p><i class="fas fa-check-circle mr-1"></i>completed: <span id="completed-count" class="font-bold text-sm">0</span></p>
                     </div>
                 </div>
 
@@ -261,14 +261,14 @@
                 </div>
                 
                 <div class="flex justify-end gap-3 px-2 mb-3 text-[10px] font-bold text-gray-500 dark:text-gray-400">
-                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-sm"></div>新しい学習</div>
-                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-sm"></div>復習</div>
-                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm animate-pulse"></div>未完了(復習)</div>
+                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-sm"></div>Normal Tasks</div>
+                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-sm"></div>Reviews</div>
+                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm animate-pulse"></div>Incomplete Tasks(Review)</div>
                 </div>
 
                 <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm mb-6 p-2 transition-colors border border-gray-100 dark:border-gray-700">
                     <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-400 dark:text-gray-500 py-3 mb-1">
-                        <div class="text-red-400 dark:text-red-500">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="text-blue-400 dark:text-blue-500">土</div>
+                        <div class="text-red-400 dark:text-red-500">SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div class="text-blue-400 dark:text-blue-500">SAT</div>
                     </div>
                     <div id="calendar-grid" class="calendar-grid p-1"></div>
                 </div>
