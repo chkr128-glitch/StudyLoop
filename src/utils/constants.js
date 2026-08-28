@@ -50,3 +50,4 @@ export const EXAM_SERIOUSNESS_LEVELS = [
     { value: 3, label: "時間制限なし" },
     { value: 2, label: "途中中断あり" },
     { value: 1, label: "一部のみ実施" }
+];
