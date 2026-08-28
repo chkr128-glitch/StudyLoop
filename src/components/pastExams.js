@@ -115,7 +115,7 @@ function setupEventListeners() {
         }
 
         // 3. ウィザード フッターの「次へ / 保存」ボタン
-        const nextBtn = e.target.closest('#pe-btn-next');
+        const nextBtn = e.target.closest('#pe-btn-next') || e.target.closest('#btn-pe-next-step') || e.target.closest('#btn-pe-save');
         if (nextBtn) {
             e.preventDefault();
             if (currentStep === 1) {
@@ -126,7 +126,7 @@ function setupEventListeners() {
         }
 
         // 4. ウィザード フッターの「戻る」ボタン
-        const prevBtn = e.target.closest('#pe-btn-prev');
+        const prevBtn = e.target.closest('#pe-btn-prev') || e.target.closest('#btn-pe-prev-step');
         if (prevBtn) {
             e.preventDefault();
             if (currentStep === 2) {
@@ -134,7 +134,7 @@ function setupEventListeners() {
             }
         }
 
-        // 5. 大問追加ボタン (HTMLのIDに依存)
+        // 5. 大問追加ボタン
         const addQBtn = e.target.closest('#btn-pe-add-q') || e.target.closest('#btn-pe-add-section');
         if (addQBtn) {
             e.preventDefault();
@@ -144,10 +144,10 @@ function setupEventListeners() {
         }
 
         // 6. ウィザード閉じるボタン
-        const closeBtn = e.target.closest('.pe-wizard-close-btn');
-        if (closeBtn) {
+        const closeBtn = e.target.closest('.pe-wizard-close-btn') || e.target.closest('.modal-close-btn');
+        if (closeBtn && e.target.closest('#modal-pe-wizard')) {
             e.preventDefault();
-            closeModal('modal-past-exam-wizard');
+            closeModal('modal-pe-wizard');
         }
 
         // 7. 単語帳クイック追加保存
@@ -172,25 +172,38 @@ function goToStep(step) {
     currentStep = step;
     const step1El = document.getElementById('pe-step-1');
     const step2El = document.getElementById('pe-step-2');
-    const btnNext = document.getElementById('pe-btn-next');
-    const btnPrev = document.getElementById('pe-btn-prev');
     const progress = document.getElementById('pe-wizard-progress');
 
-    if (!step1El || !step2El || !btnNext || !btnPrev) return;
+    if (!step1El || !step2El) return;
 
     if (step === 1) {
         step1El.classList.remove('hidden');
         step2El.classList.add('hidden');
-        btnPrev.classList.add('invisible');
-        btnNext.innerHTML = '次へ <i class="fas fa-arrow-right ml-1"></i>';
         if (progress) progress.style.width = '50%';
     } else if (step === 2) {
         step1El.classList.add('hidden');
         step2El.classList.remove('hidden');
-        btnPrev.classList.remove('invisible');
-        btnNext.innerHTML = '<i class="fas fa-check mr-1"></i> 完了して記録';
         if (progress) progress.style.width = '100%';
     }
+}
+
+// --- 目標点と配点の取得 ---
+function getSubjectTargetAndFullScore(subject) {
+    if (!userProfile || !userProfile.examScores || !userProfile.examScores.second) return { full: 0, target: 0 };
+    const ss = userProfile.examScores.second;
+    
+    // 固定科目
+    if (subject === '英語' || subject === '数学' || subject === '国語') {
+        return { full: ss[subject] || 0, target: ss[`${subject}_target`] || 0 };
+    }
+    
+    // 選択科目 (社会・理科)
+    for (let i = 1; i <= 2; i++) {
+        if (ss[`社会${i}_sub`] === subject) return { full: ss[`社会${i}_score`] || 0, target: ss[`社会${i}_target`] || 0 };
+        if (ss[`理科${i}_sub`] === subject) return { full: ss[`理科${i}_score`] || 0, target: ss[`理科${i}_target`] || 0 };
+    }
+    
+    return { full: 0, target: 0 };
 }
 
 // --- ウィザード表示・復元 ---
@@ -200,6 +213,13 @@ function openWizard(subject, year) {
     
     if (titleEl) titleEl.innerText = `${userProfile.targetUniv || ''} ${userProfile.targetFaculty || ''} ${year}年度`;
     if (subjectEl) subjectEl.innerText = subject;
+
+    // 設定画面から配点と目標点を同期
+    const scoreData = getSubjectTargetAndFullScore(subject);
+    const fullScoreEl = document.getElementById('pe-display-full-score');
+    const targetScoreEl = document.getElementById('pe-display-target-score');
+    if (fullScoreEl) fullScoreEl.innerText = scoreData.full;
+    if (targetScoreEl) targetScoreEl.innerText = scoreData.target;
 
     // 既存データのロード
     const existingData = pastExams.find(e => e.subject === subject && e.year === String(year));
@@ -222,10 +242,15 @@ function openWizard(subject, year) {
             EXAM_SERIOUSNESS_LEVELS.map(l => `<option value="${l.label}" ${wizardData.seriousness === l.label ? 'selected' : ''}>${l.label}</option>`).join('');
     }
 
+    // 戦略の反映
+    const evalInput = document.getElementById('pe-strategy-eval');
+    const noteInput = document.getElementById('pe-strategy-note');
+    if (evalInput) evalInput.value = wizardData.strategyEval || '未設定';
+    if (noteInput) noteInput.value = wizardData.strategyNote || '';
+
     goToStep(1);
     renderSections();
     
-    // HTMLのIDに基づいてモーダルを開く
     const modalId = document.getElementById('modal-past-exam-wizard') ? 'modal-past-exam-wizard' : 'modal-pe-wizard';
     openModal(modalId);
 }
