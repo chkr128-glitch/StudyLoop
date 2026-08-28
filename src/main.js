@@ -19,7 +19,7 @@ const state = {
     routines: [],
     userProfile: {},
     storeSets: [],
-    currentView: 'home', // 初期画面を 'dashboard' から 'home' に変更
+    currentView: 'home', // ★初期画面をホームに設定
     unsubscribeTasks: null,
     unsubscribeRoutines: null,
     unsubscribeProfile: null,
@@ -34,9 +34,9 @@ function initApp() {
     initDrill();
     initFlashcard();
     initStore();
-    initTutorial(); // チュートリアルの初期化
+    initTutorial(); 
     
-    populateSubjectDropdowns(); // ★追加: 空になってしまった科目リストを復元する
+    populateSubjectDropdowns(); 
 
     initCalendar(
         () => state.tasks, 
@@ -59,7 +59,7 @@ function initApp() {
             toggleVisibility('main-app', true);
             
             subscribeToData();
-            switchView('home');
+            switchView('home'); // ★ログイン時にもホームを開く
             if (loading) loading.classList.add('hidden');
             showToast('ログインしました');
         } else {
@@ -88,12 +88,10 @@ function populateSubjectDropdowns() {
     const taskSubject = document.getElementById('input-task-subject');
     const routineSubject = document.getElementById('input-routine-subject');
     
-    // SUBJECTS定数から科目リストを取得（万が一取得できない場合の保険付き）
     const subjectList = Array.isArray(SUBJECTS) ? SUBJECTS : Object.keys(SUBJECTS || {});
     const finalSubjects = subjectList.length > 0 ? subjectList : ['英語', '数学', '国語', '理科', '社会', '情報', 'その他'];
 
     [taskSubject, routineSubject].forEach(selectEl => {
-        // 中身が空の場合のみ、選択肢を生成して追加する
         if (selectEl && selectEl.options.length === 0) {
             finalSubjects.forEach(subject => {
                 const opt = document.createElement('option');
@@ -106,7 +104,7 @@ function populateSubjectDropdowns() {
 }
 
 function setupEventListeners() {
-    // ホーム画面のタイルをクリックした時の遷移
+    // ★ホーム画面のタイルメニューの遷移処理
     document.querySelectorAll('.nav-tile').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const viewId = e.currentTarget.dataset.target;
@@ -114,11 +112,11 @@ function setupEventListeners() {
         });
     });
 
-    // ヘッダーのホームボタン、ロゴをクリックした時の遷移
+    // ★ヘッダーのホームボタン、ロゴをクリックした時の遷移
     document.getElementById('btn-go-home')?.addEventListener('click', () => switchView('home'));
     document.getElementById('btn-header-logo')?.addEventListener('click', () => switchView('home'));
     
-    // ヘッダーの設定ボタンをクリックした時の遷移
+    // ★設定ボタンをクリックした時の遷移
     document.getElementById('btn-open-settings')?.addEventListener('click', () => switchView('settings'));
 
     document.getElementById('btn-open-add-task')?.addEventListener('click', openAddTaskModal);
@@ -151,14 +149,6 @@ function setupEventListeners() {
             });
             container.addEventListener('click', (e) => {
                 if (e.target.matches('.task-checkbox')) return; 
-                
-                const historyBtn = e.target.closest('.history-btn');
-                if (historyBtn) {
-                    e.stopPropagation(); // 親要素へのクリック伝播を防ぐ
-                    openReviewHistoryModal(historyBtn.dataset.originalTaskId);
-                    return;
-                }
-
                 const targetEl = e.target.closest('.task-row-clickable, .task-edit-btn');
                 if (targetEl && targetEl.dataset.taskId) openTaskDetailModal(targetEl.dataset.taskId);
             });
@@ -243,7 +233,6 @@ function switchView(viewName) {
 }
 
 function updateAllViews() {
-    // ホーム画面が選ばれたとき、今日の日付を表示する
     if (state.currentView === 'home') {
         const dateEl = document.getElementById('home-date-display');
         if (dateEl) {
@@ -251,7 +240,7 @@ function updateAllViews() {
             const days = ['日', '月', '火', '水', '木', '金', '土'];
             dateEl.innerText = `${today.getMonth() + 1}月${today.getDate()}日(${days[today.getDay()]})`;
         }
-        // ★ ホーム画面の更新時に名言も表示させる
+        // ★ホーム画面表示時に名言を更新
         displayDailyQuote();
     }
 
@@ -259,7 +248,6 @@ function updateAllViews() {
     if (state.currentView === 'calendar') {
         renderCalendar(state.tasks);
         renderCalendarTasks(state.tasks);
-    }
     }
     if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
     if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
@@ -375,7 +363,6 @@ function openAddTaskModal() {
         dateInput.value = state.currentView === 'calendar' ? getCalendarSelectedDate() : formatDate(new Date());
     }
     
-    // 確実なID判定による安全なモーダル起動（ID違いによるクラッシュ防止）
     const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
     openModal(targetId);
 }
@@ -738,70 +725,4 @@ function updateCountdowns() {
     };
     cd('2027-01-16T00:00:00', 'cd-common');
     cd('2027-02-25T00:00:00', 'cd-second');
-}
-
-function openReviewHistoryModal(originalTaskId) {
-    if (!originalTaskId) return;
-
-    // 元のタスクを取得
-    const originalTask = state.tasks.find(t => t.id === originalTaskId);
-    if (!originalTask) {
-        showToast("元のタスクが見つかりません", "error");
-        return;
-    }
-
-    document.getElementById('history-task-title').innerText = originalTask.title;
-
-    // 初回の学習メモをセット
-    const noteEl = document.getElementById('history-original-note');
-    noteEl.innerText = originalTask.note || '学習メモは登録されていません。';
-
-    // 関連タスク（初回＋全復習）を収集し、日付順にソート
-    const relatedTasks = state.tasks.filter(t => t.id === originalTaskId || t.originalTaskId === originalTaskId);
-    relatedTasks.sort((a, b) => new Date(a.date) - new Date(b.date) || new Date(a.createdAt) - new Date(b.createdAt));
-
-    const timelineEl = document.getElementById('history-timeline-list');
-    timelineEl.innerHTML = '';
-
-    // タイムラインHTMLを生成
-    const html = relatedTasks.map((t, index) => {
-        const isOriginal = t.id === originalTaskId;
-        
-        let evalBadge = '';
-        if (t.completed && t.evaluation) {
-            const colors = { 'A': 'text-pink-500', 'B': 'text-purple-500', 'C': 'text-yellow-500', 'D': 'text-red-500' };
-            const color = colors[t.evaluation] || 'text-gray-500';
-            evalBadge = `<span class="font-bold ${color}">評${t.evaluation}</span>`;
-        } else {
-            evalBadge = `<span class="text-[10px] text-gray-400 font-bold border border-gray-200 dark:border-gray-700 px-1.5 py-0.5 rounded-md bg-white dark:bg-gray-800">未完了</span>`;
-        }
-
-        const titlePrefix = isOriginal ? '初回学習' : `${index}回目 復習`;
-        const iconColor = isOriginal ? 'text-pink-500' : 'text-purple-500';
-        const bgCircle = isOriginal ? 'bg-pink-100 dark:bg-pink-900/30' : 'bg-purple-100 dark:bg-purple-900/30';
-
-        return `
-            <div class="flex items-start relative">
-                <div class="absolute left-3 top-6 bottom-[-16px] w-0.5 bg-gray-200 dark:bg-gray-700 ${index === relatedTasks.length -1 ? 'hidden' : ''}"></div>
-                <div class="${bgCircle} w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mr-3 z-10 mt-0.5">
-                    <i class="fas ${isOriginal ? 'fa-book-open' : 'fa-redo'} text-[10px] ${iconColor}"></i>
-                </div>
-                <div class="flex-grow bg-gray-50 dark:bg-gray-700/40 p-3 rounded-2xl border border-gray-100 dark:border-gray-600 shadow-sm mb-4">
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="text-xs font-bold text-gray-700 dark:text-gray-300">${titlePrefix}</span>
-                        <span class="text-[10px] text-gray-500 dark:text-gray-400 font-mono font-medium">${t.date}</span>
-                    </div>
-                    <div class="flex justify-between items-end">
-                        <span class="text-[10px] font-bold text-gray-500 dark:text-gray-400">実績: ${t.actualTime || '-'}分</span>
-                        ${evalBadge}
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    timelineEl.innerHTML = html;
-
-    const targetId = document.getElementById('modal-review-history') ? 'modal-review-history' : 'review-history-modal';
-    openModal(targetId);
 }
