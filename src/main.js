@@ -2,9 +2,8 @@ import { observeAuthState } from './services/auth.js';
 import { setCurrentUserId, getCurrentUserId, getAppCollectionRef, getAppDocRef } from './services/db.js';
 import { showToast, showConfirm, closeConfirm, executeConfirm, openModal, closeModal, initUI, switchViewUI } from './components/ui.js';
 import { initAuthUI } from './components/authUI.js';
-// ★ displayDailyQuote を追加でインポートします
 import { renderDashboard, updateStreak, displayDailyQuote } from './components/dashboard.js';
-import { initCalendar, renderCalendar, renderCalendarTasks, changeMonth, selectCalendarDate, getCalendarSelectedDate } from './components/calendar.js'; from './components/calendar.js';
+import { initCalendar, renderCalendar, renderCalendarTasks, changeMonth, selectCalendarDate, getCalendarSelectedDate } from './components/calendar.js';
 import { renderAnalytics, updateChartColors } from './components/analytics.js';
 import { initSettings, renderSettings, saveUserProfile, buildWeightInputs } from './components/settings.js';
 import { initDrill, stopDrillTimer, focusDrillInput } from './components/drill.js';
@@ -260,6 +259,7 @@ function updateAllViews() {
     if (state.currentView === 'calendar') {
         renderCalendar(state.tasks);
         renderCalendarTasks(state.tasks);
+    }
     }
     if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
     if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
