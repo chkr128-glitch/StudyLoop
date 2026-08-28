@@ -218,7 +218,8 @@ function renderCharts(subject) {
                     exam.sections.forEach(sec => {
                         if (sec.questions) {
                             sec.questions.forEach(q => {
-                                if (q.result === '×' || q.result === '△') {
+                                // 変更点: 結果（○×）にかかわらず、選ばれたタグはすべて集計する
+                                if (q.tags && q.tags.length > 0) {
                                     q.tags.forEach(tag => {
                                         tagCounts[tag] = (tagCounts[tag] || 0) + 1;
                                     });
@@ -320,7 +321,8 @@ function renderCharts(subject) {
                     exam.sections.forEach(sec => {
                         if (sec.questions) {
                             sec.questions.forEach(q => {
-                                if (q.result === '×' || q.result === '△') {
+                                // 変更点: 結果（○×）にかかわらず、選ばれたタグはすべて集計する
+                                if (q.tags && q.tags.length > 0) {
                                     q.tags.forEach(tag => { tagCounts[tag] = (tagCounts[tag] || 0) + 1; });
                                 }
                             });
