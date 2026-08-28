@@ -8,10 +8,9 @@ let userProfile = null;
 let pastExams = [];
 let currentSubject = '';
 let currentYear = '';
-let wizardData = {
-    sections: []
-};
-let fcSetsCache = [];
+let currentStep = 1; // ウィザードの現在のステップ (1 or 2)
+let wizardData = { sections: [] };
+let fcSetsCache = []; 
 
 // --- 初期化 ---
 export function initPastExams() {
@@ -38,12 +37,10 @@ function getAvailableSubjects() {
     const ss = userProfile.examScores.second || {};
     const subjects = new Set();
     
-    // 文理共通の主要科目
     if (ss['英語'] > 0) subjects.add('英語');
     if (ss['国語'] > 0) subjects.add('国語');
     if (ss['数学'] > 0) subjects.add('数学');
 
-    // 選択科目の追加
     if (courseType === '文系') {
         if (ss['社会1_sub']) subjects.add(ss['社会1_sub']);
         if (ss['社会2_sub']) subjects.add(ss['社会2_sub']);
@@ -62,7 +59,7 @@ function renderTabs() {
 
     const subjects = getAvailableSubjects();
     container.innerHTML = subjects.map(sub => `
-        <button class="pe-tab-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-colors border shadow-sm 
+        <button class="pe-tab-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-colors border shadow-sm flex-shrink-0
             ${currentSubject === sub 
                 ? 'bg-pink-500 text-white border-pink-500' 
                 : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}"
@@ -100,64 +97,137 @@ function renderYears(subject) {
 
 // --- イベントリスナー ---
 function setupEventListeners() {
-    // 科目タブ切り替え
-    document.getElementById('pe-subject-tabs')?.addEventListener('click', (e) => {
+    // 画面全体でクリックを監視（イベント委譲）
+    document.addEventListener('click', (e) => {
+        
+        // 1. 科目タブ切り替え
         if (e.target.classList.contains('pe-tab-btn')) {
             currentSubject = e.target.dataset.subject;
             renderTabs();
             renderYears(currentSubject);
         }
-    });
 
-    // 年度クリックでウィザード開く
-    document.getElementById('pe-years-list')?.addEventListener('click', (e) => {
-        const row = e.target.closest('.pe-year-row');
-        if (row) {
-            currentYear = row.dataset.year;
+        // 2. 年度クリックでウィザード開く
+        const yearRow = e.target.closest('.pe-year-row');
+        if (yearRow) {
+            currentYear = yearRow.dataset.year;
             openWizard(currentSubject, currentYear);
         }
-    });
 
-    // 大問コンテナ内の小問追加・削除・並び替え等 (イベント委譲)
-    document.getElementById('pe-questions-container')?.addEventListener('click', handleSectionEvents);
-    document.getElementById('pe-questions-container')?.addEventListener('change', handleDataChange);
+        // 3. ウィザード フッターの「次へ / 保存」ボタン
+        const nextBtn = e.target.closest('#pe-btn-next');
+        if (nextBtn) {
+            e.preventDefault();
+            if (currentStep === 1) {
+                goToStep(2);
+            } else {
+                savePastExam();
+            }
+        }
 
-    // ドキュメント全体でのクリック監視 (確実なボタン検知)
-    document.addEventListener('click', (e) => {
-        // 大問追加
-        if (e.target.closest('#btn-pe-add-section')) {
+        // 4. ウィザード フッターの「戻る」ボタン
+        const prevBtn = e.target.closest('#pe-btn-prev');
+        if (prevBtn) {
+            e.preventDefault();
+            if (currentStep === 2) {
+                goToStep(1);
+            }
+        }
+
+        // 5. 大問追加ボタン (HTMLのIDに依存)
+        const addQBtn = e.target.closest('#btn-pe-add-q') || e.target.closest('#btn-pe-add-section');
+        if (addQBtn) {
             e.preventDefault();
             const secId = Date.now().toString();
             wizardData.sections.push({ id: secId, name: `大問 ${wizardData.sections.length + 1}`, plannedTime: '', actualTime: '', questions: [] });
             renderSections();
         }
-        
-        // ウィザードのSTEP切り替え: 次へ
-        if (e.target.closest('#btn-pe-next-step')) {
+
+        // 6. ウィザード閉じるボタン
+        const closeBtn = e.target.closest('.pe-wizard-close-btn');
+        if (closeBtn) {
             e.preventDefault();
-            document.getElementById('pe-step-1')?.classList.add('hidden');
-            document.getElementById('pe-step-2')?.classList.remove('hidden');
-        }
-        
-        // ウィザードのSTEP切り替え: 戻る
-        if (e.target.closest('#btn-pe-prev-step')) {
-            e.preventDefault();
-            document.getElementById('pe-step-2')?.classList.add('hidden');
-            document.getElementById('pe-step-1')?.classList.remove('hidden');
-        }
-        
-        // 過去問データの保存
-        if (e.target.closest('#btn-pe-save')) {
-            e.preventDefault();
-            savePastExam();
+            closeModal('modal-past-exam-wizard');
         }
 
-        // 単語帳クイック追加の保存
-        if (e.target.closest('#btn-quick-fc-save')) {
+        // 7. 単語帳クイック追加保存
+        const fcSaveBtn = e.target.closest('#btn-quick-fc-save');
+        if (fcSaveBtn) {
             e.preventDefault();
             saveQuickFlashcard();
         }
+
+        // 8. 大問・小問内の操作 (上,下,削除,追加)
+        handleSectionEvents(e);
     });
+
+    // 入力変更の検知
+    document.addEventListener('change', (e) => {
+        handleDataChange(e);
+    });
+}
+
+// --- ウィザードのステップ制御 ---
+function goToStep(step) {
+    currentStep = step;
+    const step1El = document.getElementById('pe-step-1');
+    const step2El = document.getElementById('pe-step-2');
+    const btnNext = document.getElementById('pe-btn-next');
+    const btnPrev = document.getElementById('pe-btn-prev');
+    const progress = document.getElementById('pe-wizard-progress');
+
+    if (!step1El || !step2El || !btnNext || !btnPrev) return;
+
+    if (step === 1) {
+        step1El.classList.remove('hidden');
+        step2El.classList.add('hidden');
+        btnPrev.classList.add('invisible');
+        btnNext.innerHTML = '次へ <i class="fas fa-arrow-right ml-1"></i>';
+        if (progress) progress.style.width = '50%';
+    } else if (step === 2) {
+        step1El.classList.add('hidden');
+        step2El.classList.remove('hidden');
+        btnPrev.classList.remove('invisible');
+        btnNext.innerHTML = '<i class="fas fa-check mr-1"></i> 完了して記録';
+        if (progress) progress.style.width = '100%';
+    }
+}
+
+// --- ウィザード表示・復元 ---
+function openWizard(subject, year) {
+    const titleEl = document.getElementById('pe-wizard-title');
+    const subjectEl = document.getElementById('pe-wizard-subject');
+    
+    if (titleEl) titleEl.innerText = `${userProfile.targetUniv || ''} ${userProfile.targetFaculty || ''} ${year}年度`;
+    if (subjectEl) subjectEl.innerText = subject;
+
+    // 既存データのロード
+    const existingData = pastExams.find(e => e.subject === subject && e.year === String(year));
+    if (existingData) {
+        wizardData = JSON.parse(JSON.stringify(existingData));
+    } else {
+        wizardData = { subject, year, score: '', actualTime: '', seriousness: '未選択', strategyEval: '未設定', strategyNote: '', sections: [] };
+    }
+
+    // UIへ値をセット（index.htmlのIDを使用）
+    const scoreInput = document.getElementById('pe-input-score') || document.getElementById('pe-score-input');
+    const timeInput = document.getElementById('pe-input-time') || document.getElementById('pe-time-input');
+    const seriousInput = document.getElementById('pe-input-seriousness') || document.getElementById('pe-seriousness-select');
+    
+    if (scoreInput) scoreInput.value = wizardData.score || '';
+    if (timeInput) timeInput.value = wizardData.actualTime || '';
+    if (seriousInput) {
+        // 本番度の選択肢を動的生成
+        seriousInput.innerHTML = `<option value="未選択">- 選択してください -</option>` + 
+            EXAM_SERIOUSNESS_LEVELS.map(l => `<option value="${l.label}" ${wizardData.seriousness === l.label ? 'selected' : ''}>${l.label}</option>`).join('');
+    }
+
+    goToStep(1);
+    renderSections();
+    
+    // HTMLのIDに基づいてモーダルを開く
+    const modalId = document.getElementById('modal-past-exam-wizard') ? 'modal-past-exam-wizard' : 'modal-pe-wizard';
+    openModal(modalId);
 }
 
 // --- 大問・小問の動的レンダリング ---
@@ -172,8 +242,8 @@ function renderSections() {
             <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
                 <div class="flex items-center space-x-2">
                     <div class="flex flex-col space-y-1">
-                        <button class="btn-sec-up text-gray-400 hover:text-pink-500 p-1" ${secIndex === 0 ? 'disabled' : ''}><i class="fas fa-caret-up pointer-events-none"></i></button>
-                        <button class="btn-sec-down text-gray-400 hover:text-pink-500 p-1" ${secIndex === wizardData.sections.length - 1 ? 'disabled' : ''}><i class="fas fa-caret-down pointer-events-none"></i></button>
+                        <button type="button" class="btn-sec-up text-gray-400 hover:text-pink-500 p-1" ${secIndex === 0 ? 'disabled' : ''}><i class="fas fa-caret-up pointer-events-none"></i></button>
+                        <button type="button" class="btn-sec-down text-gray-400 hover:text-pink-500 p-1" ${secIndex === wizardData.sections.length - 1 ? 'disabled' : ''}><i class="fas fa-caret-down pointer-events-none"></i></button>
                     </div>
                     <input type="text" class="input-sec-name font-black text-gray-800 dark:text-white bg-transparent border-b-2 border-transparent focus:border-pink-500 outline-none w-24 text-lg" value="${sec.name}">
                 </div>
@@ -182,7 +252,7 @@ function renderSections() {
                     <input type="number" class="input-sec-planned w-14 bg-gray-50 dark:bg-gray-700 p-1.5 rounded-lg border-none text-center font-bold outline-none dark:text-white" value="${sec.plannedTime}" placeholder="分">
                     <span class="text-gray-500 font-bold ml-2">実際:</span>
                     <input type="number" class="input-sec-actual w-14 bg-gray-50 dark:bg-gray-700 p-1.5 rounded-lg border-none text-center font-bold text-rose-500 outline-none" value="${sec.actualTime}" placeholder="分">
-                    <button class="btn-sec-delete ml-2 text-gray-400 hover:text-red-500 p-2"><i class="fas fa-trash pointer-events-none"></i></button>
+                    <button type="button" class="btn-sec-delete ml-2 text-gray-400 hover:text-red-500 p-2"><i class="fas fa-trash pointer-events-none"></i></button>
                 </div>
             </div>
 
@@ -192,8 +262,8 @@ function renderSections() {
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-xs font-bold text-gray-500">問 ${qIndex + 1}</span>
                             <div class="flex space-x-2">
-                                <button class="btn-q-fc text-[10px] bg-purple-100 text-purple-600 px-2 py-1 rounded shadow-sm hover:bg-purple-200"><i class="fa-solid fa-layer-group pointer-events-none mr-1"></i>単語帳へ</button>
-                                <button class="btn-q-delete text-gray-400 hover:text-red-500 px-2"><i class="fas fa-times pointer-events-none"></i></button>
+                                <button type="button" class="btn-q-fc text-[10px] bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300 px-2 py-1 rounded shadow-sm hover:bg-purple-200 transition-colors"><i class="fa-solid fa-layer-group pointer-events-none mr-1"></i>単語帳へ</button>
+                                <button type="button" class="btn-q-delete text-gray-400 hover:text-red-500 px-2"><i class="fas fa-times pointer-events-none"></i></button>
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-2 mb-2">
@@ -222,7 +292,7 @@ function renderSections() {
                     </div>
                 `).join('')}
             </div>
-            <button class="btn-q-add text-xs font-bold text-gray-500 hover:text-pink-500 transition-colors w-full text-center py-2 bg-gray-50 dark:bg-gray-700 rounded-xl border border-dashed border-gray-300 dark:border-gray-500">
+            <button type="button" class="btn-q-add text-xs font-bold text-gray-500 hover:text-pink-500 transition-colors w-full text-center py-2 bg-gray-50 dark:bg-gray-700 rounded-xl border border-dashed border-gray-300 dark:border-gray-500">
                 <i class="fas fa-plus pointer-events-none"></i> 小問を追加
             </button>
         </div>
@@ -236,54 +306,45 @@ function getResultColor(result) {
     return 'bg-white dark:bg-gray-800 dark:text-white border-gray-200 dark:border-gray-600';
 }
 
-// --- UI操作ハンドラー (大問内のイベント検知) ---
+// --- 大問内のアクションハンドラ ---
 function handleSectionEvents(e) {
     const secEl = e.target.closest('.pe-section-block');
     if (!secEl) return;
+    
     const secId = secEl.dataset.secId;
     const secIndex = wizardData.sections.findIndex(s => s.id === secId);
+    if (secIndex === -1) return;
 
-    // 並び替え（上）
-    if (e.target.classList.contains('btn-sec-up') && secIndex > 0) {
+    if (e.target.closest('.btn-sec-up') && secIndex > 0) {
         e.preventDefault();
         [wizardData.sections[secIndex - 1], wizardData.sections[secIndex]] = [wizardData.sections[secIndex], wizardData.sections[secIndex - 1]];
         renderSections();
-    }
-    // 並び替え（下）
-    else if (e.target.classList.contains('btn-sec-down') && secIndex < wizardData.sections.length - 1) {
+    } else if (e.target.closest('.btn-sec-down') && secIndex < wizardData.sections.length - 1) {
         e.preventDefault();
         [wizardData.sections[secIndex], wizardData.sections[secIndex + 1]] = [wizardData.sections[secIndex + 1], wizardData.sections[secIndex]];
         renderSections();
-    }
-    // 大問削除
-    else if (e.target.classList.contains('btn-sec-delete')) {
+    } else if (e.target.closest('.btn-sec-delete')) {
         e.preventDefault();
         showConfirm("この大問を削除しますか？", () => {
             wizardData.sections.splice(secIndex, 1);
             renderSections();
         });
-    }
-    // 小問追加
-    else if (e.target.classList.contains('btn-q-add')) {
+    } else if (e.target.closest('.btn-q-add')) {
         e.preventDefault();
         wizardData.sections[secIndex].questions.push({ id: Date.now().toString(), result: '未', confidence: '0', tags: [] });
         renderSections();
-    }
-    // 小問削除
-    else if (e.target.classList.contains('btn-q-delete')) {
+    } else if (e.target.closest('.btn-q-delete')) {
         e.preventDefault();
         const qId = e.target.closest('.pe-question-item').dataset.qId;
         wizardData.sections[secIndex].questions = wizardData.sections[secIndex].questions.filter(q => q.id !== qId);
         renderSections();
-    }
-    // 単語帳に追加ボタン
-    else if (e.target.classList.contains('btn-q-fc')) {
+    } else if (e.target.closest('.btn-q-fc')) {
         e.preventDefault();
         openQuickAddFlashcard();
     }
 }
 
-// データ変更検知（入力欄の更新を配列に反映）
+// --- データ変更検知（配列への反映） ---
 function handleDataChange(e) {
     const secEl = e.target.closest('.pe-section-block');
     if (!secEl) return;
@@ -298,61 +359,33 @@ function handleDataChange(e) {
         const q = sec.questions.find(q => q.id === qEl.dataset.qId);
         if (e.target.classList.contains('select-q-result')) {
             q.result = e.target.value;
-            renderSections(); // 色を更新するため再描画
+            renderSections(); // 色更新のため再描画
         }
         if (e.target.classList.contains('select-q-conf')) q.confidence = e.target.value;
         if (e.target.classList.contains('check-q-tag')) {
-            if (e.target.checked) q.tags.push(e.target.value);
-            else q.tags = q.tags.filter(t => t !== e.target.value);
+            if (e.target.checked) {
+                if (!q.tags.includes(e.target.value)) q.tags.push(e.target.value);
+            } else {
+                q.tags = q.tags.filter(t => t !== e.target.value);
+            }
         }
     }
 }
 
-// --- ウィザード表示・復元 ---
-function openWizard(subject, year) {
-    // 既存データがあれば復元、なければ初期化
-    const existingData = pastExams.find(e => e.subject === subject && e.year === year);
-    
-    if (existingData) {
-        wizardData = JSON.parse(JSON.stringify(existingData)); // ディープコピーしてUI操作用に保持
-    } else {
-        wizardData = {
-            subject,
-            year,
-            score: '',
-            actualTime: '',
-            seriousness: '未選択',
-            strategyEval: '未設定',
-            strategyNote: '',
-            sections: []
-        };
-    }
-
-    // UIへの反映 (STEP1と戦略評価)
-    document.getElementById('pe-score-input').value = wizardData.score || '';
-    document.getElementById('pe-time-input').value = wizardData.actualTime || '';
-    document.getElementById('pe-seriousness-select').value = wizardData.seriousness || '未選択';
-    document.getElementById('pe-strategy-eval').value = wizardData.strategyEval || '未設定';
-    document.getElementById('pe-strategy-note').value = wizardData.strategyNote || '';
-
-    // 常にSTEP1から表示するようにリセット
-    document.getElementById('pe-step-1').classList.remove('hidden');
-    document.getElementById('pe-step-2').classList.add('hidden');
-
-    renderSections();
-    openModal('modal-pe-wizard');
-}
-
-// --- 過去問データの保存 ---
+// --- 保存処理 ---
 async function savePastExam() {
-    // STEP1のデータを取得
-    wizardData.score = document.getElementById('pe-score-input').value;
-    wizardData.actualTime = document.getElementById('pe-time-input').value;
-    wizardData.seriousness = document.getElementById('pe-seriousness-select').value;
+    const scoreInput = document.getElementById('pe-input-score') || document.getElementById('pe-score-input');
+    const timeInput = document.getElementById('pe-input-time') || document.getElementById('pe-time-input');
+    const seriousInput = document.getElementById('pe-input-seriousness') || document.getElementById('pe-seriousness-select');
     
-    // STEP2の戦略データを取得
-    wizardData.strategyEval = document.getElementById('pe-strategy-eval').value;
-    wizardData.strategyNote = document.getElementById('pe-strategy-note').value;
+    wizardData.score = scoreInput ? scoreInput.value : '';
+    wizardData.actualTime = timeInput ? timeInput.value : '';
+    wizardData.seriousness = seriousInput ? seriousInput.value : '';
+    
+    const evalInput = document.getElementById('pe-strategy-eval');
+    const noteInput = document.getElementById('pe-strategy-note');
+    wizardData.strategyEval = evalInput ? evalInput.value : '未設定';
+    wizardData.strategyNote = noteInput ? noteInput.value : '';
 
     const userId = getCurrentUserId();
     if (!userId) {
@@ -361,7 +394,6 @@ async function savePastExam() {
     }
 
     try {
-        // ドキュメントIDを "科目_年度" として保存（上書き・新規作成を容易にするため）
         const docId = `${wizardData.subject}_${wizardData.year}`;
         await setDoc(doc(getAppCollectionRef('past_exams'), docId), {
             ...wizardData,
@@ -369,8 +401,9 @@ async function savePastExam() {
         });
         
         showToast(`${wizardData.year}年度 ${wizardData.subject} の記録を保存しました！`);
-        closeModal('modal-pe-wizard');
-        // 保存後の画面更新は main.js の onSnapshot によって自動的に行われます
+        
+        const modalId = document.getElementById('modal-past-exam-wizard') ? 'modal-past-exam-wizard' : 'modal-pe-wizard';
+        closeModal(modalId);
     } catch (e) {
         console.error(e);
         showToast("保存に失敗しました", "error");
@@ -383,14 +416,13 @@ async function openQuickAddFlashcard() {
     if (!userId) return;
     
     try {
-        // 単語帳セットの一覧を取得
         const snap = await getDocs(collection(getAppDocRef('flashcard_sets', 'dummy').parent));
         fcSetsCache = [];
         snap.forEach(doc => fcSetsCache.push({ id: doc.id, ...doc.data() }));
 
         const select = document.getElementById('quick-fc-set-select');
         if (fcSetsCache.length === 0) {
-            select.innerHTML = `<option value="">セットがありません。先に単語帳画面で作成してください。</option>`;
+            select.innerHTML = `<option value="">セットがありません。先に作成してください。</option>`;
             document.getElementById('btn-quick-fc-save').disabled = true;
         } else {
             select.innerHTML = fcSetsCache.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
