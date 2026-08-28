@@ -8,7 +8,6 @@ let userProfile = null;
 let pastExams = [];
 let currentSubject = '';
 let currentYear = '';
-let currentStep = 1; 
 let wizardData = { sections: [] };
 let fcSetsCache = []; 
 
@@ -32,13 +31,13 @@ export function updatePastExamsData(profile, exams) {
     renderTabs();
     if (currentSubject) {
         renderYears(currentSubject);
-        renderCharts(currentSubject); // グラフの描画を呼び出し
+        renderCharts(currentSubject); 
     }
 }
 
 // --- 設定からの科目取得ロジック ---
 function getAvailableSubjects() {
-    if (!userProfile || !userProfile.examScores) return ['英語', '数学', '国語'];
+    if (!userProfile || !userProfile.examScores) return ['英語', '数学', '国語', '全体分析'];
     
     const courseType = userProfile.examScores.courseType || '文系';
     const ss = userProfile.examScores.second || {};
@@ -56,7 +55,10 @@ function getAvailableSubjects() {
         if (ss['理科2_sub']) subjects.add(ss['理科2_sub']);
     }
     
-    return Array.from(subjects).length > 0 ? Array.from(subjects) : ['英語', '数学', '国語'];
+    const subjectArray = Array.from(subjects).length > 0 ? Array.from(subjects) : ['英語', '数学', '国語'];
+    
+    // タブの最後に「全体分析」を追加
+    return [...subjectArray, '全体分析'];
 }
 
 // --- 目標点と配点の取得 ---
@@ -64,15 +66,13 @@ function getSubjectTargetAndFullScore(subject) {
     if (!userProfile || !userProfile.examScores || !userProfile.examScores.second) return { full: 0, target: 0 };
     const ss = userProfile.examScores.second;
     
-    // 固定科目
     if (subject === '英語' || subject === '数学' || subject === '国語') {
-        return { full: ss[subject] || 0, target: ss[`${subject}_target`] || 0 };
+        return { full: parseInt(ss[subject]) || 0, target: parseInt(ss[`${subject}_target`]) || 0 };
     }
     
-    // 選択科目 (社会・理科)
     for (let i = 1; i <= 2; i++) {
-        if (ss[`社会${i}_sub`] === subject) return { full: ss[`社会${i}_score`] || 0, target: ss[`社会${i}_target`] || 0 };
-        if (ss[`理科${i}_sub`] === subject) return { full: ss[`理科${i}_score`] || 0, target: ss[`理科${i}_target`] || 0 };
+        if (ss[`社会${i}_sub`] === subject) return { full: parseInt(ss[`社会${i}_score`]) || 0, target: parseInt(ss[`社会${i}_target`]) || 0 };
+        if (ss[`理科${i}_sub`] === subject) return { full: parseInt(ss[`理科${i}_score`]) || 0, target: parseInt(ss[`理科${i}_target`]) || 0 };
     }
     
     return { full: 0, target: 0 };
@@ -84,20 +84,34 @@ function renderTabs() {
     if (!container) return;
 
     const subjects = getAvailableSubjects();
-    container.innerHTML = subjects.map(sub => `
-        <button class="pe-tab-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-colors border shadow-sm flex-shrink-0
-            ${currentSubject === sub 
-                ? 'bg-pink-500 text-white border-pink-500' 
-                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}"
-            data-subject="${sub}">
-            ${sub}
-        </button>
-    `).join('');
+    container.innerHTML = subjects.map(sub => {
+        const isOverall = sub === '全体分析';
+        const icon = isOverall ? '<i class="fas fa-chart-bar mr-1"></i>' : '';
+        const activeClass = currentSubject === sub 
+            ? 'bg-pink-500 text-white border-pink-500' 
+            : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700';
+            
+        return `
+            <button class="pe-tab-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-colors border shadow-sm flex-shrink-0 ${activeClass}" data-subject="${sub}">
+                ${icon}${sub}
+            </button>
+        `;
+    }).join('');
 }
 
 function renderYears(subject) {
     const container = document.getElementById('pe-years-list');
     if (!container) return;
+
+    // 全体分析モードのときはリストを出さず、メッセージを表示
+    if (subject === '全体分析') {
+        container.innerHTML = `
+            <div class="bg-indigo-50 dark:bg-indigo-900/30 p-5 rounded-2xl border border-indigo-100 dark:border-indigo-800 text-center mx-1">
+                <p class="text-sm font-bold text-indigo-700 dark:text-indigo-300"><i class="fas fa-lightbulb mr-2 text-yellow-500"></i>上のグラフで全科目の傾向を比較できます。</p>
+            </div>
+        `;
+        return;
+    }
 
     const years = [];
     for (let y = 2026; y >= 2007; y--) years.push(y);
@@ -106,7 +120,7 @@ function renderYears(subject) {
         const record = pastExams.find(e => e.subject === subject && e.year === String(year));
         
         return `
-            <div class="pe-year-row flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer hover:border-pink-300 transition-colors" data-year="${year}">
+            <div class="pe-year-row flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer hover:border-pink-300 transition-colors mx-1" data-year="${year}">
                 <div>
                     <h4 class="font-black text-gray-800 dark:text-gray-100 text-lg">${year}年度</h4>
                     <p class="text-xs font-bold ${record ? 'text-emerald-500' : 'text-gray-400'} mt-1">
@@ -121,199 +135,277 @@ function renderYears(subject) {
     }).join('');
 }
 
-// --- ★分析グラフの描画 ---
+// --- 分析グラフの描画 ---
 function renderCharts(subject) {
     const container = document.getElementById('pe-analytics-container');
+    const title1 = document.getElementById('pe-chart1-title');
+    const title2 = document.getElementById('pe-chart2-title');
     if (!container) return;
-
-    // 対象科目の「点数が入力されている」データのみを年度の古い順（昇順）に並び替え
-    const subjectExams = pastExams
-        .filter(e => e.subject === subject && e.score !== '')
-        .sort((a, b) => parseInt(a.year) - parseInt(b.year));
-
-    // データが0件ならグラフエリアごと隠す
-    if (subjectExams.length === 0) {
-        container.classList.add('hidden');
-        container.classList.remove('flex');
-        return;
-    } else {
-        container.classList.remove('hidden');
-        container.classList.add('flex');
-    }
 
     const isDarkMode = document.documentElement.classList.contains('dark');
     const textColor = isDarkMode ? '#9ca3af' : '#4b5563';
     const gridColor = isDarkMode ? '#374151' : '#f3f4f6';
 
-    // 1. 得点推移グラフ (Line Chart)
-    const ctxTrend = document.getElementById('pe-trend-chart')?.getContext('2d');
-    if (ctxTrend) {
-        if (trendChartInstance) trendChartInstance.destroy();
+    /* =========================================
+       全体分析モード (全科目の比較と累計)
+       ========================================= */
+    if (subject === '全体分析') {
+        const validExams = pastExams.filter(e => e.score !== '');
         
-        const labels = subjectExams.map(e => `${e.year}年`);
-        const scores = subjectExams.map(e => parseInt(e.score) || 0);
-        const { target } = getSubjectTargetAndFullScore(subject);
-        const targetScores = subjectExams.map(() => parseInt(target) || 0);
-
-        trendChartInstance = new Chart(ctxTrend, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: '得点',
-                        data: scores,
-                        borderColor: '#ec4899', // pink-500
-                        backgroundColor: 'rgba(236, 72, 153, 0.15)',
-                        borderWidth: 3,
-                        pointBackgroundColor: '#ec4899',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 5,
-                        fill: true,
-                        tension: 0.3
-                    },
-                    {
-                        label: '目標点',
-                        data: targetScores,
-                        borderColor: '#8b5cf6', // purple-500
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        pointRadius: 0,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: true, labels: { color: textColor, font: { size: 10, weight: 'bold' } } },
-                    tooltip: { mode: 'index', intersect: false }
-                },
-                scales: {
-                    x: { ticks: { color: textColor, font: { size: 10, weight: 'bold' } }, grid: { display: false } },
-                    y: { ticks: { color: textColor, font: { size: 10, weight: 'bold' } }, grid: { color: gridColor }, min: 0 }
-                }
-            }
-        });
-    }
-
-    // 2. 失点原因グラフ (Doughnut Chart)
-    const ctxWeakness = document.getElementById('pe-weakness-chart')?.getContext('2d');
-    if (ctxWeakness) {
-        if (weaknessChartInstance) weaknessChartInstance.destroy();
-
-        // 記録された小問から、「不正解(×)」または「不確実(△)」のタグを集計
-        const tagCounts = {};
-        subjectExams.forEach(exam => {
-            if (exam.sections) {
-                exam.sections.forEach(sec => {
-                    if (sec.questions) {
-                        sec.questions.forEach(q => {
-                            if (q.result === '×' || q.result === '△') {
-                                q.tags.forEach(tag => {
-                                    tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-                                });
-                            }
-                        });
-                    }
-                });
-            }
-        });
-
-        // 降順にソートし、上位6件を抽出
-        const sortedTags = Object.keys(tagCounts).sort((a, b) => tagCounts[b] - tagCounts[a]);
-        const weaknessLabels = sortedTags.slice(0, 6);
-        const weaknessData = weaknessLabels.map(tag => tagCounts[tag]);
-
-        // もし該当データがない場合はプレースホルダー
-        if (weaknessData.length === 0) {
-            weaknessLabels.push("データなし");
-            weaknessData.push(1);
+        if (validExams.length === 0) {
+            container.classList.add('hidden');
+            container.classList.remove('flex');
+            return;
+        } else {
+            container.classList.remove('hidden');
+            container.classList.add('flex');
         }
 
-        weaknessChartInstance = new Chart(ctxWeakness, {
-            type: 'doughnut',
-            data: {
-                labels: weaknessLabels,
-                datasets: [{
-                    data: weaknessData,
-                    backgroundColor: weaknessData[0] === 1 && weaknessLabels[0] === "データなし" 
-                        ? ['#e5e7eb'] // gray-200
-                        : ['#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#f43f5e'],
-                    borderWidth: 0,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'right', labels: { color: textColor, font: { size: 10, weight: 'bold' }, padding: 12 } }
+        if (title1) title1.innerHTML = '<i class="fas fa-chart-bar text-pink-500 mr-2"></i>科目別 平均得点率';
+        if (title2) title2.innerHTML = '<i class="fas fa-chart-pie text-purple-500 mr-2"></i>全科目の失点原因';
+
+        // 1. 科目別平均得点率 (Bar Chart)
+        const ctxTrend = document.getElementById('pe-trend-chart')?.getContext('2d');
+        if (ctxTrend) {
+            if (trendChartInstance) trendChartInstance.destroy();
+            
+            const subjectsList = getAvailableSubjects().filter(s => s !== '全体分析');
+            const avgRates = subjectsList.map(sub => {
+                const subExams = validExams.filter(e => e.subject === sub);
+                if (subExams.length === 0) return 0;
+                
+                const { full } = getSubjectTargetAndFullScore(sub);
+                if (!full || full <= 0) return 0;
+
+                const totalScore = subExams.reduce((sum, e) => sum + (parseInt(e.score) || 0), 0);
+                const avgScore = totalScore / subExams.length;
+                return Math.round((avgScore / full) * 100);
+            });
+
+            trendChartInstance = new Chart(ctxTrend, {
+                type: 'bar',
+                data: {
+                    labels: subjectsList,
+                    datasets: [{
+                        label: '平均得点率 (%)',
+                        data: avgRates,
+                        backgroundColor: 'rgba(236, 72, 153, 0.7)',
+                        borderColor: '#ec4899',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
                 },
-                cutout: '65%'
-            }
-        });
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: textColor, font: { size: 10, weight: 'bold' } }, grid: { display: false } },
+                        y: { ticks: { color: textColor, font: { size: 10, weight: 'bold' } }, grid: { color: gridColor }, min: 0, max: 100 }
+                    }
+                }
+            });
+        }
+
+        // 2. 全科目の失点原因グラフ (Doughnut Chart)
+        const ctxWeakness = document.getElementById('pe-weakness-chart')?.getContext('2d');
+        if (ctxWeakness) {
+            if (weaknessChartInstance) weaknessChartInstance.destroy();
+
+            const tagCounts = {};
+            validExams.forEach(exam => {
+                if (exam.sections) {
+                    exam.sections.forEach(sec => {
+                        if (sec.questions) {
+                            sec.questions.forEach(q => {
+                                if (q.result === '×' || q.result === '△') {
+                                    q.tags.forEach(tag => {
+                                        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+            const sortedTags = Object.keys(tagCounts).sort((a, b) => tagCounts[b] - tagCounts[a]);
+            const weaknessLabels = sortedTags.slice(0, 6);
+            const weaknessData = weaknessLabels.map(tag => tagCounts[tag]);
+
+            if (weaknessData.length === 0) { weaknessLabels.push("データなし"); weaknessData.push(1); }
+
+            weaknessChartInstance = new Chart(ctxWeakness, {
+                type: 'doughnut',
+                data: {
+                    labels: weaknessLabels,
+                    datasets: [{
+                        data: weaknessData,
+                        backgroundColor: weaknessData[0] === 1 && weaknessLabels[0] === "データなし" 
+                            ? ['#e5e7eb'] : ['#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#f43f5e'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { color: textColor, font: { size: 10, weight: 'bold' }, padding: 12 } } },
+                    cutout: '65%'
+                }
+            });
+        }
+    } 
+    /* =========================================
+       個別科目モード
+       ========================================= */
+    else {
+        const subjectExams = pastExams
+            .filter(e => e.subject === subject && e.score !== '')
+            .sort((a, b) => parseInt(a.year) - parseInt(b.year));
+
+        if (subjectExams.length === 0) {
+            container.classList.add('hidden');
+            container.classList.remove('flex');
+            return;
+        } else {
+            container.classList.remove('hidden');
+            container.classList.add('flex');
+        }
+
+        if (title1) title1.innerHTML = '<i class="fas fa-chart-line text-pink-500 mr-2"></i>得点推移';
+        if (title2) title2.innerHTML = '<i class="fas fa-chart-pie text-purple-500 mr-2"></i>失点原因 (弱点分析)';
+
+        // 1. 個別科目の得点推移 (Line Chart)
+        const ctxTrend = document.getElementById('pe-trend-chart')?.getContext('2d');
+        if (ctxTrend) {
+            if (trendChartInstance) trendChartInstance.destroy();
+            
+            const labels = subjectExams.map(e => `${e.year}年`);
+            const scores = subjectExams.map(e => parseInt(e.score) || 0);
+            const { target } = getSubjectTargetAndFullScore(subject);
+            const targetScores = subjectExams.map(() => parseInt(target) || 0);
+
+            trendChartInstance = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '得点', data: scores,
+                            borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.15)', borderWidth: 3,
+                            pointBackgroundColor: '#ec4899', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5, fill: true, tension: 0.3
+                        },
+                        {
+                            label: '目標点', data: targetScores,
+                            borderColor: '#8b5cf6', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: true, labels: { color: textColor, font: { size: 10, weight: 'bold' } } }, tooltip: { mode: 'index', intersect: false } },
+                    scales: { x: { ticks: { color: textColor, font: { size: 10, weight: 'bold' } }, grid: { display: false } }, y: { ticks: { color: textColor, font: { size: 10, weight: 'bold' } }, grid: { color: gridColor }, min: 0 } }
+                }
+            });
+        }
+
+        // 2. 個別科目の失点原因グラフ (Doughnut Chart)
+        const ctxWeakness = document.getElementById('pe-weakness-chart')?.getContext('2d');
+        if (ctxWeakness) {
+            if (weaknessChartInstance) weaknessChartInstance.destroy();
+
+            const tagCounts = {};
+            subjectExams.forEach(exam => {
+                if (exam.sections) {
+                    exam.sections.forEach(sec => {
+                        if (sec.questions) {
+                            sec.questions.forEach(q => {
+                                if (q.result === '×' || q.result === '△') {
+                                    q.tags.forEach(tag => { tagCounts[tag] = (tagCounts[tag] || 0) + 1; });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+            const sortedTags = Object.keys(tagCounts).sort((a, b) => tagCounts[b] - tagCounts[a]);
+            const weaknessLabels = sortedTags.slice(0, 6);
+            const weaknessData = weaknessLabels.map(tag => tagCounts[tag]);
+
+            if (weaknessData.length === 0) { weaknessLabels.push("データなし"); weaknessData.push(1); }
+
+            weaknessChartInstance = new Chart(ctxWeakness, {
+                type: 'doughnut',
+                data: {
+                    labels: weaknessLabels,
+                    datasets: [{
+                        data: weaknessData,
+                        backgroundColor: weaknessData[0] === 1 && weaknessLabels[0] === "データなし" 
+                            ? ['#e5e7eb'] : ['#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#f43f5e'],
+                        borderWidth: 0, hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { color: textColor, font: { size: 10, weight: 'bold' }, padding: 12 } } },
+                    cutout: '65%'
+                }
+            });
+        }
     }
 }
 
 // --- イベントリスナー ---
 function setupEventListeners() {
+    // 画面全体のクリックイベント（イベント委譲）
     document.addEventListener('click', (e) => {
-        // 1. 科目タブ切り替え
-        if (e.target.classList.contains('pe-tab-btn')) {
-            currentSubject = e.target.dataset.subject;
+        // 科目タブの切り替え
+        if (e.target.closest('.pe-tab-btn')) {
+            currentSubject = e.target.closest('.pe-tab-btn').dataset.subject;
             renderTabs();
             renderYears(currentSubject);
             renderCharts(currentSubject);
         }
 
-        // 2. 年度クリックでウィザード開く
-        const yearRow = e.target.closest('.pe-year-row');
-        if (yearRow) {
-            currentYear = yearRow.dataset.year;
+        // 年度行のクリックでウィザードを開く
+        if (e.target.closest('.pe-year-row')) {
+            currentYear = e.target.closest('.pe-year-row').dataset.year;
             openWizard(currentSubject, currentYear);
         }
 
-        // 3. ウィザード フッターの「次へ」ボタン
-        const nextBtn = e.target.closest('#btn-pe-next-step');
-        if (nextBtn) {
-            e.preventDefault();
-            goToStep(2);
-        }
-
-        // 4. ウィザード フッターの「戻る」ボタン
-        const prevBtn = e.target.closest('#btn-pe-prev-step');
-        if (prevBtn) {
-            e.preventDefault();
-            goToStep(1);
-        }
-
-        // 5. 完了して保存ボタン
-        const saveBtn = e.target.closest('#btn-pe-save');
-        if (saveBtn) {
-            e.preventDefault();
-            savePastExam();
-        }
-
-        // 6. 大問追加ボタン
-        const addQBtn = e.target.closest('#btn-pe-add-section');
-        if (addQBtn) {
+        // 大問追加
+        if (e.target.closest('#btn-pe-add-section')) {
             e.preventDefault();
             const secId = Date.now().toString();
             wizardData.sections.push({ id: secId, name: `大問 ${wizardData.sections.length + 1}`, plannedTime: '', actualTime: '', questions: [] });
             renderSections();
         }
 
-        // 7. 単語帳クイック追加保存
-        const fcSaveBtn = e.target.closest('#btn-quick-fc-save');
-        if (fcSaveBtn) {
+        // ウィザード: 次へボタン
+        if (e.target.closest('#pe-btn-next')) {
+            e.preventDefault();
+            goToStep(2);
+        }
+
+        // ウィザード: 戻るボタン
+        if (e.target.closest('#pe-btn-prev')) {
+            e.preventDefault();
+            goToStep(1);
+        }
+
+        // ウィザード: 完了して保存ボタン
+        if (e.target.closest('#pe-btn-save')) {
+            e.preventDefault();
+            savePastExam();
+        }
+
+        // 単語帳クイック追加保存
+        if (e.target.closest('#btn-quick-fc-save')) {
             e.preventDefault();
             saveQuickFlashcard();
         }
 
-        // 8. 大問・小問内の操作
         handleSectionEvents(e);
     });
 
@@ -323,60 +415,91 @@ function setupEventListeners() {
     });
 }
 
-// --- ウィザードのステップ制御 ---
 function goToStep(step) {
-    currentStep = step;
     const step1El = document.getElementById('pe-step-1');
     const step2El = document.getElementById('pe-step-2');
+    const btnNext = document.getElementById('pe-btn-next');
+    const btnSave = document.getElementById('pe-btn-save');
 
     if (!step1El || !step2El) return;
 
     if (step === 1) {
         step1El.classList.remove('hidden');
         step2El.classList.add('hidden');
+        if (btnNext) btnNext.classList.remove('hidden');
+        if (btnSave) btnSave.classList.add('hidden');
     } else if (step === 2) {
         step1El.classList.add('hidden');
         step2El.classList.remove('hidden');
+        if (btnNext) btnNext.classList.add('hidden');
+        if (btnSave) btnSave.classList.remove('hidden');
     }
 }
 
-// --- ウィザード表示・復元 ---
-function openWizard(subject, year) {
-    const existingData = pastExams.find(e => e.subject === subject && e.year === String(year));
-    if (existingData) {
-        wizardData = JSON.parse(JSON.stringify(existingData));
-    } else {
-        wizardData = { subject, year, score: '', actualTime: '', seriousness: '未選択', strategyEval: '未設定', strategyNote: '', sections: [] };
+// --- 大問・小問内のアクションハンドラ ---
+function handleSectionEvents(e) {
+    const secEl = e.target.closest('.pe-section-block');
+    if (!secEl) return;
+    
+    const secId = secEl.dataset.secId;
+    const secIndex = wizardData.sections.findIndex(s => s.id === secId);
+    if (secIndex === -1) return;
+
+    if (e.target.closest('.btn-sec-up') && secIndex > 0) {
+        e.preventDefault();
+        [wizardData.sections[secIndex - 1], wizardData.sections[secIndex]] = [wizardData.sections[secIndex], wizardData.sections[secIndex - 1]];
+        renderSections();
+    } else if (e.target.closest('.btn-sec-down') && secIndex < wizardData.sections.length - 1) {
+        e.preventDefault();
+        [wizardData.sections[secIndex], wizardData.sections[secIndex + 1]] = [wizardData.sections[secIndex + 1], wizardData.sections[secIndex]];
+        renderSections();
+    } else if (e.target.closest('.btn-sec-delete')) {
+        e.preventDefault();
+        showConfirm("この大問を削除しますか？", () => {
+            wizardData.sections.splice(secIndex, 1);
+            renderSections();
+        });
+    } else if (e.target.closest('.btn-q-add')) {
+        e.preventDefault();
+        wizardData.sections[secIndex].questions.push({ id: Date.now().toString(), result: '未', confidence: '0', tags: [] });
+        renderSections();
+    } else if (e.target.closest('.btn-q-delete')) {
+        e.preventDefault();
+        const qId = e.target.closest('.pe-question-item').dataset.qId;
+        wizardData.sections[secIndex].questions = wizardData.sections[secIndex].questions.filter(q => q.id !== qId);
+        renderSections();
+    } else if (e.target.closest('.btn-q-fc')) {
+        e.preventDefault();
+        openQuickAddFlashcard();
     }
+}
 
-    // 設定画面から配点と目標点を同期
-    const scoreData = getSubjectTargetAndFullScore(subject);
+// --- データ変更検知 ---
+function handleDataChange(e) {
+    const secEl = e.target.closest('.pe-section-block');
+    if (!secEl) return;
+    const sec = wizardData.sections.find(s => s.id === secEl.dataset.secId);
     
-    // UIへの反映
-    const scoreInput = document.getElementById('pe-score-input');
-    if (scoreInput) scoreInput.value = wizardData.score || '';
-    
-    const displayFull = document.getElementById('pe-display-full-score');
-    if (displayFull) displayFull.innerText = scoreData.full || 0;
-    
-    const displayTarget = document.getElementById('pe-display-target-score');
-    if (displayTarget) displayTarget.innerText = scoreData.target || 0;
-    
-    const timeInput = document.getElementById('pe-time-input');
-    if (timeInput) timeInput.value = wizardData.actualTime || '';
-    
-    const seriousInput = document.getElementById('pe-seriousness-select');
-    if (seriousInput) seriousInput.value = wizardData.seriousness || '未選択';
+    if (e.target.classList.contains('input-sec-name')) sec.name = e.target.value;
+    if (e.target.classList.contains('input-sec-planned')) sec.plannedTime = e.target.value;
+    if (e.target.classList.contains('input-sec-actual')) sec.actualTime = e.target.value;
 
-    const evalInput = document.getElementById('pe-strategy-eval');
-    if (evalInput) evalInput.value = wizardData.strategyEval || '未設定';
-    
-    const noteInput = document.getElementById('pe-strategy-note');
-    if (noteInput) noteInput.value = wizardData.strategyNote || '';
-
-    goToStep(1);
-    renderSections();
-    openModal('modal-pe-wizard');
+    const qEl = e.target.closest('.pe-question-item');
+    if (qEl) {
+        const q = sec.questions.find(q => q.id === qEl.dataset.qId);
+        if (e.target.classList.contains('select-q-result')) {
+            q.result = e.target.value;
+            renderSections();
+        }
+        if (e.target.classList.contains('select-q-conf')) q.confidence = e.target.value;
+        if (e.target.classList.contains('check-q-tag')) {
+            if (e.target.checked) {
+                if (!q.tags.includes(e.target.value)) q.tags.push(e.target.value);
+            } else {
+                q.tags = q.tags.filter(t => t !== e.target.value);
+            }
+        }
+    }
 }
 
 // --- 大問・小問の動的レンダリング ---
@@ -455,86 +578,40 @@ function getResultColor(result) {
     return 'bg-white dark:bg-gray-800 dark:text-white border-gray-200 dark:border-gray-600';
 }
 
-// --- 大問内のアクションハンドラ ---
-function handleSectionEvents(e) {
-    const secEl = e.target.closest('.pe-section-block');
-    if (!secEl) return;
+// --- ウィザード表示・復元 ---
+function openWizard(subject, year) {
+    const existingData = pastExams.find(e => e.subject === subject && e.year === String(year));
     
-    const secId = secEl.dataset.secId;
-    const secIndex = wizardData.sections.findIndex(s => s.id === secId);
-    if (secIndex === -1) return;
-
-    if (e.target.closest('.btn-sec-up') && secIndex > 0) {
-        e.preventDefault();
-        [wizardData.sections[secIndex - 1], wizardData.sections[secIndex]] = [wizardData.sections[secIndex], wizardData.sections[secIndex - 1]];
-        renderSections();
-    } else if (e.target.closest('.btn-sec-down') && secIndex < wizardData.sections.length - 1) {
-        e.preventDefault();
-        [wizardData.sections[secIndex], wizardData.sections[secIndex + 1]] = [wizardData.sections[secIndex + 1], wizardData.sections[secIndex]];
-        renderSections();
-    } else if (e.target.closest('.btn-sec-delete')) {
-        e.preventDefault();
-        showConfirm("この大問を削除しますか？", () => {
-            wizardData.sections.splice(secIndex, 1);
-            renderSections();
-        });
-    } else if (e.target.closest('.btn-q-add')) {
-        e.preventDefault();
-        wizardData.sections[secIndex].questions.push({ id: Date.now().toString(), result: '未', confidence: '0', tags: [] });
-        renderSections();
-    } else if (e.target.closest('.btn-q-delete')) {
-        e.preventDefault();
-        const qId = e.target.closest('.pe-question-item').dataset.qId;
-        wizardData.sections[secIndex].questions = wizardData.sections[secIndex].questions.filter(q => q.id !== qId);
-        renderSections();
-    } else if (e.target.closest('.btn-q-fc')) {
-        e.preventDefault();
-        openQuickAddFlashcard();
+    if (existingData) {
+        wizardData = JSON.parse(JSON.stringify(existingData));
+    } else {
+        wizardData = { subject, year, score: '', actualTime: '', seriousness: '未選択', strategyEval: '未設定', strategyNote: '', sections: [] };
     }
+
+    const scoreData = getSubjectTargetAndFullScore(subject);
+    
+    document.getElementById('pe-input-score').value = wizardData.score || '';
+    document.getElementById('pe-display-full-score').innerText = scoreData.full || 0;
+    document.getElementById('pe-display-target-score').innerText = scoreData.target || 0;
+    
+    document.getElementById('pe-input-time').value = wizardData.actualTime || '';
+    document.getElementById('pe-select-seriousness').value = wizardData.seriousness || '未選択';
+    document.getElementById('pe-strategy-eval').value = wizardData.strategyEval || '未設定';
+    document.getElementById('pe-strategy-note').value = wizardData.strategyNote || '';
+
+    goToStep(1);
+    renderSections();
+    openModal('modal-pe-wizard');
 }
 
-// --- データ変更検知（配列への反映） ---
-function handleDataChange(e) {
-    const secEl = e.target.closest('.pe-section-block');
-    if (!secEl) return;
-    const sec = wizardData.sections.find(s => s.id === secEl.dataset.secId);
-    
-    if (e.target.classList.contains('input-sec-name')) sec.name = e.target.value;
-    if (e.target.classList.contains('input-sec-planned')) sec.plannedTime = e.target.value;
-    if (e.target.classList.contains('input-sec-actual')) sec.actualTime = e.target.value;
-
-    const qEl = e.target.closest('.pe-question-item');
-    if (qEl) {
-        const q = sec.questions.find(q => q.id === qEl.dataset.qId);
-        if (e.target.classList.contains('select-q-result')) {
-            q.result = e.target.value;
-            renderSections(); // 色更新のため再描画
-        }
-        if (e.target.classList.contains('select-q-conf')) q.confidence = e.target.value;
-        if (e.target.classList.contains('check-q-tag')) {
-            if (e.target.checked) {
-                if (!q.tags.includes(e.target.value)) q.tags.push(e.target.value);
-            } else {
-                q.tags = q.tags.filter(t => t !== e.target.value);
-            }
-        }
-    }
-}
-
-// --- 保存処理 ---
+// --- 過去問データの保存 ---
 async function savePastExam() {
-    const scoreInput = document.getElementById('pe-score-input');
-    const timeInput = document.getElementById('pe-time-input');
-    const seriousInput = document.getElementById('pe-seriousness-select');
+    wizardData.score = document.getElementById('pe-input-score').value;
+    wizardData.actualTime = document.getElementById('pe-input-time').value;
+    wizardData.seriousness = document.getElementById('pe-select-seriousness').value;
     
-    wizardData.score = scoreInput ? scoreInput.value : '';
-    wizardData.actualTime = timeInput ? timeInput.value : '';
-    wizardData.seriousness = seriousInput ? seriousInput.value : '';
-    
-    const evalInput = document.getElementById('pe-strategy-eval');
-    const noteInput = document.getElementById('pe-strategy-note');
-    wizardData.strategyEval = evalInput ? evalInput.value : '未設定';
-    wizardData.strategyNote = noteInput ? noteInput.value : '';
+    wizardData.strategyEval = document.getElementById('pe-strategy-eval').value;
+    wizardData.strategyNote = document.getElementById('pe-strategy-note').value;
 
     const userId = getCurrentUserId();
     if (!userId) {
@@ -598,13 +675,9 @@ async function saveQuickFlashcard() {
     try {
         const wordRef = collection(getAppDocRef('flashcard_sets', setId), 'words');
         await addDoc(wordRef, {
-            word,
-            meaning,
-            evaluation: 'N',
-            interval: 0,
+            word, meaning, evaluation: 'N', interval: 0,
             nextReviewDate: new Date().toISOString().split('T')[0],
-            history: [],
-            createdAt: serverTimestamp()
+            history: [], createdAt: serverTimestamp()
         });
         showToast("単語帳に追加しました！");
         closeModal('modal-fc-quick-add');
