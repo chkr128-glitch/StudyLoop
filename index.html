@@ -388,6 +388,16 @@
                     </div>
                     <ul id="routine-list" class="space-y-3"></ul>
                 </div>
+
+                <!-- ▼ 新規追加: 公開プロフィール設定 ▼ -->
+                <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-soft p-6 mb-6 border border-zinc-200/60 dark:border-zinc-800 transition-colors relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+                    <h3 class="font-bold text-zinc-700 dark:text-zinc-200 mb-2 flex items-center text-sm"><i class="fas fa-id-card text-emerald-500 mr-2"></i>公開プロフィール</h3>
+                    <p class="text-[10px] text-zinc-500 dark:text-zinc-400 mb-4 font-medium leading-relaxed">タイムラインで他のユーザーに表示されるプロフィールを設定します。個人を特定できる情報の入力はお控えください。</p>
+                    <button id="btn-open-profile-settings" class="w-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 font-bold py-3 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors border border-emerald-100 dark:border-emerald-900/50 shadow-sm flex justify-center items-center text-sm">
+                        <i class="fas fa-user-edit mr-2 text-xs"></i> プロフィールを編集・確認する
+                    </button>
+                </div>
                 
                 <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-soft p-6 mb-6 border border-zinc-200/60 dark:border-zinc-800 transition-colors">
                     <h3 class="font-bold text-zinc-700 dark:text-zinc-200 mb-4 flex items-center text-sm"><i class="fas fa-user-circle text-zinc-400 mr-2"></i>Account</h3>
@@ -926,6 +936,82 @@
                     <textarea id="quick-fc-a" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700 rounded-xl text-sm p-3 outline-none focus:ring-2 focus:ring-purple-500 dark:text-white h-20 resize-none transition-all" placeholder="例: 行動を起こす"></textarea>
                 </div>
                 <button id="btn-quick-fc-save" class="w-full bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-800 font-bold py-3 rounded-xl hover:opacity-90 transition-all shadow-sm mt-2 flex justify-center items-center text-sm"><i class="fa-solid fa-plus mr-2 text-xs"></i>保存する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ▼ 新規追加: 公開プロフィール設定モーダル ▼ -->
+    <div id="modal-public-profile" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[100] justify-center items-end sm:items-center">
+        <div class="modal-content bg-white dark:bg-zinc-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6 transform transition-transform duration-300 translate-y-0 shadow-modern relative border border-zinc-200/60 dark:border-zinc-800 overflow-y-auto max-h-[90vh]">
+            <button class="modal-close-btn absolute top-5 right-5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 transition-colors z-10"><i class="fas fa-times pointer-events-none"></i></button>
+            
+            <h3 class="text-lg font-black mb-1 text-zinc-800 dark:text-white pr-8 tracking-tight">プロフィール設定</h3>
+            <p class="text-[10px] text-zinc-500 dark:text-zinc-400 mb-5 font-medium border-b border-zinc-200/60 dark:border-zinc-800 pb-3">タイムラインで公開される情報です。</p>
+            
+            <div class="space-y-5">
+                <!-- アバター選択 (JSで動的生成) -->
+                <div>
+                    <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-2">アイコンを選択</label>
+                    <div id="profile-avatar-container" class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width: none;">
+                        <!-- JSでアバターが挿入されます -->
+                    </div>
+                    <input type="hidden" id="profile-avatar-id" value="cat">
+                </div>
+
+                <!-- ニックネーム & スローガン -->
+                <div class="space-y-3 bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-200/60 dark:border-zinc-700">
+                    <div>
+                        <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">ニックネーム (必須)</label>
+                        <input type="text" id="profile-display-name" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-white dark:bg-zinc-900 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm font-bold" placeholder="本名は入力しないでください" maxlength="20">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">意気込み・スローガン</label>
+                        <input type="text" id="profile-bio" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-white dark:bg-zinc-900 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-xs" placeholder="例: 夏までに基礎固め！" maxlength="60">
+                    </div>
+                </div>
+
+                <!-- 受験情報 -->
+                <div class="space-y-3">
+                    <label class="block text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mb-1 border-b border-emerald-100 dark:border-emerald-900/50 pb-1"><i class="fas fa-graduation-cap mr-1"></i> 受験情報</label>
+                    <div class="flex space-x-3">
+                        <div class="w-1/2 relative">
+                            <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1">学年・ステータス</label>
+                            <select id="profile-status" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
+                            <i class="fas fa-chevron-down absolute right-3 top-8 text-zinc-400 pointer-events-none text-[9px]"></i>
+                        </div>
+                        <div class="w-1/2 relative">
+                            <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1">文理</label>
+                            <select id="profile-track" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
+                            <i class="fas fa-chevron-down absolute right-3 top-8 text-zinc-400 pointer-events-none text-[9px]"></i>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1">志望系統</label>
+                        <select id="profile-target-category" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
+                        <i class="fas fa-chevron-down absolute right-3 top-8 text-zinc-400 pointer-events-none text-[9px]"></i>
+                    </div>
+                </div>
+
+                <!-- 基本属性 -->
+                <div class="space-y-3">
+                    <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1 border-b border-zinc-200/60 dark:border-zinc-800 pb-1">基本属性</label>
+                    <div class="flex space-x-3">
+                        <div class="w-1/2 relative">
+                            <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1">所在</label>
+                            <select id="profile-prefecture" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
+                            <i class="fas fa-chevron-down absolute right-3 top-8 text-zinc-400 pointer-events-none text-[9px]"></i>
+                        </div>
+                        <div class="w-1/2 relative">
+                            <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1">学校区分</label>
+                            <select id="profile-school-type" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
+                            <i class="fas fa-chevron-down absolute right-3 top-8 text-zinc-400 pointer-events-none text-[9px]"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-save-public-profile" class="w-full bg-emerald-500 text-white font-bold py-3.5 rounded-xl mt-2 hover:bg-emerald-600 transition-all shadow-sm flex justify-center items-center text-sm disabled:opacity-50">
+                    <i class="fas fa-check mr-2"></i> プロフィールを保存
+                </button>
             </div>
         </div>
     </div>
