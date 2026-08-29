@@ -129,7 +129,7 @@
             </div>
             
             <button id="auth-google-btn" class="w-full bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold py-3.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm border border-gray-200 dark:border-gray-600 flex justify-center items-center">
-                <i class="fab fa-google text-red-500 mr-2 text-lg"></i> Sign In with Google
+                <i class="fab fa-google text-red-500 mr-2 text-lg"></i> Sign in with Google
             </button>
 
             <div class="mt-8 text-center">
@@ -197,49 +197,49 @@
                 <div class="grid grid-cols-2 gap-4">
                     <button class="nav-tile bg-gradient-to-br from-pink-500 to-rose-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="dashboard">
                         <i class="fas fa-list-check text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">Today's Tasks</span>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">本日のタスク</span>
                     </button>
                     
                     <button class="nav-tile bg-gradient-to-br from-blue-500 to-indigo-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="calendar">
                         <i class="far fa-calendar-alt text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">Calendar</span>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">カレンダー</span>
                     </button>
                     
                     <button class="nav-tile bg-gradient-to-br from-amber-500 to-orange-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="past-exams">
                         <i class="fas fa-history text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">Past Exam Records</span>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">過去問ログ</span>
                     </button>
                     
                     <button class="nav-tile bg-gradient-to-br from-emerald-400 to-teal-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="analytics">
                         <i class="fas fa-chart-pie text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">Analysis</span>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">学習分析</span>
                     </button>
                     
                     <button class="nav-tile bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="drill">
                         <i class="fas fa-calculator text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">Arithmetic Drills</span>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">インド式計算ドリル</span>
                     </button>
                     
                     <button class="nav-tile bg-gradient-to-br from-purple-500 to-pink-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="flashcard-app">
                         <i class="fa-solid fa-layer-group text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">FlashCard</span>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">My単語帳</span>
                     </button>
                     
                     <button class="nav-tile bg-gradient-to-br from-slate-700 to-slate-900 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg col-span-2" data-target="store">
                         <i class="fa-solid fa-pen-nib text-3xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">English Writing Support</span>
+                        <span class="font-bold text-sm tracking-wide pointer-events-none">英作文サポート</span>
                     </button>
                 </div>
             </div>
 
             <div id="view-dashboard" class="view-section p-5">
-                <h2 id="current-date-display" class="text-2xl font-black text-gray-800 dark:text-white mb-3 ml-1 tracking-tight transition-colors">Today's Tasks</h2>
+                <h2 id="current-date-display" class="text-2xl font-black text-gray-800 dark:text-white mb-3 ml-1 tracking-tight transition-colors">本日のタスク</h2>
                 
                 <div class="mb-8 bg-gradient-to-br from-red-400 via-pink-500 to-purple-500 p-6 rounded-3xl shadow-[0_10px_25px_rgba(236,72,153,0.3)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.5)] text-white relative overflow-hidden animate-pop-in">
                     <div class="absolute -right-4 -top-4 w-24 h-24 bg-white opacity-10 rounded-full"></div>
                     <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-white opacity-10 rounded-full"></div>
-                    <p class="text-sm font-medium opacity-90 relative z-10">Estimated Learning Time</p>
-                    <p class="text-4xl font-black mt-2 relative z-10" id="remaining-time-display">0<span class="text-lg font-bold ml-1">min</span></p>
+                    <p class="text-sm font-medium opacity-90 relative z-10">推定学習時間</p>
+                    <p class="text-4xl font-black mt-2 relative z-10" id="remaining-time-display">0<span class="text-lg font-bold ml-1">分</span></p>
                     <div class="mt-4 flex space-x-4 relative z-10 text-xs font-medium opacity-90">
                         <p><i class="fas fa-list-ul mr-1"></i>incomplete: <span id="incomplete-count" class="font-bold text-sm">0</span></p>
                         <p><i class="fas fa-check-circle mr-1"></i>completed: <span id="completed-count" class="font-bold text-sm">0</span></p>
@@ -261,9 +261,9 @@
                 </div>
                 
                 <div class="flex justify-end gap-3 px-2 mb-3 text-[10px] font-bold text-gray-500 dark:text-gray-400">
-                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-sm"></div>Normal Tasks</div>
-                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-sm"></div>Reviews</div>
-                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm animate-pulse"></div>Incomplete Tasks(Review)</div>
+                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-sm"></div>通常タスク</div>
+                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-sm"></div>復習タスク</div>
+                    <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm animate-pulse"></div>未完了タスク(復習)</div>
                 </div>
 
                 <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm mb-6 p-2 transition-colors border border-gray-100 dark:border-gray-700">
@@ -302,7 +302,7 @@
             </div>
 
             <div id="view-store" class="view-section p-5 pb-32">
-                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">English Writing Spport</h2>
+                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">英作文サポート</h2>
                 
                 <div id="store-loading" class="flex flex-col items-center justify-center py-20 hidden">
                     <i class="fas fa-spinner fa-spin text-4xl text-indigo-500 mb-4"></i>
@@ -311,7 +311,7 @@
 
                 <div id="store-content">
                     <div class="bg-indigo-50 dark:bg-indigo-900/20 p-5 rounded-3xl mb-8 border border-indigo-100 dark:border-indigo-800 shadow-sm">
-                        <h3 class="font-bold text-indigo-800 dark:text-indigo-300 mb-2 flex items-center"><i class="fa-solid fa-circle-info mr-2"></i>English Writing Spport</h3>
+                        <h3 class="font-bold text-indigo-800 dark:text-indigo-300 mb-2 flex items-center"><i class="fa-solid fa-circle-info mr-2"></i>英作文サポート</h3>
                         <p class="text-xs text-indigo-600 dark:text-indigo-400 leading-relaxed font-medium">英作文で使える便利な構文や、テーマ別のアイデアパックを自分の単語帳に追加できます。「みんなの共有パック」では、全国のユーザーが作成した単語帳を利用可能です。</p>
                     </div>
                     <div id="store-list-container"></div>
@@ -380,7 +380,7 @@
             </div>
             
             <div id="view-drill" class="view-section p-5">
-                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">Arithmetic Drills</h2>
+                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">インド式計算ドリル</h2>
                 <div class="bg-white dark:bg-gray-800 p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row mb-6 gap-1 transition-colors">
                     <button id="drill-mode-training" class="flex-1 flex items-center justify-center gap-2 py-3 px-2 rounded-xl font-bold text-sm transition-all duration-200 bg-indigo-600 text-white shadow-md">
                         <i class="fas fa-fire text-yellow-300"></i> Traning
@@ -395,7 +395,7 @@
 
                 <div class="flex justify-between items-end mb-4 px-2">
                     <div>
-                        <h2 id="drill-title" class="text-lg font-black text-gray-800 dark:text-white tracking-tight">🎯 Intensive Traning Petterns</h2>
+                        <h2 id="drill-title" class="text-lg font-black text-gray-800 dark:text-white tracking-tight">🎯パターン集中特訓</h2>
                         <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">
                             <span id="drill-score-label">連続正解:</span> <span id="drill-score-text" class="text-indigo-600 dark:text-indigo-400 font-bold">0</span> 問
                             <span class="ml-2 px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded-md text-xs font-bold text-gray-600 dark:text-gray-300">PB: <span id="drill-highscore-text">0</span></span>
@@ -405,7 +405,7 @@
                     <button id="drill-toggle-hint" class="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/60">
                         <i id="drill-icon-hint-on" class="fas fa-lightbulb"></i>
                         <i id="drill-icon-hint-off" class="fas fa-lightbulb hidden opacity-50"></i>
-                        <span id="drill-text-hint">Tips ON</span>
+                        <span id="drill-text-hint">ヒントON</span>
                     </button>
                 </div>
 
@@ -459,7 +459,7 @@
             <div id="view-flashcard-app" class="view-section h-full relative flex-col bg-slate-50 dark:bg-slate-900">
                 <div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30">
                     <h2 data-fc-view="fc-sets" class="text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-layer-group text-pink-500 pointer-events-none"></i> FlashCard
+                        <i class="fa-solid fa-layer-group text-pink-500 pointer-events-none"></i> My単語帳
                     </h2>
                     <div id="fc-header-action"></div>
                 </div>
@@ -474,7 +474,7 @@
                             </form>
                         </section>
                         <section>
-                            <h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 ml-2">Your FlashCards</h3>
+                            <h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 ml-2">単語帳</h3>
                             <div id="fc-set-list" class="space-y-3"></div>
                             <div id="fc-set-empty" class="text-center py-12 text-slate-400 hidden bg-white/50 dark:bg-slate-800/50 rounded-[1.5rem] border border-slate-100 dark:border-slate-700">
                                 <i class="fa-solid fa-folder-open text-4xl mb-3 text-pink-200 dark:text-slate-600"></i>
@@ -485,7 +485,7 @@
 
                     <div id="fc-words" class="fc-view space-y-6 hidden pb-20 animate-pop-in">
                         <div class="flex justify-between items-end pb-2 ml-1 border-b border-slate-200 dark:border-slate-700">
-                            <h3 id="fc-current-set-title" class="text-xl font-extrabold text-slate-800 dark:text-white">Set's Name</h3>
+                            <h3 id="fc-current-set-title" class="text-xl font-extrabold text-slate-800 dark:text-white">セット名</h3>
                             <span id="fc-word-count" class="text-xs font-bold bg-purple-500 text-white px-3 py-1 rounded-full shadow-sm">0 words</span>
                         </div>
                         <section class="bg-white/80 dark:bg-slate-800/80 p-5 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-slate-700">
@@ -544,12 +544,54 @@
                 </div>
             </div>
 
-            <!-- 過去問ログ (新設) -->
+           <!-- <selection-tag>過去問ログ</selection-tag> (新設) -->
+            <!-- 過去問ログ -->
             <div id="view-past-exams" class="view-section p-5">
-                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">過去問ログ</h2>
-                <div class="text-center py-20 text-gray-400 dark:text-gray-500 font-bold">
-                    <i class="fas fa-tools text-5xl mb-4 text-gray-300 dark:text-gray-600"></i>
-                    <p>この画面に過去問ログ機能が追加されます。<br>（次のステップで実装します）</p>
+                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-4 ml-1 tracking-tight transition-colors">過去問ログ</h2>
+                
+                <!-- 科目タブ -->
+                <div class="overflow-x-auto mb-4 pb-2 border-b border-gray-100 dark:border-gray-700" style="scrollbar-width: none;">
+                    <div id="pe-subject-tabs" class="flex space-x-3 w-max px-1">
+                        <!-- タブがここに挿入されます -->
+                    </div>
+                </div>
+
+                <!-- 分析グラフエリア -->
+                <div id="pe-analytics-container" class="hidden flex-col gap-4 mb-6 px-1 animate-pop-in">
+                    <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
+                        <h3 id="pe-chart1-title" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center"><i class="fas fa-chart-line text-pink-500 mr-2"></i>得点推移</h3>
+                        <div class="relative h-48 w-full"><canvas id="pe-trend-chart"></canvas></div>
+                    </div>
+                    
+                    <!-- 2. 原因と分野 (2列配置) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
+                            <h3 id="pe-chart2-title" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center"><i class="fas fa-exclamation-triangle text-rose-500 mr-2"></i>なぜ間違えたか (原因)</h3>
+                            <div class="relative h-56 w-full"><canvas id="pe-cause-chart"></canvas></div>
+                        </div>
+                        <div id="pe-field-chart-container" class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
+                            <h3 id="pe-chart3-title" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center"><i class="fas fa-book-open text-blue-500 mr-2"></i>何が苦手か (分野)</h3>
+                            <div class="relative h-56 w-full"><canvas id="pe-field-chart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ▼ 新規追加: 再挑戦推奨リスト ▼ -->
+                <div id="pe-retry-list-container" class="hidden flex-col mb-6 px-1 animate-pop-in">
+                    <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center"><i class="fas fa-fire text-orange-500 mr-2"></i>再挑戦推奨リスト <span class="ml-2 text-[10px] font-medium text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">優先度順</span></h3>
+                    <div id="pe-retry-list" class="space-y-3">
+                        <!-- ここにリストがJSで挿入されます -->
+                    </div>
+                </div>
+                <!-- ▲ ここまで ▲ -->
+
+                <!-- 年度リスト -->
+                <div id="pe-years-list" class="space-y-3 pb-32">
+                    <!-- 2026年〜2007年のリストがここに挿入されます -->
+                </div>
+            </div>
+                <div id="pe-years-list" class="space-y-3 pb-32">
+                    <!-- 2026年〜2007年のリストがここに挿入されます -->
                 </div>
             </div>
 
@@ -588,17 +630,17 @@
             </div>
             <div class="space-y-5">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">Task Name</label>
+                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">タスク名</label>
                     <input type="text" id="input-task-title" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 outline-none transition-all" placeholder="例: 青チャート 数学II B 第1章">
                 </div>
                 <div class="flex space-x-4">
                     <div class="w-1/2 relative">
-                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">Subject</label>
+                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">科目</label>
                         <select id="input-task-subject" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 outline-none transition-all appearance-none font-medium"></select>
                         <i class="fas fa-chevron-down absolute right-4 top-11 text-gray-400 pointer-events-none text-xs"></i>
                     </div>
                     <div class="w-1/2">
-                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">Estimated Time(min)</label>
+                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">推定学習時間(分)</label>
                         <input type="number" id="input-task-time" min="1" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 outline-none transition-all" placeholder="60">
                     </div>
                 </div>
@@ -611,15 +653,15 @@
     <div id="modal-task-detail" class="modal-overlay fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] justify-center items-center">
         <div class="modal-content bg-white dark:bg-gray-800 w-11/12 max-w-md rounded-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl relative border border-gray-100 dark:border-gray-700">
             <button class="modal-close-btn absolute top-6 right-6 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><i class="fas fa-times pointer-events-none"></i></button>
-            <h3 class="text-xl font-black mb-2 text-gray-800 dark:text-white pr-10" id="detail-title">Task Name</h3>
+            <h3 class="text-xl font-black mb-2 text-gray-800 dark:text-white pr-10" id="detail-title">タスク名</h3>
             <p class="text-xs text-gray-500 dark:text-gray-400 mb-6 font-medium flex items-center">
-                <span id="detail-subject" class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-700 mr-2">subject</span>
+                <span id="detail-subject" class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-700 mr-2">科目</span>
                 Schedule: <span id="detail-est-time" class="mx-1 font-bold text-gray-700 dark:text-gray-300"></span>
             </p>
             <input type="hidden" id="detail-task-id">
             <div class="space-y-6">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">Actual Study Time (min)</label>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">実際の学習時間(分)</label>
                     <input type="number" id="detail-actual-time" min="0" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 outline-none transition-all font-bold text-lg text-center">
                 </div>
                 <div id="routine-progress-section" class="hidden bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800 transition-all duration-300 mt-2">
@@ -676,22 +718,22 @@
     <div id="modal-add-routine" class="modal-overlay fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] justify-center items-end sm:items-center">
         <div class="modal-content bg-white dark:bg-gray-800 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl border border-gray-100 dark:border-gray-700">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-gray-800 dark:text-white tracking-wide">Create New Routine</h3>
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white tracking-wide">固定ルーティン追加</h3>
                 <button class="modal-close-btn text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 transition-colors"><i class="fas fa-times pointer-events-none"></i></button>
             </div>
             <div class="space-y-5">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">Name</label>
+                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">ルーティン名</label>
                     <input type="text" id="input-routine-title" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all" placeholder="例: ターゲット1900">
                 </div>
                 <div class="flex space-x-4">
                     <div class="w-1/2 relative">
-                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">Subject</label>
+                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">科目</label>
                         <select id="input-routine-subject" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all appearance-none font-medium"></select>
                         <i class="fas fa-chevron-down absolute right-4 top-11 text-gray-400 pointer-events-none text-xs"></i>
                     </div>
                     <div class="w-1/2">
-                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">Estimated Time(min)</label>
+                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">予定時間(分)</label>
                         <input type="number" id="input-routine-time" min="1" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all" placeholder="15">
                     </div>
                 </div>
@@ -733,6 +775,81 @@
         </div>
     </div>
 
+    <!-- モーダル: 過去問記録ウィザード (統合・修正版) -->
+    <div id="modal-pe-wizard" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] justify-center items-end sm:items-center">
+        <div class="modal-content bg-white dark:bg-slate-800 w-full sm:max-w-2xl sm:rounded-3xl rounded-t-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl border border-slate-200 dark:border-slate-700 relative overflow-y-auto max-h-[90vh]">
+            <button class="modal-close-btn absolute top-6 right-6 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors z-10"><i class="fas fa-times pointer-events-none"></i></button>
+
+            <h3 class="text-xl font-black mb-6 text-slate-800 dark:text-white pr-10 border-b border-slate-100 dark:border-slate-700 pb-4">
+                <i class="fas fa-edit text-pink-500 mr-2"></i>過去問ログを記録
+            </h3>
+
+            <!-- ウィザードSTEP1: 基本情報 -->
+            <div id="pe-step-1" class="pe-wizard-step space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">今回の得点</label>
+                        <div class="flex items-end">
+                            <input type="number" id="pe-score-input" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-lg font-black text-center p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white" placeholder="0">
+                            <span class="ml-2 text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 whitespace-nowrap">/ <span id="pe-display-full-score">100</span> 点</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">目標: <span id="pe-display-target-score" class="text-pink-500 font-black">80</span> 点</label>
+                        <input type="number" id="pe-time-input" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-lg font-black text-center p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white" placeholder="解答時間(分)">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">本番度 (環境・緊張感)</label>
+                    <select id="pe-seriousness-select" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-sm font-bold p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white appearance-none">
+                        <option value="未選択">- 選択してください -</option>
+                        <option value="本番同様">本番同様 (時間制限あり・環境整備)</option>
+                        <option value="時間制限あり">時間制限あり</option>
+                        <option value="時間制限なし">時間制限なし</option>
+                        <option value="途中中断あり">途中中断あり</option>
+                        <option value="一部のみ実施">一部のみ実施</option>
+                    </select>
+                </div>
+                <button id="btn-pe-next-step" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold py-4 rounded-xl shadow-md mt-4 transition-all hover:opacity-90">次へ: 問題ごとの分析 <i class="fas fa-arrow-right ml-1"></i></button>
+            </div>
+
+            <!-- ウィザードSTEP2: 問題ごとの振り返り -->
+            <div id="pe-step-2" class="pe-wizard-step hidden space-y-5">
+                
+                <div class="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800">
+                    <h4 class="text-xs font-bold text-indigo-800 dark:text-indigo-300 mb-3"><i class="fas fa-chess-knight mr-1"></i>時間配分・解答戦略の評価</h4>
+                    <div class="flex space-x-3 mb-2">
+                        <select id="pe-strategy-eval" class="w-1/3 bg-white dark:bg-gray-800 border-none rounded-xl text-xs font-bold p-3 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm dark:text-white appearance-none text-center">
+                            <option value="未設定">- 評価 -</option>
+                            <option value="大成功" class="text-pink-500">◎ 大成功</option>
+                            <option value="成功" class="text-emerald-500">○ 成功</option>
+                            <option value="失敗" class="text-rose-500">× 失敗</option>
+                            <option value="大失敗" class="text-purple-500">×× 大失敗</option>
+                        </select>
+                        <input type="text" id="pe-strategy-note" class="w-2/3 bg-white dark:bg-gray-800 border-none rounded-xl text-xs p-3 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm dark:text-white" placeholder="反省点（例: 大問2に時間超過）">
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-end mb-2 border-b border-gray-100 dark:border-gray-700 pb-2">
+                    <div>
+                        <h4 class="font-bold text-gray-700 dark:text-gray-200 flex items-center"><i class="fas fa-list-check text-pink-500 mr-2"></i>問題ごとの分析</h4>
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 font-medium">※大問の順序は↑↓で並び替えられます。</p>
+                    </div>
+                    <button id="btn-pe-add-section" class="text-xs bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-300 font-bold px-4 py-2 rounded-full hover:bg-pink-100 dark:hover:bg-pink-900/50 transition-colors border border-pink-100 dark:border-pink-800 shadow-sm whitespace-nowrap"><i class="fas fa-plus mr-1"></i>大問追加</button>
+                </div>
+                
+                <div id="pe-questions-container" class="space-y-4 pb-6">
+                    <!-- 大問ブロックがJSで追加されます -->
+                </div>
+
+                <div class="flex space-x-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <button id="btn-pe-prev-step" class="w-1/3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 font-bold py-3.5 rounded-xl transition-colors hover:bg-slate-200 dark:hover:bg-slate-600"><i class="fas fa-arrow-left mr-1"></i> 戻る</button>
+                    <button id="btn-pe-save" class="w-2/3 bg-gradient-to-r from-emerald-400 to-teal-500 text-white font-bold py-3.5 rounded-xl shadow-md transition-all hover:opacity-90"><i class="fas fa-check mr-1"></i> 完了して保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- モーダル: 独自確認モーダル -->
     <div id="custom-confirm-modal" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] justify-center items-center">
         <div class="modal-content bg-white dark:bg-slate-800 w-11/12 max-w-xs rounded-2xl p-6 transform transition-transform shadow-2xl text-center border border-white/40 dark:border-slate-700">
@@ -766,6 +883,104 @@
                         <!-- ここにJSで履歴アイテムが動的追加されます -->
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: 過去問記録ウィザード -->
+    <div id="modal-pe-wizard" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] justify-center items-end sm:items-center">
+        <div class="modal-content bg-white dark:bg-slate-800 w-full sm:max-w-2xl sm:rounded-3xl rounded-t-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl border border-slate-200 dark:border-slate-700 relative overflow-y-auto max-h-[90vh]">
+            <button class="modal-close-btn absolute top-6 right-6 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors z-10"><i class="fas fa-times pointer-events-none"></i></button>
+
+            <h3 class="text-xl font-black mb-6 text-slate-800 dark:text-white pr-10 border-b border-slate-100 dark:border-slate-700 pb-4">
+                <i class="fas fa-edit text-pink-500 mr-2"></i>過去問ログを記録
+            </h3>
+
+            <!-- ウィザードSTEP1: 基本情報 -->
+            <div id="pe-step-1" class="pe-wizard-step space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">得点</label>
+                        <input type="number" id="pe-score-input" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-lg font-black text-center p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white" placeholder="0">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">解答時間 (分)</label>
+                        <input type="number" id="pe-time-input" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-lg font-black text-center p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white" placeholder="0">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">本番度 (環境・緊張感)</label>
+                    <select id="pe-seriousness-select" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-sm font-bold p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white appearance-none">
+                        <option value="未選択">- 選択してください -</option>
+                        <option value="本番同様">本番同様 (時間制限あり・環境整備)</option>
+                        <option value="時間制限あり">時間制限あり</option>
+                        <option value="時間制限なし">時間制限なし</option>
+                        <option value="途中中断あり">途中中断あり</option>
+                        <option value="一部のみ実施">一部のみ実施</option>
+                    </select>
+                </div>
+                <button id="btn-pe-next-step" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold py-4 rounded-xl shadow-md mt-4 transition-all hover:opacity-90">次へ: 問題ごとの分析 <i class="fas fa-arrow-right ml-1"></i></button>
+            </div>
+
+            <!-- ウィザードSTEP2: 問題ごとの振り返り -->
+            <div id="pe-step-2" class="pe-wizard-step hidden space-y-5">
+                
+                <!-- 時間配分・解答戦略の全体評価 -->
+                <div class="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800">
+                    <h4 class="text-xs font-bold text-indigo-800 dark:text-indigo-300 mb-3"><i class="fas fa-chess-knight mr-1"></i>時間配分・解答戦略の評価</h4>
+                    <div class="flex space-x-3 mb-2">
+                        <select id="pe-strategy-eval" class="w-1/3 bg-white dark:bg-gray-800 border-none rounded-xl text-xs font-bold p-3 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm dark:text-white appearance-none text-center">
+                            <option value="未設定">- 評価 -</option>
+                            <option value="大成功" class="text-pink-500">◎ 大成功</option>
+                            <option value="成功" class="text-emerald-500">○ 成功</option>
+                            <option value="失敗" class="text-rose-500">× 失敗</option>
+                            <option value="大失敗" class="text-purple-500">×× 大失敗</option>
+                        </select>
+                        <input type="text" id="pe-strategy-note" class="w-2/3 bg-white dark:bg-gray-800 border-none rounded-xl text-xs p-3 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm dark:text-white" placeholder="反省点（例: 大問2に時間を使いすぎた）">
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-end mb-2 border-b border-gray-100 dark:border-gray-700 pb-2">
+                    <div>
+                        <h4 class="font-bold text-gray-700 dark:text-gray-200 flex items-center"><i class="fas fa-list-check text-pink-500 mr-2"></i>問題ごとの分析</h4>
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 font-medium">※大問の順序は↑↓で実際の解答順に並び替えられます。</p>
+                    </div>
+                    <button id="btn-pe-add-section" class="text-xs bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-300 font-bold px-4 py-2 rounded-full hover:bg-pink-100 dark:hover:bg-pink-900/50 transition-colors border border-pink-100 dark:border-pink-800 shadow-sm whitespace-nowrap"><i class="fas fa-plus mr-1"></i>大問追加</button>
+                </div>
+                
+                <div id="pe-questions-container" class="space-y-4 pb-6">
+                    <!-- ここに大問ブロックがJSで追加されます -->
+                </div>
+
+                <div class="flex space-x-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <button id="btn-pe-prev-step" class="w-1/3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 font-bold py-3.5 rounded-xl transition-colors hover:bg-slate-200 dark:hover:bg-slate-600"><i class="fas fa-arrow-left mr-1"></i> 戻る</button>
+                    <button id="btn-pe-save" class="w-2/3 bg-gradient-to-r from-emerald-400 to-teal-500 text-white font-bold py-3.5 rounded-xl shadow-md transition-all hover:opacity-90"><i class="fas fa-check mr-1"></i> 完了して保存</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- モーダル: 単語帳クイック追加 -->
+    <div id="modal-fc-quick-add" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] justify-center items-center">
+        <div class="modal-content bg-white dark:bg-slate-800 w-11/12 max-w-sm rounded-3xl p-6 transform transition-transform shadow-2xl relative border border-slate-200 dark:border-slate-700">
+            <button class="modal-close-btn absolute top-5 right-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 transition-colors"><i class="fas fa-times pointer-events-none"></i></button>
+            <h3 class="text-lg font-black mb-4 text-slate-800 dark:text-white flex items-center"><i class="fa-solid fa-layer-group text-pink-500 mr-2"></i>単語帳に追加</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">追加先セット</label>
+                    <select id="quick-fc-set-select" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-sm font-bold p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white appearance-none"></select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Question (問題・覚えること)</label>
+                    <input type="text" id="quick-fc-q" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-sm p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white font-bold" placeholder="例: take action の語法">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Answer (答え・内容)</label>
+                    <textarea id="quick-fc-a" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-sm p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white h-20 resize-none" placeholder="例: 行動を起こす"></textarea>
+                </div>
+                <button id="btn-quick-fc-save" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-all shadow-md mt-2 flex justify-center items-center"><i class="fa-solid fa-plus mr-2"></i>保存する</button>
             </div>
         </div>
     </div>
