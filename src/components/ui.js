@@ -44,19 +44,29 @@ export function initUI(onThemeChangeCallback) {
 export function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
-    const bgColor = type === 'success' ? 'bg-emerald-500' : (type === 'error' ? 'bg-rose-500' : 'bg-gray-700');
-    const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
     
-    toast.className = `flex items-center text-white px-5 py-3 rounded-full shadow-[0_8px_15px_rgba(0,0,0,0.25)] text-sm font-bold animate-pop-in ${bgColor} transition-opacity duration-300 pointer-events-auto`;
-    toast.innerHTML = `<i class="fas ${icon} mr-2"></i> ${escapeHTML(message)}`;
+    // モダン化: 白(または濃いグレー)背景 + 左のアクセントボーダー
+    const baseStyle = "flex items-center bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 px-4 py-3 rounded-lg shadow-modern text-sm font-medium animate-pop-in transition-all duration-300 pointer-events-auto transform";
+    const typeStyle = type === 'success' ? 'border-l-4 border-l-emerald-500' : 
+                      (type === 'error' ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-blue-500');
+                      
+    const iconColor = type === 'success' ? 'text-emerald-500' : 
+                      (type === 'error' ? 'text-rose-500' : 'text-blue-500');
+                      
+    const icon = type === 'success' ? 'fa-check-circle' : 
+                 (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
+    
+    toast.className = `${baseStyle} ${typeStyle}`;
+    toast.innerHTML = `<i class="fas ${icon} ${iconColor} mr-3 text-lg"></i> <span class="tracking-tight">${escapeHTML(message)}</span>`;
     container.appendChild(toast);
     
+    // 退出アニメーションを追加するために少し変更
     setTimeout(() => { 
-        toast.classList.add('opacity-0'); 
+        toast.classList.remove('translate-y-0');
+        toast.classList.add('opacity-0', 'translate-y-2'); 
         setTimeout(() => toast.remove(), 300); 
-    }, 2500);
+    }, 3000); // 表示時間を少し長め（2.5秒→3秒）に調整
 }
-
 // ==========================================
 // 共通確認モーダル
 // ==========================================
