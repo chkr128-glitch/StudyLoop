@@ -601,13 +601,87 @@ async function savePastExam() {
     }
 
     try {
+        // 1. 過去問データ自体の保存
         const docId = `${wizardData.subject}_${wizardData.year}`;
         await setDoc(doc(getAppCollectionRef('past_exams'), docId), {
             ...wizardData,
             updatedAt: serverTimestamp()
         });
+
+        // 2. 復習タスクの自動抽出と生成ロジック
+        let generatedTaskCount = 0;
+        const tasksRef = getAppCollectionRef('tasks');
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        for (const sec of wizardData.sections) {
+            if (!sec.questions) continue;
+            
+            for (let qIndex = 0; qIndex < sec.questions.length; qIndex++) {
+                const q = sec.questions[qIndex];
+                if (q.result === '未' || !q.result) continue; // 未回答はスキップ
+                
+                const conf = parseInt(q.confidence) || 0;
+                let needsReview = false;
+                let reviewReason = '';
+                let reviewEval = 'C'; // 既存タスクシステムにおける重要度（Dが最高）
+                
+                // 【高度な分析判定】
+                if (q.result === '×') {
+                    if (conf >= 4) {
+                        needsReview = true;
+                        reviewReason = '🚨 危険な誤理解 (高確信での不正解)';
+                        reviewEval = 'D'; // 最優先復習
+                    } else {
+                        needsReview = true;
+                        reviewReason = '⚠️ 明確な弱点 (不正解)';
+                        reviewEval = 'D';
+                    }
+                } else if (q.result === '△') {
+                    needsReview = true;
+                    reviewReason = '🤔 不確実・要確認';
+                    reviewEval = 'C';
+                } else if (q.result === '○' && conf > 0 && conf <= 3) {
+                    needsReview = true;
+                    reviewReason = '🍀 偶然の正解 (低確信での正解)';
+                    reviewEval = 'C';
+                }
+                // ○ ＋ 高確信(4,5) は安定とみなし復習タスク化しない
+
+                if (needsReview) {
+                    // タスクタイトルの組み立て
+                    const fieldStr = (q.fields && q.fields.length > 0) ? `[${q.fields[0]}]` : '';
+                    const title = `[過去問復習] ${wizardData.year}年度 ${wizardData.subject} ${sec.name} 問${qIndex + 1} ${fieldStr}`;
+                    
+                    // タスクメモに分析結果と自分の思考を転記
+                    let noteText = `【判定】${reviewReason}\n`;
+                    if (q.causes && q.causes.length > 0) noteText += `【ミス原因】${q.causes.join(', ')}\n`;
+                    if (q.note) noteText += `【なぜ間違えたか】\n${q.note}\n\n`;
+                    if (q.correctThought) noteText += `【正しい考え方】\n${q.correctThought}\n`;
+
+                    // タスクとしてDBに追加
+                    const newTaskRef = doc(tasksRef);
+                    await setDoc(newTaskRef, {
+                        id: newTaskRef.id,
+                        title: title,
+                        subject: wizardData.subject,
+                        estimatedTime: 15,
+                        date: todayStr, // 当日のタスクとして追加
+                        completed: false,
+                        isReview: true,
+                        sourceEval: reviewEval, // ダッシュボードでSランク/Aランクタスクとして色付けされる
+                        note: noteText,
+                        createdAt: new Date().toISOString()
+                    });
+                    generatedTaskCount++;
+                }
+            }
+        }
         
-        showToast(`${wizardData.year}年度 ${wizardData.subject} の記録を保存しました！`);
+        const toastMsg = generatedTaskCount > 0 
+            ? `${wizardData.year}年度の記録を保存し、${generatedTaskCount}件の復習タスクを生成しました！`
+            : `${wizardData.year}年度 ${wizardData.subject} の記録を保存しました！`;
+            
+        showToast(toastMsg);
         closeModal('modal-pe-wizard');
     } catch (e) {
         console.error(e);
