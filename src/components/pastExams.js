@@ -410,11 +410,13 @@ function handleDataChange(e) {
             if (!q.causes) q.causes = [];
             if (e.target.checked) { if (!q.causes.includes(e.target.value)) q.causes.push(e.target.value); } 
             else { q.causes = q.causes.filter(t => t !== e.target.value); }
+            renderSections();
         }
         if (e.target.classList.contains('check-q-field')) {
             if (!q.fields) q.fields = [];
             if (e.target.checked) { if (!q.fields.includes(e.target.value)) q.fields.push(e.target.value); } 
             else { q.fields = q.fields.filter(t => t !== e.target.value); }
+            renderSections();
         }
     }
 }
@@ -484,11 +486,14 @@ function renderSections() {
                         <div class="mb-3">
                             <p class="text-[10px] font-bold text-rose-500 mb-1"><i class="fas fa-exclamation-circle mr-1"></i>なぜ間違えたか？（原因）</p>
                             <div class="flex flex-wrap gap-1">
-                                ${MISTAKE_CAUSES.map(tag => `
-                                    <label class="text-[10px] font-bold border border-rose-200 dark:border-rose-900/50 bg-white dark:bg-slate-800 dark:text-slate-300 rounded px-2 py-1 cursor-pointer has-[:checked]:bg-rose-500 has-[:checked]:border-rose-500 has-[:checked]:text-white transition-colors shadow-sm">
-                                        <input type="checkbox" class="check-q-cause hidden" value="${tag}" ${causes.includes(tag) ? 'checked' : ''}> ${tag}
+                                ${MISTAKE_CAUSES.map(tag => {
+                                    const isChecked = causes.includes(tag);
+                                    const activeClass = isChecked ? 'bg-rose-500 border-rose-500 text-white' : 'border-rose-200 dark:border-rose-900/50 bg-white dark:bg-slate-800 dark:text-slate-300';
+                                    return `
+                                    <label class="text-[10px] font-bold border rounded px-2 py-1 cursor-pointer transition-colors shadow-sm ${activeClass}">
+                                        <input type="checkbox" class="check-q-cause hidden" value="${tag}" ${isChecked ? 'checked' : ''}> ${tag}
                                     </label>
-                                `).join('')}
+                                `}).join('')}
                             </div>
                         </div>
 
@@ -496,11 +501,14 @@ function renderSections() {
                         <div class="mb-3">
                             <p class="text-[10px] font-bold text-blue-500 mb-1"><i class="fas fa-book-open mr-1"></i>何についての問題か？（分野）</p>
                             <div class="flex flex-wrap gap-1">
-                                ${fieldTags.map(tag => `
-                                    <label class="text-[10px] font-bold border border-blue-200 dark:border-blue-900/50 bg-white dark:bg-slate-800 dark:text-slate-300 rounded px-2 py-1 cursor-pointer has-[:checked]:bg-blue-500 has-[:checked]:border-blue-500 has-[:checked]:text-white transition-colors shadow-sm">
-                                        <input type="checkbox" class="check-q-field hidden" value="${tag}" ${fields.includes(tag) ? 'checked' : ''}> ${tag}
+                                ${fieldTags.map(tag => {
+                                    const isChecked = fields.includes(tag);
+                                    const activeClass = isChecked ? 'bg-blue-500 border-blue-500 text-white' : 'border-blue-200 dark:border-blue-900/50 bg-white dark:bg-slate-800 dark:text-slate-300';
+                                    return `
+                                    <label class="text-[10px] font-bold border rounded px-2 py-1 cursor-pointer transition-colors shadow-sm ${activeClass}">
+                                        <input type="checkbox" class="check-q-field hidden" value="${tag}" ${isChecked ? 'checked' : ''}> ${tag}
                                     </label>
-                                `).join('')}
+                                `}).join('')}
                             </div>
                         </div>
 
