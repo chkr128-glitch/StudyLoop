@@ -151,7 +151,7 @@ function renderCharts(subject) {
             container.classList.add('hidden'); container.classList.remove('flex'); return;
         } else {
             container.classList.remove('hidden'); container.classList.add('flex');
-            if (fieldContainer) fieldContainer.classList.add('hidden'); // 全体分析では分野グラフを隠す
+            if (fieldContainer) fieldContainer.classList.add('hidden'); // 全体では分野を隠す
         }
 
         if (title1) title1.innerHTML = '<i class="fas fa-chart-bar text-pink-500 mr-2"></i>科目別 平均得点率';
@@ -204,7 +204,7 @@ function renderCharts(subject) {
             causeChartInstance = new Chart(ctxCause, {
                 type: 'doughnut',
                 data: { labels: causeLabels, datasets: [{ data: causeData, backgroundColor: causeData[0] === 1 && causeLabels[0] === "データなし" ? ['#e5e7eb'] : ['#f43f5e', '#ec4899', '#d946ef', '#8b5cf6', '#a855f7', '#f59e0b'], borderWidth: 0, hoverOffset: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: textColor, font: { size: 10, weight: 'bold' }, padding: 12 } } }, cutout: '65%' }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { size: 10, weight: 'bold' }, padding: 12 } } }, cutout: '65%' }
             });
         }
     } else {
@@ -219,7 +219,7 @@ function renderCharts(subject) {
         if (title1) title1.innerHTML = '<i class="fas fa-chart-line text-pink-500 mr-2"></i>得点推移';
         if (title2) title2.innerHTML = '<i class="fas fa-exclamation-triangle text-rose-500 mr-2"></i>なぜ間違えたか (原因)';
 
-        // 1. 得点推移（個別科目）
+        // 1. 得点推移
         const ctxTrend = document.getElementById('pe-trend-chart')?.getContext('2d');
         if (ctxTrend) {
             if (trendChartInstance) trendChartInstance.destroy();
@@ -240,7 +240,7 @@ function renderCharts(subject) {
             });
         }
 
-        // 2. 原因グラフ（個別科目）
+        // 2. 原因グラフ
         const ctxCause = document.getElementById('pe-cause-chart')?.getContext('2d');
         if (ctxCause) {
             if (causeChartInstance) causeChartInstance.destroy();
@@ -264,11 +264,11 @@ function renderCharts(subject) {
             causeChartInstance = new Chart(ctxCause, {
                 type: 'doughnut',
                 data: { labels: causeLabels, datasets: [{ data: causeData, backgroundColor: causeData[0] === 1 && causeLabels[0] === "データなし" ? ['#e5e7eb'] : ['#f43f5e', '#ec4899', '#d946ef', '#8b5cf6', '#a855f7', '#f59e0b'], borderWidth: 0, hoverOffset: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: textColor, font: { size: 10, weight: 'bold' }, padding: 12 } } }, cutout: '65%' }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { size: 10, weight: 'bold' }, padding: 12 } } }, cutout: '65%' }
             });
         }
 
-        // 3. 分野グラフ（個別科目）
+        // 3. 分野グラフ
         const ctxField = document.getElementById('pe-field-chart')?.getContext('2d');
         if (ctxField) {
             if (fieldChartInstance) fieldChartInstance.destroy();
@@ -292,7 +292,7 @@ function renderCharts(subject) {
             fieldChartInstance = new Chart(ctxField, {
                 type: 'doughnut',
                 data: { labels: fieldLabels, datasets: [{ data: fieldData, backgroundColor: fieldData[0] === 1 && fieldLabels[0] === "データなし" ? ['#e5e7eb'] : ['#3b82f6', '#0ea5e9', '#06b6d4', '#14b8a6', '#10b981', '#84cc16'], borderWidth: 0, hoverOffset: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: textColor, font: { size: 10, weight: 'bold' }, padding: 12 } } }, cutout: '65%' }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { size: 10, weight: 'bold' }, padding: 12 } } }, cutout: '65%' }
             });
         }
     }
@@ -371,7 +371,6 @@ function handleSectionEvents(e) {
         });
     } else if (e.target.closest('.btn-q-add')) {
         e.preventDefault();
-        // 新フォーマット (causes, fields, note)
         wizardData.sections[secIndex].questions.push({ id: Date.now().toString(), result: '未', confidence: '0', causes: [], fields: [], note: '' });
         renderSections();
     } else if (e.target.closest('.btn-q-delete')) {
@@ -405,7 +404,7 @@ function handleDataChange(e) {
         if (e.target.classList.contains('select-q-conf')) q.confidence = e.target.value;
         if (e.target.classList.contains('input-q-note')) q.note = e.target.value;
 
-        // チェックボックス処理 (causes / fields)
+        // 【修正】チェックボックスをJSで色制御
         if (e.target.classList.contains('check-q-cause')) {
             if (!q.causes) q.causes = [];
             if (e.target.checked) { if (!q.causes.includes(e.target.value)) q.causes.push(e.target.value); } 
@@ -426,7 +425,6 @@ function renderSections() {
     const container = document.getElementById('pe-questions-container');
     if (!container) return;
 
-    // 現在の科目に該当する分野タグを取得。見つからなければ共通の「その他」
     const fieldTags = SUBJECT_FIELDS[currentSubject] || 
                       (SUBJECT_FIELDS[Object.keys(SUBJECT_FIELDS).find(key => currentSubject.includes(key))] || SUBJECT_FIELDS['共通']);
 
@@ -451,7 +449,7 @@ function renderSections() {
 
             <div class="pe-q-list space-y-4 mb-3">
                 ${sec.questions.map((q, qIndex) => {
-                    const causes = q.causes || q.tags || []; // 互換性のためtagsも読み込み
+                    const causes = q.causes || q.tags || []; 
                     const fields = q.fields || [];
                     
                     return `
@@ -464,7 +462,6 @@ function renderSections() {
                             </div>
                         </div>
 
-                        <!-- 1. 結果と確信度 -->
                         <div class="flex flex-wrap gap-2 mb-3">
                             <select class="select-q-result text-xs font-bold p-2 rounded-lg outline-none cursor-pointer shadow-sm ${getResultColor(q.result)}">
                                 <option value="未" ${q.result === '未' ? 'selected' : ''}>- 結果 -</option>
@@ -482,7 +479,7 @@ function renderSections() {
                             </select>
                         </div>
 
-                        <!-- 2. 原因タグ (全科目共通) -->
+                        <!-- 【修正】チェックボックスをJS側でスタイル制御 -->
                         <div class="mb-3">
                             <p class="text-[10px] font-bold text-rose-500 mb-1"><i class="fas fa-exclamation-circle mr-1"></i>なぜ間違えたか？（原因）</p>
                             <div class="flex flex-wrap gap-1">
@@ -497,7 +494,6 @@ function renderSections() {
                             </div>
                         </div>
 
-                        <!-- 3. 分野タグ (科目固有) -->
                         <div class="mb-3">
                             <p class="text-[10px] font-bold text-blue-500 mb-1"><i class="fas fa-book-open mr-1"></i>何についての問題か？（分野）</p>
                             <div class="flex flex-wrap gap-1">
@@ -512,7 +508,6 @@ function renderSections() {
                             </div>
                         </div>
 
-                        <!-- 4. 詳細メモ -->
                         <div>
                             <input type="text" class="input-q-note w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs p-2 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white shadow-sm" placeholder="詳細な気づき（例：公式を忘れた、符号ミス...）" value="${q.note || ''}">
                         </div>
