@@ -1,5 +1,5 @@
 import { db, isUsingPreviewDB, appId } from '../config/firebase.js';
-import { collection, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { collection, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 let currentUserId = null;
 
@@ -47,4 +47,30 @@ export function getStoreCollectionRef() {
 export function getStoreDocRef(docId) {
     if (isUsingPreviewDB) return doc(db, 'artifacts', appId, 'store_sets', docId);
     return doc(db, 'store_sets', docId);
+}
+
+// ==========================================
+// 4. 公開プロフィール用データ参照・操作 (Public Profile)
+// ==========================================
+export function getPublicProfileRef(uid = currentUserId) {
+    if (!uid) throw new Error("User ID is required");
+    // プレビュー環境の場合は artifacts フォルダ配下に分離
+    if (isUsingPreviewDB) return doc(db, 'artifacts', appId, 'users_profile', uid);
+    return doc(db, 'users_profile', uid);
+}
+
+export async function getPublicProfile(uid = currentUserId) {
+    const ref = getPublicProfileRef(uid);
+    const snap = await getDoc(ref);
+    return snap.exists() ? snap.data() : null;
+}
+
+export async function savePublicProfile(profileData) {
+    if (!currentUserId) throw new Error("User not authenticated");
+    const ref = getPublicProfileRef(currentUserId);
+    // merge: true を指定することで、既存のデータ（フォロワー数など）を消さずに一部更新可能にする
+    await setDoc(ref, {
+        ...profileData,
+        updatedAt: serverTimestamp()
+    }, { merge: true });
 }
