@@ -371,7 +371,8 @@ function handleSectionEvents(e) {
         });
     } else if (e.target.closest('.btn-q-add')) {
         e.preventDefault();
-        wizardData.sections[secIndex].questions.push({ id: Date.now().toString(), result: '未', confidence: '0', causes: [], fields: [], note: '' });
+        // 変更点: 新たに correctThought（正しい考え方）プロパティを追加
+        wizardData.sections[secIndex].questions.push({ id: Date.now().toString(), result: '未', confidence: '0', causes: [], fields: [], note: '', correctThought: '' });
         renderSections();
     } else if (e.target.closest('.btn-q-delete')) {
         e.preventDefault();
@@ -403,8 +404,10 @@ function handleDataChange(e) {
         }
         if (e.target.classList.contains('select-q-conf')) q.confidence = e.target.value;
         if (e.target.classList.contains('input-q-note')) q.note = e.target.value;
+        // 変更点: 「正しい考え方」の入力を検知して保存
+        if (e.target.classList.contains('input-q-correct-thought')) q.correctThought = e.target.value;
 
-        // 【修正】チェックボックスをJSで色制御
+        // チェックボックス処理 (causes / fields)
         if (e.target.classList.contains('check-q-cause')) {
             if (!q.causes) q.causes = [];
             if (e.target.checked) { if (!q.causes.includes(e.target.value)) q.causes.push(e.target.value); } 
@@ -425,6 +428,7 @@ function renderSections() {
     const container = document.getElementById('pe-questions-container');
     if (!container) return;
 
+    // 現在の科目に該当する分野タグを取得。見つからなければ共通の「その他」
     const fieldTags = SUBJECT_FIELDS[currentSubject] || 
                       (SUBJECT_FIELDS[Object.keys(SUBJECT_FIELDS).find(key => currentSubject.includes(key))] || SUBJECT_FIELDS['共通']);
 
@@ -462,6 +466,7 @@ function renderSections() {
                             </div>
                         </div>
 
+                        <!-- 1. 結果と確信度 -->
                         <div class="flex flex-wrap gap-2 mb-3">
                             <select class="select-q-result text-xs font-bold p-2 rounded-lg outline-none cursor-pointer shadow-sm ${getResultColor(q.result)}">
                                 <option value="未" ${q.result === '未' ? 'selected' : ''}>- 結果 -</option>
@@ -479,7 +484,7 @@ function renderSections() {
                             </select>
                         </div>
 
-                        <!-- 【修正】チェックボックスをJS側でスタイル制御 -->
+                        <!-- 2. 原因タグ (全科目共通) -->
                         <div class="mb-3">
                             <p class="text-[10px] font-bold text-rose-500 mb-1"><i class="fas fa-exclamation-circle mr-1"></i>なぜ間違えたか？（原因）</p>
                             <div class="flex flex-wrap gap-1">
@@ -494,6 +499,7 @@ function renderSections() {
                             </div>
                         </div>
 
+                        <!-- 3. 分野タグ (科目固有) -->
                         <div class="mb-3">
                             <p class="text-[10px] font-bold text-blue-500 mb-1"><i class="fas fa-book-open mr-1"></i>何についての問題か？（分野）</p>
                             <div class="flex flex-wrap gap-1">
@@ -508,8 +514,10 @@ function renderSections() {
                             </div>
                         </div>
 
-                        <div>
-                            <input type="text" class="input-q-note w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs p-2 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white shadow-sm" placeholder="詳細な気づき（例：公式を忘れた、符号ミス...）" value="${q.note || ''}">
+                        <!-- 4. 詳細原因と正しい考え方 (変更点) -->
+                        <div class="space-y-2">
+                            <input type="text" class="input-q-note w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs p-2 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white shadow-sm" placeholder="なぜ間違えたか（例：公式を忘れた、条件を見落とした...）" value="${q.note || ''}">
+                            <input type="text" class="input-q-correct-thought w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs p-2 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white shadow-sm" placeholder="正しい考え方（例：整数条件があるため、まず因数分解を検討する）" value="${q.correctThought || ''}">
                         </div>
                     </div>
                 `;}).join('')}
@@ -529,6 +537,30 @@ function getResultColor(result) {
 }
 
 // --- ウィザード表示・復元 ---
+function openWizard(subject, year) {
+    const existingData = pastExams.find(e => e.subject === subject && e.year === String(year));
+    
+    if (existingData) {
+        wizardData = JSON.parse(JSON.stringify(existingData));
+    } else {
+        wizardData = { subject, year, score: '', actualTime: '', seriousness: '未選択', strategyEval: '未設定', strategyNote: '', sections: [] };
+    }
+
+    const scoreData = getSubjectTargetAndFullScore(subject);
+    
+    document.getElementById('pe-score-input').value = wizardData.score || '';
+    document.getElementById('pe-display-full-score').innerText = scoreData.full || 0;
+    document.getElementById('pe-display-target-score').innerText = scoreData.target || 0;
+    
+    document.getElementById('pe-time-input').value = wizardData.actualTime || '';
+    document.getElementById('pe-seriousness-select').value = wizardData.seriousness || '未選択';
+    document.getElementById('pe-strategy-eval').value = wizardData.strategyEval || '未設定';
+    document.getElementById('pe-strategy-note').value = wizardData.strategyNote || '';
+
+    goToStep(1);
+    renderSections();
+    openModal('modal-pe-wizard');
+}
 function openWizard(subject, year) {
     const existingData = pastExams.find(e => e.subject === subject && e.year === String(year));
     
