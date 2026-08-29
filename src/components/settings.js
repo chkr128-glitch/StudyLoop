@@ -3,16 +3,27 @@ import {
     AVATARS, USER_STATUSES, USER_TRACKS, TARGET_CATEGORIES, SCHOOL_TYPES, PREFECTURES
 } from '../utils/constants.js';
 import { formatTime, escapeHTML } from '../utils/helpers.js';
-import { showToast, showConfirm, openModal, closeModal } from './ui.js';
+// ▼ switchViewUI を import に追加
+import { showToast, showConfirm, openModal, closeModal, switchViewUI } from './ui.js';
 import { getAppDocRef, getPublicProfile, savePublicProfile } from '../services/db.js';
 import { setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // main.js から渡される、現在のユーザーIDを取得する関数を保持
 let getCurrentUserIdFn = null;
 
-// ★ 新規追加: 設定画面のイベントリスナー初期化
+// 設定画面のイベントリスナー初期化
 export function initSettings(getUserIdCallback) {
     getCurrentUserIdFn = getUserIdCallback;
+
+    // ▼ 新規追加: サブビューへの遷移イベント ▼
+    document.getElementById('nav-settings-profile')?.addEventListener('click', () => switchViewUI('settings-profile'));
+    document.getElementById('nav-settings-account')?.addEventListener('click', () => switchViewUI('settings-account'));
+    document.getElementById('nav-settings-routine')?.addEventListener('click', () => switchViewUI('settings-routine'));
+
+    // サブビューから設定メイン画面への戻るボタン
+    document.querySelectorAll('.btn-back-to-settings').forEach(btn => {
+        btn.addEventListener('click', () => switchViewUI('settings'));
+    });
 
     // APIキー保存ボタン（HTMLに id="btn-save-api-key" を追加してください）
     document.getElementById('btn-save-api-key')?.addEventListener('click', saveApiKey);
