@@ -558,7 +558,6 @@
 
                 <!-- 分析グラフエリア -->
                 <div id="pe-analytics-container" class="hidden flex-col gap-4 mb-6 px-1 animate-pop-in">
-                    <!-- 1. 得点推移 -->
                     <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
                         <h3 id="pe-chart1-title" class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center"><i class="fas fa-chart-line text-pink-500 mr-2"></i>得点推移</h3>
                         <div class="relative h-48 w-full"><canvas id="pe-trend-chart"></canvas></div>
@@ -577,7 +576,20 @@
                     </div>
                 </div>
 
+                <!-- ▼ 新規追加: 再挑戦推奨リスト ▼ -->
+                <div id="pe-retry-list-container" class="hidden flex-col mb-6 px-1 animate-pop-in">
+                    <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center"><i class="fas fa-fire text-orange-500 mr-2"></i>再挑戦推奨リスト <span class="ml-2 text-[10px] font-medium text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">優先度順</span></h3>
+                    <div id="pe-retry-list" class="space-y-3">
+                        <!-- ここにリストがJSで挿入されます -->
+                    </div>
+                </div>
+                <!-- ▲ ここまで ▲ -->
+
                 <!-- 年度リスト -->
+                <div id="pe-years-list" class="space-y-3 pb-32">
+                    <!-- 2026年〜2007年のリストがここに挿入されます -->
+                </div>
+            </div>
                 <div id="pe-years-list" class="space-y-3 pb-32">
                     <!-- 2026年〜2007年のリストがここに挿入されます -->
                 </div>
