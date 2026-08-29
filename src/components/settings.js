@@ -15,8 +15,11 @@ let getCurrentUserIdFn = null;
 export function initSettings(getUserIdCallback) {
     getCurrentUserIdFn = getUserIdCallback;
 
-    // ▼ 新規追加: サブビューへの遷移イベント ▼
-    document.getElementById('nav-settings-profile')?.addEventListener('click', () => switchViewUI('settings-profile'));
+    // ▼ サブビューへの遷移イベント ▼
+    document.getElementById('nav-settings-profile')?.addEventListener('click', () => {
+        switchViewUI('settings-profile');
+        renderPublicProfileSummary(); // 追加: 画面を開いた時にプロフィールを読み込んで表示
+    });
     document.getElementById('nav-settings-account')?.addEventListener('click', () => switchViewUI('settings-account'));
     document.getElementById('nav-settings-routine')?.addEventListener('click', () => switchViewUI('settings-routine'));
 
@@ -321,11 +324,73 @@ async function savePublicProfileData() {
         
         showToast("公開プロフィールを保存しました");
         closeModal('modal-public-profile');
+        
+        // ▼ 追加: 保存完了後、背面のカード表示を最新化する
+        renderPublicProfileSummary();
+        
     } catch (e) {
         console.error("保存エラー:", e);
         showToast("保存に失敗しました", "error");
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-check mr-2"></i> プロフィールを保存';
+    }
+}
+
+// ▼ 新規追加: プロフィール情報をカードとして描画する関数
+export async function renderPublicProfileSummary() {
+    const summaryContainer = document.getElementById('public-profile-summary');
+    if (!summaryContainer) return;
+    
+    try {
+        const profile = await getPublicProfile();
+        
+        // 未設定の場合の表示
+        if (!profile || !profile.displayName) {
+            summaryContainer.innerHTML = `
+                <div class="text-center text-slate-400 dark:text-slate-500 text-xs font-bold py-4">
+                    <i class="fas fa-user-slash mb-2 text-3xl text-slate-300 dark:text-slate-600"></i><br>
+                    プロフィールが未設定です。<br>右上の「編集」から設定してください。
+                </div>
+            `;
+            return;
+        }
+
+        // 選択されたアバターの情報を取得
+        const avatar = AVATARS.find(a => a.id === profile.avatarId) || AVATARS[0];
+        
+        // 設定された情報をカード形式で描画
+        summaryContainer.innerHTML = `
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl border-2 border-emerald-100 dark:border-emerald-900/50 ${avatar.bg} shadow-sm flex-shrink-0">
+                    <i class="${avatar.icon} ${avatar.color}"></i>
+                </div>
+                <div class="flex-grow min-w-0">
+                    <h4 class="text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight truncate">${escapeHTML(profile.displayName)}</h4>
+                    ${profile.bio ? `<p class="text-xs text-slate-600 dark:text-slate-400 font-medium mt-1 truncate">"${escapeHTML(profile.bio)}"</p>` : ''}
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-3">
+                <div class="bg-white dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200/60 dark:border-slate-700 shadow-sm">
+                    <span class="block text-[9px] text-slate-400 font-bold mb-0.5">志望系統</span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200">${escapeHTML(profile.targetCategory || '未設定')}</span>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200/60 dark:border-slate-700 shadow-sm">
+                    <span class="block text-[9px] text-slate-400 font-bold mb-0.5">ステータス</span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200">${escapeHTML(profile.status || '未設定')} / ${escapeHTML(profile.track || '未設定')}</span>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200/60 dark:border-slate-700 shadow-sm">
+                    <span class="block text-[9px] text-slate-400 font-bold mb-0.5">所在</span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200">${escapeHTML(profile.prefecture || '非公開')}</span>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200/60 dark:border-slate-700 shadow-sm">
+                    <span class="block text-[9px] text-slate-400 font-bold mb-0.5">学校区分</span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200">${escapeHTML(profile.schoolType || '未設定')}</span>
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        console.error("プロフィールの読み込みに失敗:", e);
+        summaryContainer.innerHTML = `<div class="text-xs text-rose-500 font-bold text-center py-4"><i class="fas fa-exclamation-circle mb-1"></i><br>読み込みエラーが発生しました</div>`;
     }
 }
