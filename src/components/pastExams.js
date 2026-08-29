@@ -11,12 +11,10 @@ let currentYear = '';
 let wizardData = { sections: [] };
 let fcSetsCache = []; 
 
-// グラフインスタンス保持用
 let trendChartInstance = null;
 let causeChartInstance = null;
 let fieldChartInstance = null;
 
-// --- 初期化 ---
 export function initPastExams() {
     setupEventListeners();
 }
@@ -33,10 +31,10 @@ export function updatePastExamsData(profile, exams) {
     if (currentSubject) {
         renderYears(currentSubject);
         renderCharts(currentSubject); 
+        renderRetryList(currentSubject); // 再挑戦リストの描画を追加
     }
 }
 
-// --- 設定からの科目取得ロジック ---
 function getAvailableSubjects() {
     if (!userProfile || !userProfile.examScores) return ['英語', '数学', '国語', '全体分析'];
     
@@ -60,7 +58,6 @@ function getAvailableSubjects() {
     return [...subjectArray, '全体分析'];
 }
 
-// --- 目標点と配点の取得 ---
 function getSubjectTargetAndFullScore(subject) {
     if (!userProfile || !userProfile.examScores || !userProfile.examScores.second) return { full: 0, target: 0 };
     const ss = userProfile.examScores.second;
@@ -73,11 +70,9 @@ function getSubjectTargetAndFullScore(subject) {
         if (ss[`社会${i}_sub`] === subject) return { full: parseInt(ss[`社会${i}_score`]) || 0, target: parseInt(ss[`社会${i}_target`]) || 0 };
         if (ss[`理科${i}_sub`] === subject) return { full: parseInt(ss[`理科${i}_score`]) || 0, target: parseInt(ss[`理科${i}_target`]) || 0 };
     }
-    
     return { full: 0, target: 0 };
 }
 
-// --- 画面描画 ---
 function renderTabs() {
     const container = document.getElementById('pe-subject-tabs');
     if (!container) return;
@@ -90,11 +85,7 @@ function renderTabs() {
             ? 'bg-pink-500 text-white border-pink-500' 
             : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700';
             
-        return `
-            <button class="pe-tab-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-colors border shadow-sm flex-shrink-0 ${activeClass}" data-subject="${sub}">
-                ${icon}${sub}
-            </button>
-        `;
+        return `<button class="pe-tab-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-colors border shadow-sm flex-shrink-0 ${activeClass}" data-subject="${sub}">${icon}${sub}</button>`;
     }).join('');
 }
 
@@ -116,7 +107,6 @@ function renderYears(subject) {
 
     container.innerHTML = years.map(year => {
         const record = pastExams.find(e => e.subject === subject && e.year === String(year));
-        
         return `
             <button type="button" class="pe-year-row w-full text-left flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer hover:border-pink-300 transition-colors mx-1" data-year="${year}">
                 <div>
@@ -133,7 +123,85 @@ function renderYears(subject) {
     }).join('');
 }
 
-// --- 分析グラフの描画 ---
+// --- 新規追加: 再挑戦リストの描画 ---
+function renderRetryList(subject) {
+    const containerWrapper = document.getElementById('pe-retry-list-container');
+    const listContainer = document.getElementById('pe-retry-list');
+    if (!containerWrapper || !listContainer) return;
+
+    if (subject === '全体分析') {
+        containerWrapper.classList.add('hidden');
+        containerWrapper.classList.remove('flex');
+        return;
+    }
+
+    const subjectExams = pastExams.filter(e => e.subject === subject && e.score !== '');
+    const retryItems = [];
+
+    subjectExams.forEach(exam => {
+        if (exam.sections) {
+            exam.sections.forEach(sec => {
+                if (sec.questions) {
+                    sec.questions.forEach((q, qIndex) => {
+                        let priority = 0;
+                        let reason = '';
+                        let iconClass = '';
+                        let colorClass = '';
+
+                        const conf = parseInt(q.confidence) || 0;
+                        if (q.result === '×') {
+                            if (conf >= 4) { priority = 1; reason = '危険な誤理解'; iconClass = 'fa-skull'; colorClass = 'text-rose-500'; } 
+                            else { priority = 2; reason = '明確な弱点'; iconClass = 'fa-exclamation-triangle'; colorClass = 'text-orange-500'; }
+                        } else if (q.result === '△') {
+                            priority = 3; reason = '不確実・要確認'; iconClass = 'fa-question-circle'; colorClass = 'text-yellow-500';
+                        } else if (q.result === '○' && conf > 0 && conf <= 3) {
+                            priority = 4; reason = '偶然の正解'; iconClass = 'fa-leaf'; colorClass = 'text-emerald-500';
+                        }
+
+                        if (priority > 0) {
+                            retryItems.push({
+                                examYear: exam.year, sectionName: sec.name, questionIndex: qIndex,
+                                priority, reason, iconClass, colorClass, q
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+
+    if (retryItems.length === 0) {
+        containerWrapper.classList.add('hidden');
+        containerWrapper.classList.remove('flex');
+        return;
+    }
+
+    // 優先度順（数値が小さいほど高優先）にソートし、上位10件を表示
+    retryItems.sort((a, b) => a.priority - b.priority);
+    const topItems = retryItems.slice(0, 10);
+
+    containerWrapper.classList.remove('hidden');
+    containerWrapper.classList.add('flex');
+
+    listContainer.innerHTML = topItems.map(item => `
+        <button type="button" class="w-full text-left bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col hover:border-pink-300 transition-colors cursor-pointer pe-year-row" data-year="${item.examYear}">
+            <div class="flex justify-between items-start mb-2">
+                <span class="text-[10px] font-bold ${item.colorClass} bg-gray-50 dark:bg-gray-700/50 px-2 py-0.5 rounded shadow-sm flex items-center border border-gray-100 dark:border-gray-600"><i class="fas ${item.iconClass} mr-1"></i>${item.reason}</span>
+                <span class="text-xs font-bold text-gray-500 dark:text-gray-400"><i class="fas fa-history mr-1"></i>${item.examYear}年度</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <div class="font-bold text-gray-800 dark:text-gray-100 text-sm">
+                    ${item.sectionName} <span class="ml-1 text-pink-500">問${item.questionIndex + 1}</span>
+                </div>
+                <div class="flex items-center text-xs text-indigo-500 font-bold bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 rounded-full">
+                    解き直す <i class="fas fa-chevron-right ml-1 text-[10px]"></i>
+                </div>
+            </div>
+            ${item.q.causes && item.q.causes.length > 0 ? `<div class="mt-2 text-[10px] text-gray-500 dark:text-gray-400 truncate">原因: ${item.q.causes.join(', ')}</div>` : ''}
+        </button>
+    `).join('');
+}
+
 function renderCharts(subject) {
     const container = document.getElementById('pe-analytics-container');
     const fieldContainer = document.getElementById('pe-field-chart-container');
@@ -151,13 +219,12 @@ function renderCharts(subject) {
             container.classList.add('hidden'); container.classList.remove('flex'); return;
         } else {
             container.classList.remove('hidden'); container.classList.add('flex');
-            if (fieldContainer) fieldContainer.classList.add('hidden'); // 全体では分野を隠す
+            if (fieldContainer) fieldContainer.classList.add('hidden'); 
         }
 
         if (title1) title1.innerHTML = '<i class="fas fa-chart-bar text-pink-500 mr-2"></i>科目別 平均得点率';
         if (title2) title2.innerHTML = '<i class="fas fa-exclamation-triangle text-rose-500 mr-2"></i>全科目の失点原因 (総合)';
 
-        // 1. 得点推移（全体）
         const ctxTrend = document.getElementById('pe-trend-chart')?.getContext('2d');
         if (ctxTrend) {
             if (trendChartInstance) trendChartInstance.destroy();
@@ -180,7 +247,6 @@ function renderCharts(subject) {
             });
         }
 
-        // 2. 原因グラフ（全体）
         const ctxCause = document.getElementById('pe-cause-chart')?.getContext('2d');
         if (ctxCause) {
             if (causeChartInstance) causeChartInstance.destroy();
@@ -219,7 +285,6 @@ function renderCharts(subject) {
         if (title1) title1.innerHTML = '<i class="fas fa-chart-line text-pink-500 mr-2"></i>得点推移';
         if (title2) title2.innerHTML = '<i class="fas fa-exclamation-triangle text-rose-500 mr-2"></i>なぜ間違えたか (原因)';
 
-        // 1. 得点推移
         const ctxTrend = document.getElementById('pe-trend-chart')?.getContext('2d');
         if (ctxTrend) {
             if (trendChartInstance) trendChartInstance.destroy();
@@ -240,7 +305,6 @@ function renderCharts(subject) {
             });
         }
 
-        // 2. 原因グラフ
         const ctxCause = document.getElementById('pe-cause-chart')?.getContext('2d');
         if (ctxCause) {
             if (causeChartInstance) causeChartInstance.destroy();
@@ -268,7 +332,6 @@ function renderCharts(subject) {
             });
         }
 
-        // 3. 分野グラフ
         const ctxField = document.getElementById('pe-field-chart')?.getContext('2d');
         if (ctxField) {
             if (fieldChartInstance) fieldChartInstance.destroy();
@@ -298,7 +361,6 @@ function renderCharts(subject) {
     }
 }
 
-// --- イベントリスナー ---
 function setupEventListeners() {
     document.addEventListener('click', (e) => {
         if (e.target.closest('.pe-tab-btn')) {
@@ -306,6 +368,7 @@ function setupEventListeners() {
             renderTabs();
             renderYears(currentSubject);
             renderCharts(currentSubject);
+            renderRetryList(currentSubject); // 切り替え時に再描画
         }
 
         if (e.target.closest('.pe-year-row')) {
@@ -346,7 +409,6 @@ function goToStep(step) {
     }
 }
 
-// --- 大問・小問内のアクションハンドラ ---
 function handleSectionEvents(e) {
     const secEl = e.target.closest('.pe-section-block');
     if (!secEl) return;
@@ -371,7 +433,6 @@ function handleSectionEvents(e) {
         });
     } else if (e.target.closest('.btn-q-add')) {
         e.preventDefault();
-        // 変更点: 新たに correctThought（正しい考え方）プロパティを追加
         wizardData.sections[secIndex].questions.push({ id: Date.now().toString(), result: '未', confidence: '0', causes: [], fields: [], note: '', correctThought: '' });
         renderSections();
     } else if (e.target.closest('.btn-q-delete')) {
@@ -385,7 +446,6 @@ function handleSectionEvents(e) {
     }
 }
 
-// --- データ変更検知 ---
 function handleDataChange(e) {
     const secEl = e.target.closest('.pe-section-block');
     if (!secEl) return;
@@ -404,10 +464,8 @@ function handleDataChange(e) {
         }
         if (e.target.classList.contains('select-q-conf')) q.confidence = e.target.value;
         if (e.target.classList.contains('input-q-note')) q.note = e.target.value;
-        // 変更点: 「正しい考え方」の入力を検知して保存
         if (e.target.classList.contains('input-q-correct-thought')) q.correctThought = e.target.value;
 
-        // チェックボックス処理 (causes / fields)
         if (e.target.classList.contains('check-q-cause')) {
             if (!q.causes) q.causes = [];
             if (e.target.checked) { if (!q.causes.includes(e.target.value)) q.causes.push(e.target.value); } 
@@ -423,12 +481,10 @@ function handleDataChange(e) {
     }
 }
 
-// --- 大問・小問の動的レンダリング ---
 function renderSections() {
     const container = document.getElementById('pe-questions-container');
     if (!container) return;
 
-    // 現在の科目に該当する分野タグを取得。見つからなければ共通の「その他」
     const fieldTags = SUBJECT_FIELDS[currentSubject] || 
                       (SUBJECT_FIELDS[Object.keys(SUBJECT_FIELDS).find(key => currentSubject.includes(key))] || SUBJECT_FIELDS['共通']);
 
@@ -484,37 +540,31 @@ function renderSections() {
                             </select>
                         </div>
 
-                        <!-- 2. 原因タグ (全科目共通) -->
+                        <!-- 2. 原因タグ -->
                         <div class="mb-3">
                             <p class="text-[10px] font-bold text-rose-500 mb-1"><i class="fas fa-exclamation-circle mr-1"></i>なぜ間違えたか？（原因）</p>
                             <div class="flex flex-wrap gap-1">
                                 ${MISTAKE_CAUSES.map(tag => {
                                     const isChecked = causes.includes(tag);
                                     const activeClass = isChecked ? 'bg-rose-500 border-rose-500 text-white' : 'border-rose-200 dark:border-rose-900/50 bg-white dark:bg-slate-800 dark:text-slate-300';
-                                    return `
-                                    <label class="text-[10px] font-bold border rounded px-2 py-1 cursor-pointer transition-colors shadow-sm ${activeClass}">
-                                        <input type="checkbox" class="check-q-cause hidden" value="${tag}" ${isChecked ? 'checked' : ''}> ${tag}
-                                    </label>
-                                `}).join('')}
+                                    return `<label class="text-[10px] font-bold border rounded px-2 py-1 cursor-pointer transition-colors shadow-sm ${activeClass}"><input type="checkbox" class="check-q-cause hidden" value="${tag}" ${isChecked ? 'checked' : ''}> ${tag}</label>`;
+                                }).join('')}
                             </div>
                         </div>
 
-                        <!-- 3. 分野タグ (科目固有) -->
+                        <!-- 3. 分野タグ -->
                         <div class="mb-3">
                             <p class="text-[10px] font-bold text-blue-500 mb-1"><i class="fas fa-book-open mr-1"></i>何についての問題か？（分野）</p>
                             <div class="flex flex-wrap gap-1">
                                 ${fieldTags.map(tag => {
                                     const isChecked = fields.includes(tag);
                                     const activeClass = isChecked ? 'bg-blue-500 border-blue-500 text-white' : 'border-blue-200 dark:border-blue-900/50 bg-white dark:bg-slate-800 dark:text-slate-300';
-                                    return `
-                                    <label class="text-[10px] font-bold border rounded px-2 py-1 cursor-pointer transition-colors shadow-sm ${activeClass}">
-                                        <input type="checkbox" class="check-q-field hidden" value="${tag}" ${isChecked ? 'checked' : ''}> ${tag}
-                                    </label>
-                                `}).join('')}
+                                    return `<label class="text-[10px] font-bold border rounded px-2 py-1 cursor-pointer transition-colors shadow-sm ${activeClass}"><input type="checkbox" class="check-q-field hidden" value="${tag}" ${isChecked ? 'checked' : ''}> ${tag}</label>`;
+                                }).join('')}
                             </div>
                         </div>
 
-                        <!-- 4. 詳細原因と正しい考え方 (変更点) -->
+                        <!-- 4. 詳細メモ -->
                         <div class="space-y-2">
                             <input type="text" class="input-q-note w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs p-2 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white shadow-sm" placeholder="なぜ間違えたか（例：公式を忘れた、条件を見落とした...）" value="${q.note || ''}">
                             <input type="text" class="input-q-correct-thought w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs p-2 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white shadow-sm" placeholder="正しい考え方（例：整数条件があるため、まず因数分解を検討する）" value="${q.correctThought || ''}">
@@ -536,31 +586,6 @@ function getResultColor(result) {
     return 'bg-white dark:bg-slate-800 dark:text-white border-slate-200 dark:border-slate-600';
 }
 
-// --- ウィザード表示・復元 ---
-function openWizard(subject, year) {
-    const existingData = pastExams.find(e => e.subject === subject && e.year === String(year));
-    
-    if (existingData) {
-        wizardData = JSON.parse(JSON.stringify(existingData));
-    } else {
-        wizardData = { subject, year, score: '', actualTime: '', seriousness: '未選択', strategyEval: '未設定', strategyNote: '', sections: [] };
-    }
-
-    const scoreData = getSubjectTargetAndFullScore(subject);
-    
-    document.getElementById('pe-score-input').value = wizardData.score || '';
-    document.getElementById('pe-display-full-score').innerText = scoreData.full || 0;
-    document.getElementById('pe-display-target-score').innerText = scoreData.target || 0;
-    
-    document.getElementById('pe-time-input').value = wizardData.actualTime || '';
-    document.getElementById('pe-seriousness-select').value = wizardData.seriousness || '未選択';
-    document.getElementById('pe-strategy-eval').value = wizardData.strategyEval || '未設定';
-    document.getElementById('pe-strategy-note').value = wizardData.strategyNote || '';
-
-    goToStep(1);
-    renderSections();
-    openModal('modal-pe-wizard');
-}
 function openWizard(subject, year) {
     const existingData = pastExams.find(e => e.subject === subject && e.year === String(year));
     
@@ -586,7 +611,6 @@ function openWizard(subject, year) {
     openModal('modal-pe-wizard');
 }
 
-// --- 過去問データの保存 ---
 async function savePastExam() {
     wizardData.score = document.getElementById('pe-score-input').value;
     wizardData.actualTime = document.getElementById('pe-time-input').value;
@@ -601,14 +625,12 @@ async function savePastExam() {
     }
 
     try {
-        // 1. 過去問データ自体の保存
         const docId = `${wizardData.subject}_${wizardData.year}`;
         await setDoc(doc(getAppCollectionRef('past_exams'), docId), {
             ...wizardData,
             updatedAt: serverTimestamp()
         });
 
-        // 2. 復習タスクの自動抽出と生成ロジック
         let generatedTaskCount = 0;
         const tasksRef = getAppCollectionRef('tasks');
         const todayStr = new Date().toISOString().split('T')[0];
@@ -618,59 +640,36 @@ async function savePastExam() {
             
             for (let qIndex = 0; qIndex < sec.questions.length; qIndex++) {
                 const q = sec.questions[qIndex];
-                if (q.result === '未' || !q.result) continue; // 未回答はスキップ
+                if (q.result === '未' || !q.result) continue;
                 
                 const conf = parseInt(q.confidence) || 0;
                 let needsReview = false;
                 let reviewReason = '';
-                let reviewEval = 'C'; // 既存タスクシステムにおける重要度（Dが最高）
+                let reviewEval = 'C';
                 
-                // 【高度な分析判定】
                 if (q.result === '×') {
-                    if (conf >= 4) {
-                        needsReview = true;
-                        reviewReason = '🚨 危険な誤理解 (高確信での不正解)';
-                        reviewEval = 'D'; // 最優先復習
-                    } else {
-                        needsReview = true;
-                        reviewReason = '⚠️ 明確な弱点 (不正解)';
-                        reviewEval = 'D';
-                    }
+                    if (conf >= 4) { needsReview = true; reviewReason = '🚨 危険な誤理解 (高確信での不正解)'; reviewEval = 'D'; }
+                    else { needsReview = true; reviewReason = '⚠️ 明確な弱点 (不正解)'; reviewEval = 'D'; }
                 } else if (q.result === '△') {
-                    needsReview = true;
-                    reviewReason = '🤔 不確実・要確認';
-                    reviewEval = 'C';
+                    needsReview = true; reviewReason = '🤔 不確実・要確認'; reviewEval = 'C';
                 } else if (q.result === '○' && conf > 0 && conf <= 3) {
-                    needsReview = true;
-                    reviewReason = '🍀 偶然の正解 (低確信での正解)';
-                    reviewEval = 'C';
+                    needsReview = true; reviewReason = '🍀 偶然の正解 (低確信での正解)'; reviewEval = 'C';
                 }
-                // ○ ＋ 高確信(4,5) は安定とみなし復習タスク化しない
 
                 if (needsReview) {
-                    // タスクタイトルの組み立て
                     const fieldStr = (q.fields && q.fields.length > 0) ? `[${q.fields[0]}]` : '';
                     const title = `[過去問復習] ${wizardData.year}年度 ${wizardData.subject} ${sec.name} 問${qIndex + 1} ${fieldStr}`;
                     
-                    // タスクメモに分析結果と自分の思考を転記
                     let noteText = `【判定】${reviewReason}\n`;
                     if (q.causes && q.causes.length > 0) noteText += `【ミス原因】${q.causes.join(', ')}\n`;
                     if (q.note) noteText += `【なぜ間違えたか】\n${q.note}\n\n`;
                     if (q.correctThought) noteText += `【正しい考え方】\n${q.correctThought}\n`;
 
-                    // タスクとしてDBに追加
                     const newTaskRef = doc(tasksRef);
                     await setDoc(newTaskRef, {
-                        id: newTaskRef.id,
-                        title: title,
-                        subject: wizardData.subject,
-                        estimatedTime: 15,
-                        date: todayStr, // 当日のタスクとして追加
-                        completed: false,
-                        isReview: true,
-                        sourceEval: reviewEval, // ダッシュボードでSランク/Aランクタスクとして色付けされる
-                        note: noteText,
-                        createdAt: new Date().toISOString()
+                        id: newTaskRef.id, title, subject: wizardData.subject, estimatedTime: 15,
+                        date: todayStr, completed: false, isReview: true, sourceEval: reviewEval,
+                        note: noteText, createdAt: new Date().toISOString()
                     });
                     generatedTaskCount++;
                 }
@@ -689,7 +688,6 @@ async function savePastExam() {
     }
 }
 
-// --- 単語帳クイック追加 ---
 async function openQuickAddFlashcard() {
     const userId = getCurrentUserId();
     if (!userId) return;
