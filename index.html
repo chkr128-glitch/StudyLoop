@@ -327,11 +327,11 @@
             </div>
 
             <div id="view-store" class="view-section p-5 pb-32">
-                <h2 class="text-2xl font-black text-zinc-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">英作文サポート</h2>
+                <h2 class="text-2xl font-black text-slate-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">英作文サポート</h2>
                 
                 <div id="store-loading" class="flex flex-col items-center justify-center py-20 hidden">
                     <i class="fas fa-circle-notch fa-spin text-3xl text-indigo-500 mb-4"></i>
-                    <p class="text-xs font-bold text-zinc-500">Loading...</p>
+                    <p class="text-xs font-bold text-slate-500">Loading...</p>
                 </div>
 
                 <div id="store-content">
@@ -343,67 +343,126 @@
                 </div>
             </div>
 
-            <div id="view-settings" class="view-section p-5">
-                <h2 class="text-2xl font-black text-zinc-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">Settings</h2>
+            <!-- ▼ 新規: 設定メインメニュー画面 ▼ -->
+            <div id="view-settings" class="view-section p-5 pb-32">
+                <h2 class="text-2xl font-black text-slate-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">Settings</h2>
                 
-                <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-soft p-6 mb-6 transition-colors border border-zinc-200/60 dark:border-zinc-800 relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500"></div>
-                    <h3 class="font-bold text-zinc-700 dark:text-zinc-200 mb-3 flex items-center text-sm"><i class="fas fa-key text-yellow-500 mr-2"></i>API Key設定</h3>
-                    <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mb-4 leading-relaxed">配点の自動検索機能を使用するには、Gemini APIキーを設定してください。キーはローカルにのみ保存されます。</p>
-                    <div class="mb-4">
-                        <input type="password" id="setting-api-key" class="w-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none transition-all text-sm font-mono" placeholder="AIzaSy...">
-                    </div>
-                    <button id="btn-save-api-key" class="w-full bg-yellow-50 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-500 font-bold py-3 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors border border-yellow-200/50 dark:border-yellow-800/50 text-sm">保存する</button>
-                </div>
-
-                <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-soft p-6 mb-6 transition-colors border border-zinc-200/60 dark:border-zinc-800 relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-rose-500"></div>
-                    <h3 class="font-bold text-zinc-700 dark:text-zinc-200 mb-3 flex items-center text-sm"><i class="fas fa-university text-pink-500 mr-2"></i>志望校・配点設定</h3>
-                    <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mb-4 leading-relaxed">大学・学部名を入力して「AIで自動検索」を押すと配点情報を自動入力します。</p>
-                    
-                    <div class="flex space-x-3 mb-4">
-                        <div class="w-1/2">
-                            <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">大学名</label>
-                            <input type="text" id="setting-univ" class="w-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none transition-all text-sm" placeholder="例: 東京大学">
+                <div class="space-y-4 animate-pop-in">
+                    <!-- マイプロフィール -->
+                    <button id="nav-settings-profile" class="w-full bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex items-center gap-4 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-emerald-300/50 dark:hover:border-emerald-500/30 group">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 flex items-center justify-center text-xl transition-transform group-hover:scale-110"><i class="fas fa-id-badge pointer-events-none"></i></div>
+                        <div class="text-left pointer-events-none flex-grow">
+                            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm tracking-wide">マイプロフィール</h3>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">公開プロフィール、志望校・配点設定</p>
                         </div>
-                        <div class="w-1/2">
-                            <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">学部・学科名</label>
-                            <input type="text" id="setting-fac" class="w-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none transition-all text-sm" placeholder="例: 理科一類">
-                        </div>
-                    </div>
+                        <i class="fas fa-chevron-right text-slate-300 dark:text-slate-600 pointer-events-none"></i>
+                    </button>
                     
-                    <button id="btn-auto-fetch" class="w-full bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-800 font-bold py-3 rounded-xl hover:opacity-90 transition-all mb-5 flex justify-center items-center shadow-sm text-sm">
-                        <i class="fas fa-magic mr-2"></i> AIで配点自動検索
+                    <!-- アカウント情報 -->
+                    <button id="nav-settings-account" class="w-full bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex items-center gap-4 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-blue-300/50 dark:hover:border-blue-500/30 group">
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center text-xl transition-transform group-hover:scale-110"><i class="fas fa-user-circle pointer-events-none"></i></div>
+                        <div class="text-left pointer-events-none flex-grow">
+                            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm tracking-wide">アカウント情報</h3>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">ID確認、API Key設定、ログアウト</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-slate-300 dark:text-slate-600 pointer-events-none"></i>
                     </button>
 
-                    <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-2 ml-1">各科目の配点（修正可能）</label>
-                    <div id="exam-weights-container" class="mb-5"></div>
-                    <button id="btn-save-profile" class="w-full bg-pink-500 text-white font-bold py-3.5 rounded-xl hover:bg-pink-600 transition-all shadow-md transform hover:-translate-y-0.5 text-sm">志望校情報を保存</button>
+                    <!-- 固定ルーティン -->
+                    <button id="nav-settings-routine" class="w-full bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex items-center gap-4 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-purple-300/50 dark:hover:border-purple-500/30 group">
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-500 flex items-center justify-center text-xl transition-transform group-hover:scale-110"><i class="fas fa-list-check pointer-events-none"></i></div>
+                        <div class="text-left pointer-events-none flex-grow">
+                            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm tracking-wide">固定ルーティン</h3>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">毎日・毎週繰り返すタスクの管理</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-slate-300 dark:text-slate-600 pointer-events-none"></i>
+                    </button>
                 </div>
+            </div>
 
-                <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-soft p-6 mb-6 transition-colors border border-zinc-200/60 dark:border-zinc-800">
-                    <div class="flex justify-between items-center mb-5">
-                        <h3 class="font-bold text-zinc-700 dark:text-zinc-200 flex items-center text-sm"><i class="fas fa-list-check text-purple-500 mr-2"></i>固定ルーティン</h3>
-                        <button id="btn-open-add-routine" class="text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 rounded-md font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"><i class="fas fa-plus mr-1"></i>追加</button>
-                    </div>
-                    <ul id="routine-list" class="space-y-3"></ul>
+            <!-- ▼ サブビュー1: マイプロフィール ▼ -->
+            <div id="view-settings-profile" class="view-section p-5 pb-32">
+                <div class="flex items-center mb-6">
+                    <button class="btn-back-to-settings w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors mr-3 shadow-sm border border-slate-200/60 dark:border-slate-700">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">マイプロフィール</h2>
                 </div>
-
-                <!-- ▼ 新規追加: 公開プロフィール設定 ▼ -->
-                <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-soft p-6 mb-6 border border-zinc-200/60 dark:border-zinc-800 transition-colors relative overflow-hidden">
+                
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 border border-slate-200/60 dark:border-slate-800 transition-colors relative overflow-hidden animate-pop-in">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
-                    <h3 class="font-bold text-zinc-700 dark:text-zinc-200 mb-2 flex items-center text-sm"><i class="fas fa-id-card text-emerald-500 mr-2"></i>公開プロフィール</h3>
-                    <p class="text-[10px] text-zinc-500 dark:text-zinc-400 mb-4 font-medium leading-relaxed">タイムラインで他のユーザーに表示されるプロフィールを設定します。個人を特定できる情報の入力はお控えください。</p>
+                    <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-2 flex items-center text-sm"><i class="fas fa-id-card text-emerald-500 mr-2"></i>公開プロフィール</h3>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mb-4 font-medium leading-relaxed">タイムラインで他のユーザーに表示されるプロフィールを設定します。個人を特定できる情報の入力はお控えください。</p>
                     <button id="btn-open-profile-settings" class="w-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 font-bold py-3 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors border border-emerald-100 dark:border-emerald-900/50 shadow-sm flex justify-center items-center text-sm">
                         <i class="fas fa-user-edit mr-2 text-xs"></i> プロフィールを編集・確認する
                     </button>
                 </div>
-                
-                <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-soft p-6 mb-6 border border-zinc-200/60 dark:border-zinc-800 transition-colors">
-                    <h3 class="font-bold text-zinc-700 dark:text-zinc-200 mb-4 flex items-center text-sm"><i class="fas fa-user-circle text-zinc-400 mr-2"></i>Account</h3>
-                    <p class="text-[10px] text-zinc-500 dark:text-zinc-400 mb-2 ml-1 font-medium">ユーザーID:</p>
-                    <p class="text-xs font-mono bg-zinc-50 dark:bg-zinc-800 p-3 rounded-lg mb-6 break-all text-zinc-600 dark:text-zinc-300 border border-zinc-200/60 dark:border-zinc-700" id="display-user-id">---</p>
-                    <button id="btn-logout" class="w-full bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 font-bold py-3 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors border border-rose-100 dark:border-rose-900/50 text-sm">ログアウト</button>
+
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 transition-colors border border-slate-200/60 dark:border-slate-800 relative overflow-hidden animate-pop-in" style="animation-delay: 0.1s; animation-fill-mode: both;">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-rose-500"></div>
+                    <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-3 flex items-center text-sm"><i class="fas fa-university text-pink-500 mr-2"></i>志望校・配点設定</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">大学・学部名を入力して「AIで自動検索」を押すと配点情報を自動入力します。</p>
+                    <div class="flex space-x-3 mb-4">
+                        <div class="w-1/2">
+                            <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">大学名</label>
+                            <input type="text" id="setting-univ" class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none transition-all text-sm" placeholder="例: 東京大学">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">学部・学科名</label>
+                            <input type="text" id="setting-fac" class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none transition-all text-sm" placeholder="例: 理科一類">
+                        </div>
+                    </div>
+                    <button id="btn-auto-fetch" class="w-full bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-800 font-bold py-3 rounded-xl hover:opacity-90 transition-all mb-5 flex justify-center items-center shadow-sm text-sm">
+                        <i class="fas fa-magic mr-2"></i> AIで配点自動検索
+                    </button>
+                    <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-2 ml-1">各科目の配点（修正可能）</label>
+                    <div id="exam-weights-container" class="mb-5"></div>
+                    <button id="btn-save-profile" class="w-full bg-pink-500 text-white font-bold py-3.5 rounded-xl hover:bg-pink-600 transition-all shadow-md transform hover:-translate-y-0.5 text-sm">志望校情報を保存</button>
+                </div>
+            </div>
+            
+            <!-- ▼ サブビュー2: アカウント情報 ▼ -->
+            <div id="view-settings-account" class="view-section p-5 pb-32">
+                <div class="flex items-center mb-6">
+                    <button class="btn-back-to-settings w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors mr-3 shadow-sm border border-slate-200/60 dark:border-slate-700">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">アカウント情報</h2>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 border border-slate-200/60 dark:border-slate-800 transition-colors animate-pop-in">
+                    <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center text-sm"><i class="fas fa-user-circle text-slate-400 mr-2"></i>Account</h3>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mb-2 ml-1 font-medium">ユーザーID:</p>
+                    <p class="text-xs font-mono bg-slate-50 dark:bg-slate-800 p-3 rounded-lg mb-6 break-all text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700" id="display-user-id">---</p>
+                    <button id="btn-logout" class="w-full bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 font-bold py-3 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors border border-rose-100 dark:border-rose-900/50 text-sm shadow-sm">ログアウト</button>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 transition-colors border border-slate-200/60 dark:border-slate-800 relative overflow-hidden animate-pop-in" style="animation-delay: 0.1s; animation-fill-mode: both;">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500"></div>
+                    <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-3 flex items-center text-sm"><i class="fas fa-key text-yellow-500 mr-2"></i>API Key設定</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">配点の自動検索機能を使用するには、Gemini APIキーを設定してください。キーはローカルにのみ保存されます。</p>
+                    <div class="mb-4">
+                        <input type="password" id="setting-api-key" class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none transition-all text-sm font-mono" placeholder="AIzaSy...">
+                    </div>
+                    <button id="btn-save-api-key" class="w-full bg-yellow-50 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-500 font-bold py-3 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors border border-yellow-200/50 dark:border-yellow-800/50 text-sm shadow-sm">保存する</button>
+                </div>
+            </div>
+
+            <!-- ▼ サブビュー3: 固定ルーティン ▼ -->
+            <div id="view-settings-routine" class="view-section p-5 pb-32">
+                <div class="flex items-center mb-6">
+                    <button class="btn-back-to-settings w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors mr-3 shadow-sm border border-slate-200/60 dark:border-slate-700">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">固定ルーティン</h2>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 transition-colors border border-slate-200/60 dark:border-slate-800 animate-pop-in">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center text-sm"><i class="fas fa-list-check text-purple-500 mr-2"></i>登録済みルーティン</h3>
+                        <button id="btn-open-add-routine" class="text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-md font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition"><i class="fas fa-plus mr-1"></i>追加</button>
+                    </div>
+                    <ul id="routine-list" class="space-y-3"></ul>
                 </div>
             </div>
             
