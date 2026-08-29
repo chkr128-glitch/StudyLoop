@@ -163,94 +163,96 @@
     </div>
 
     <div id="main-app" class="flex-1 flex-col hidden w-full h-full relative">
-        <header class="bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 text-white px-2 sm:px-4 shadow-md fixed w-full z-20 top-0 flex justify-between items-center h-16 rounded-b-3xl transition-colors">
-            <div class="flex items-center gap-1.5 sm:gap-2 z-20 flex-shrink-0">
-                <button id="btn-toggle-theme" class="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors focus:outline-none shadow-sm" title="テーマ切替">
-                    <i id="theme-icon" class="fas fa-moon text-xs"></i>
+        <header class="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200/60 dark:border-zinc-800 text-zinc-800 dark:text-zinc-100 px-3 sm:px-5 shadow-sm fixed w-full z-20 top-0 flex justify-between items-center h-16 transition-colors">
+            <div class="flex items-center gap-2 z-20 flex-shrink-0">
+                <button id="btn-toggle-theme" class="w-9 h-9 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors focus:outline-none shadow-sm text-zinc-600 dark:text-zinc-300 border border-zinc-200/50 dark:border-zinc-700" title="テーマ切替">
+                    <i id="theme-icon" class="fas fa-moon text-[13px]"></i>
                 </button>
-                <button id="btn-open-settings" class="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors focus:outline-none shadow-sm" title="設定">
-                    <i class="fas fa-cog text-xs"></i>
+                <button id="btn-open-settings" class="w-9 h-9 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors focus:outline-none shadow-sm text-zinc-600 dark:text-zinc-300 border border-zinc-200/50 dark:border-zinc-700" title="設定">
+                    <i class="fas fa-cog text-[13px]"></i>
                 </button>
-                <button id="btn-go-home" class="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors focus:outline-none shadow-sm" title="ホームに戻る">
-                    <i class="fas fa-home text-xs"></i>
+                <button id="btn-go-home" class="w-9 h-9 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors focus:outline-none shadow-sm text-zinc-600 dark:text-zinc-300 border border-zinc-200/50 dark:border-zinc-700" title="ホームに戻る">
+                    <i class="fas fa-home text-[13px]"></i>
                 </button>
             </div>
             
             <div class="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center z-10 cursor-pointer" id="btn-header-logo">
-                <div class="flex items-center space-x-1.5 sm:space-x-2 pointer-events-auto">
-                    <img src="icon.png" alt="Logo" class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg shadow-sm" onerror="this.style.display='none'">
-                    <h1 class="text-base sm:text-lg font-black tracking-wider opacity-90">StudyLoop</h1>
+                <div class="flex items-center space-x-2 pointer-events-auto group">
+                    <img src="icon.png" alt="Logo" class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg shadow-sm transition-transform group-hover:scale-105" onerror="this.style.display='none'">
+                    <h1 class="text-base sm:text-lg font-black tracking-tight text-zinc-800 dark:text-white">StudyLoop</h1>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-1.5 sm:space-x-3 text-right z-20 flex-shrink-0">
-                <div id="header-streak-container" class="hidden items-center justify-center bg-white/20 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full shadow-sm backdrop-blur-sm border border-white/20">
+            <div class="flex items-center space-x-2 sm:space-x-3 text-right z-20 flex-shrink-0">
+                <div id="header-streak-container" class="hidden items-center justify-center bg-orange-50 dark:bg-orange-950/40 px-2 py-1 rounded-full shadow-sm border border-orange-100 dark:border-orange-900/50">
                     <span id="header-streak-emoji" class="text-xs sm:text-sm drop-shadow-sm"></span>
-                    <span id="header-streak-days" class="font-black text-xs sm:text-sm ml-0.5 sm:ml-1 leading-none tracking-tight"></span><span class="text-[8px] sm:text-[10px] ml-0.5 font-bold leading-none hidden sm:inline">日</span>
+                    <span id="header-streak-days" class="font-black text-orange-600 dark:text-orange-400 text-xs sm:text-sm ml-1 leading-none tracking-tight"></span><span class="text-[8px] sm:text-[10px] ml-0.5 font-bold text-orange-500 leading-none hidden sm:inline">日</span>
                 </div>
-                <div class="flex space-x-2 sm:space-x-3 text-[9px] sm:text-xs">
-                    <div class="hidden sm:block">
-                        <p class="opacity-80 font-medium">共通テスト</p>
-                        <p class="font-black text-lg sm:text-xl leading-tight"><span id="cd-common">--</span> <span class="text-[8px] sm:text-xs font-medium">日</span></p>
+                <div class="flex space-x-3 sm:space-x-4 text-[9px] sm:text-xs">
+                    <div class="hidden sm:flex flex-col items-end">
+                        <p class="text-zinc-500 dark:text-zinc-400 font-bold text-[9px]">共通テスト</p>
+                        <p class="font-black text-lg leading-tight text-zinc-800 dark:text-zinc-100"><span id="cd-common">--</span> <span class="text-[9px] font-bold text-zinc-500">日</span></p>
                     </div>
-                    <div>
-                        <p class="opacity-80 font-medium">国公立2次</p>
-                        <p class="font-black text-lg sm:text-xl leading-tight text-yellow-200"><span id="cd-second">--</span> <span class="text-[8px] sm:text-xs font-medium text-white">日</span></p>
+                    <div class="flex flex-col items-end">
+                        <p class="text-zinc-500 dark:text-zinc-400 font-bold text-[9px]">国公立2次</p>
+                        <p class="font-black text-lg leading-tight text-pink-600 dark:text-pink-400"><span id="cd-second">--</span> <span class="text-[9px] font-bold text-pink-500/70">日</span></p>
                     </div>
                 </div>
             </div>
         </header>
-        <main class="flex-1 overflow-y-auto mt-20 pb-10 relative w-full max-w-lg mx-auto" id="main-content">
+        <main class="flex-1 overflow-y-auto mt-16 pb-10 relative w-full max-w-lg mx-auto" id="main-content">
             
-            <div id="view-home" class="view-section active p-5 pb-10">
+            <div id="view-home" class="view-section active p-5 pb-10 pt-8">
                 <div class="flex justify-between items-end mb-6">
-                    <h2 id="home-date-display" class="text-2xl font-black text-gray-800 dark:text-white ml-1 tracking-tight">Home</h2>
-                    <p class="text-xs font-bold text-gray-500 dark:text-gray-400">Let's Start Studying!</p>
+                    <h2 id="home-date-display" class="text-2xl font-black text-zinc-800 dark:text-white ml-1 tracking-tight">Home</h2>
+                    <p class="text-xs font-bold text-zinc-500 dark:text-zinc-400">Let's Start Studying!</p>
                 </div>
 
-                <!-- ホーム画面に移動した名言 -->
-                <div id="home-quote-container" class="mb-5 bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800 transition-colors animate-pop-in">
-                    <p id="home-daily-quote-text" class="text-sm font-bold text-indigo-800 dark:text-indigo-200 mb-1.5 leading-relaxed tracking-wide">""</p>
-                    <p id="home-daily-quote-author" class="text-xs text-right text-indigo-600 dark:text-indigo-400 font-bold">- </p>
+                <!-- 名言 -->
+                <div id="home-quote-container" class="mb-5 bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-soft border border-zinc-200/60 dark:border-zinc-800 transition-colors animate-pop-in relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-indigo-400 dark:bg-indigo-500"></div>
+                    <p id="home-daily-quote-text" class="text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-2 leading-relaxed tracking-wide ml-2">""</p>
+                    <p id="home-daily-quote-author" class="text-[11px] text-right text-zinc-500 dark:text-zinc-400 font-semibold">- </p>
                 </div>
                 
-                <!-- ホーム画面に移動したストリーク表示 -->
-                <div id="home-dashboard-streak-container" class="mb-5 bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hidden transition-colors animate-pop-in"></div>
+                <!-- ストリーク表示 -->
+                <div id="home-dashboard-streak-container" class="mb-5 bg-white dark:bg-zinc-900 p-4 rounded-2xl shadow-soft border border-zinc-200/60 dark:border-zinc-800 hidden transition-colors animate-pop-in"></div>
                 
+                <!-- ナビゲーションタイル（モダンUI版） -->
                 <div class="grid grid-cols-2 gap-4">
-                    <button class="nav-tile bg-gradient-to-br from-pink-500 to-rose-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="dashboard">
-                        <i class="fas fa-list-check text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">本日のタスク</span>
+                    <button class="nav-tile group bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-soft border border-zinc-200/60 dark:border-zinc-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-pink-300/50 dark:hover:border-pink-500/30" data-target="dashboard">
+                        <div class="w-12 h-12 rounded-xl bg-pink-50 dark:bg-pink-900/20 text-pink-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fas fa-list-check pointer-events-none"></i></div>
+                        <span class="font-bold text-sm text-zinc-700 dark:text-zinc-200 tracking-wide pointer-events-none">本日のタスク</span>
                     </button>
                     
-                    <button class="nav-tile bg-gradient-to-br from-blue-500 to-indigo-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="calendar">
-                        <i class="far fa-calendar-alt text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">カレンダー</span>
+                    <button class="nav-tile group bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-soft border border-zinc-200/60 dark:border-zinc-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-blue-300/50 dark:hover:border-blue-500/30" data-target="calendar">
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="far fa-calendar-alt pointer-events-none"></i></div>
+                        <span class="font-bold text-sm text-zinc-700 dark:text-zinc-200 tracking-wide pointer-events-none">カレンダー</span>
                     </button>
                     
-                    <button class="nav-tile bg-gradient-to-br from-amber-500 to-orange-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="past-exams">
-                        <i class="fas fa-history text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">過去問ログ</span>
+                    <button class="nav-tile group bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-soft border border-zinc-200/60 dark:border-zinc-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-orange-300/50 dark:hover:border-orange-500/30" data-target="past-exams">
+                        <div class="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-900/20 text-orange-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fas fa-history pointer-events-none"></i></div>
+                        <span class="font-bold text-sm text-zinc-700 dark:text-zinc-200 tracking-wide pointer-events-none">過去問ログ</span>
                     </button>
                     
-                    <button class="nav-tile bg-gradient-to-br from-emerald-400 to-teal-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="analytics">
-                        <i class="fas fa-chart-pie text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">学習分析</span>
+                    <button class="nav-tile group bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-soft border border-zinc-200/60 dark:border-zinc-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-emerald-300/50 dark:hover:border-emerald-500/30" data-target="analytics">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fas fa-chart-pie pointer-events-none"></i></div>
+                        <span class="font-bold text-sm text-zinc-700 dark:text-zinc-200 tracking-wide pointer-events-none">学習分析</span>
                     </button>
                     
-                    <button class="nav-tile bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="drill">
-                        <i class="fas fa-calculator text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">インド式計算ドリル</span>
+                    <button class="nav-tile group bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-soft border border-zinc-200/60 dark:border-zinc-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-indigo-300/50 dark:hover:border-indigo-500/30" data-target="drill">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fas fa-calculator pointer-events-none"></i></div>
+                        <span class="font-bold text-sm text-zinc-700 dark:text-zinc-200 tracking-wide pointer-events-none">計算ドリル</span>
                     </button>
                     
-                    <button class="nav-tile bg-gradient-to-br from-purple-500 to-pink-500 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg" data-target="flashcard-app">
-                        <i class="fa-solid fa-layer-group text-4xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">My単語帳</span>
+                    <button class="nav-tile group bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-soft border border-zinc-200/60 dark:border-zinc-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-purple-300/50 dark:hover:border-purple-500/30" data-target="flashcard-app">
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fa-solid fa-layer-group pointer-events-none"></i></div>
+                        <span class="font-bold text-sm text-zinc-700 dark:text-zinc-200 tracking-wide pointer-events-none">My単語帳</span>
                     </button>
                     
-                    <button class="nav-tile bg-gradient-to-br from-slate-700 to-slate-900 text-white p-5 rounded-3xl shadow-md flex flex-col items-center justify-center gap-3 transition-all hover:scale-105 hover:shadow-lg col-span-2" data-target="store">
-                        <i class="fa-solid fa-pen-nib text-3xl mb-1 pointer-events-none drop-shadow-sm"></i>
-                        <span class="font-bold text-sm tracking-wide pointer-events-none">英作文サポート</span>
+                    <button class="nav-tile group bg-zinc-800 dark:bg-zinc-900 p-5 rounded-2xl shadow-soft border border-zinc-700 dark:border-zinc-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:bg-zinc-900 col-span-2" data-target="store">
+                        <div class="w-12 h-12 rounded-xl bg-zinc-700 dark:bg-zinc-800 text-zinc-200 flex items-center justify-center text-2xl transition-transform group-hover:scale-110 border border-zinc-600 dark:border-zinc-700"><i class="fa-solid fa-pen-nib pointer-events-none"></i></div>
+                        <span class="font-bold text-sm text-white tracking-wide pointer-events-none">英作文サポート</span>
                     </button>
                 </div>
             </div>
