@@ -44,11 +44,13 @@ export function initUI(onThemeChangeCallback) {
 export function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
-    const bgColor = type === 'success' ? 'bg-emerald-500' : (type === 'error' ? 'bg-rose-500' : 'bg-gray-700');
+    // 半透明の背景色に変更し、backdrop-blurを活かす
+    const bgColor = type === 'success' ? 'bg-emerald-500/90' : (type === 'error' ? 'bg-rose-500/90' : 'bg-zinc-800/90');
     const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
     
-    toast.className = `flex items-center text-white px-5 py-3 rounded-full shadow-[0_8px_15px_rgba(0,0,0,0.25)] text-sm font-bold animate-pop-in ${bgColor} transition-opacity duration-300 pointer-events-auto`;
-    toast.innerHTML = `<i class="fas ${icon} mr-2"></i> ${escapeHTML(message)}`;
+    // shadow-modern, backdrop-blur-md, rounded-2xl, border-white/10 を追加
+    toast.className = `flex items-center text-white px-5 py-3.5 rounded-2xl shadow-modern backdrop-blur-md text-sm font-bold animate-pop-in ${bgColor} border border-white/10 transition-opacity duration-300 pointer-events-auto`;
+    toast.innerHTML = `<i class="fas ${icon} mr-2.5 text-lg"></i> ${escapeHTML(message)}`;
     container.appendChild(toast);
     
     setTimeout(() => { 
