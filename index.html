@@ -389,6 +389,24 @@
                     <h2 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">マイプロフィール</h2>
                 </div>
                 
+                <!-- ▼ 修正: 公開プロフィールのサマリー表示カード ▼ -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 border border-slate-200/60 dark:border-slate-800 transition-colors relative overflow-hidden animate-pop-in">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center text-sm"><i class="fas fa-id-card text-emerald-500 mr-2"></i>公開プロフィール</h3>
+                        <button id="btn-open-profile-settings" class="text-xs bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors border border-emerald-100 dark:border-emerald-800 shadow-sm flex items-center">
+                            <i class="fas fa-edit mr-1"></i> 編集
+                        </button>
+                    </div>
+                    
+                    <!-- プロフィール表示エリア (JSで中身を生成) -->
+                    <div id="public-profile-summary" class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/60 dark:border-slate-700 flex flex-col gap-3 min-h-[100px] justify-center transition-all">
+                        <div class="text-center text-slate-400 dark:text-slate-500 text-xs font-bold py-4">
+                            <i class="fas fa-circle-notch fa-spin mb-2 text-2xl"></i><br>読み込み中...
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 border border-slate-200/60 dark:border-slate-800 transition-colors relative overflow-hidden animate-pop-in">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
                     <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-2 flex items-center text-sm"><i class="fas fa-id-card text-emerald-500 mr-2"></i>公開プロフィール</h3>
