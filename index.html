@@ -264,6 +264,39 @@
                 </div>
             </div>
 
+            <main class="flex-1 overflow-y-auto mt-16 pb-10 relative w-full max-w-lg mx-auto" id="main-content">
+            
+            <div id="view-home" class="view-section active p-5 pb-10 pt-8">
+                <!-- ... ホーム画面の中身 ... -->
+            </div>
+
+            <!-- ▼ 新規追加: タイムライン画面 ▼ -->
+            <div id="view-timeline" class="view-section p-5 pb-32 bg-slate-50/50 dark:bg-transparent">
+                <div class="flex items-center mb-6">
+                    <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-zinc-800 text-zinc-500 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors mr-3 shadow-soft border border-zinc-200/60 dark:border-zinc-700" onclick="document.getElementById('btn-go-home').click()">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-xl font-black text-zinc-800 dark:text-white tracking-tight">タイムライン</h2>
+                </div>
+
+                <div class="flex justify-between items-center mb-5 sticky top-0 z-10 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur py-2">
+                    <div class="flex space-x-2">
+                        <button id="tl-tab-all" class="text-xs font-bold bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-800 px-4 py-2 rounded-full shadow-sm transition-all">全体</button>
+                        <button id="tl-tab-following" class="text-xs font-bold bg-white text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400 px-4 py-2 rounded-full border border-zinc-200/60 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all opacity-50 cursor-not-allowed" title="フォロー機能は準備中です">フォロー中 <i class="fas fa-lock ml-1"></i></button>
+                    </div>
+                    <button id="btn-refresh-timeline" class="w-8 h-8 rounded-full bg-white dark:bg-zinc-800 text-zinc-500 dark:text-zinc-300 flex items-center justify-center hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-sm border border-zinc-200/60 dark:border-zinc-700"><i class="fas fa-sync-alt text-xs pointer-events-none"></i></button>
+                </div>
+
+                <div id="timeline-loading" class="flex flex-col items-center justify-center py-10 hidden">
+                    <i class="fas fa-circle-notch fa-spin text-2xl text-sky-500 mb-3"></i>
+                    <p class="text-[10px] font-bold text-zinc-500">LOADING...</p>
+                </div>
+                
+                <div id="timeline-container" class="space-y-4">
+                    <!-- ここにタイムラインの投稿がJSで挿入されます -->
+                </div>
+            </div>
+
             <div id="view-dashboard" class="view-section p-5">
                 <h2 id="current-date-display" class="text-2xl font-black text-zinc-800 dark:text-white mb-4 ml-1 tracking-tight transition-colors">本日のタスク</h2>
                 
@@ -815,6 +848,12 @@
                 <div>
                     <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">Note</label>
                     <textarea id="detail-note" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl h-20 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all resize-none leading-relaxed text-xs" placeholder="気づきや弱点などをメモ..."></textarea>
+                </div>
+
+                <!-- ▼ 新規追加: タイムライン共有チェックボックス ▼ -->
+                <div class="flex items-center bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-700 mt-2">
+                    <input type="checkbox" id="detail-share-timeline" class="w-5 h-5 text-sky-500 bg-white dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 rounded focus:ring-2 focus:ring-sky-500 mr-3 cursor-pointer" checked>
+                    <label for="detail-share-timeline" class="text-[11px] font-bold text-zinc-600 dark:text-zinc-300 cursor-pointer flex-1 select-none">タイムラインに投稿</label>
                 </div>
                 <div class="flex space-x-2 pt-1">
                     <button id="btn-delete-task" class="w-12 flex-shrink-0 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 font-bold rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors border border-rose-200/50 dark:border-rose-900/50 disabled:opacity-50"><i class="fas fa-trash pointer-events-none"></i></button>
