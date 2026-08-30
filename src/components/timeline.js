@@ -19,10 +19,11 @@ const getAvatarIcon = (avatarId) => {
 const getSubjectColor = (subject) => {
     const colors = {
         '英語': 'text-blue-500 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800',
-        '数学': 'text-blue-500 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800', // 仮
+        '数学': 'text-sky-500 bg-sky-50 dark:bg-sky-900/30 border-sky-200 dark:border-sky-800',
         '国語': 'text-rose-500 bg-rose-50 dark:bg-rose-900/30 border-rose-200 dark:border-rose-800',
         '理科': 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800',
         '社会': 'text-orange-500 bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800',
+        '情報': 'text-purple-500 bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800',
     };
     return colors[subject] || 'text-slate-500 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700';
 };
@@ -38,10 +39,11 @@ const getEvaluationBadge = (evaluation) => {
     return badges[evaluation] || '';
 };
 
-// 相対時間の計算
+// 相対時間の計算 (SNS風)
 const getRelativeTime = (timestamp) => {
     if (!timestamp) return 'ついさっき';
     const now = new Date();
+    // Firestore Timestamp or JS Date
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     const diffInSeconds = Math.floor((now - date) / 1000);
 
