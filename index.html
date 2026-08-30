@@ -296,12 +296,6 @@
 
             <!-- ▼ 新規追加: タイムライン画面 ▼ -->
             <div id="view-timeline" class="view-section p-5 pb-32 bg-slate-50/50 dark:bg-transparent">
-                <div class="flex items-center mb-6">
-                    <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-zinc-800 text-zinc-500 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors mr-3 shadow-soft border border-zinc-200/60 dark:border-zinc-700" onclick="document.getElementById('btn-go-home').click()">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 class="text-xl font-black text-zinc-800 dark:text-white tracking-tight">タイムライン</h2>
-                </div>
 
                 <div class="flex justify-between items-center mb-5 sticky top-0 z-10 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur py-2">
                     <div class="flex space-x-2">
@@ -322,12 +316,6 @@
             </div>
 
             <div id="view-dashboard" class="view-section p-5">
-                <div class="flex items-center mb-6">
-                    <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mr-3 shadow-soft border border-slate-200/60 dark:border-slate-800 flex-shrink-0" onclick="document.getElementById('btn-go-home').click()">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 id="current-date-display" class="text-2xl font-black text-slate-800 dark:text-white tracking-tight transition-colors truncate">本日のタスク</h2>
-                </div>
                 
                 <div class="mb-8 bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 p-6 rounded-2xl shadow-glow text-white relative overflow-hidden animate-pop-in border border-white/10">
                     <div class="absolute -right-4 -top-4 w-24 h-24 bg-white opacity-10 rounded-full blur-xl"></div>
@@ -348,12 +336,7 @@
             </div>
 
             <div id="view-calendar" class="view-section p-5">
-                <div class="flex items-center mb-6">
-                    <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mr-3 shadow-soft border border-slate-200/60 dark:border-slate-800" onclick="document.getElementById('btn-go-home').click()">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight transition-colors">カレンダー</h2>
-                </div>
+                
                 <div class="flex justify-between items-center mb-4 bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-soft transition-colors border border-slate-200/60 dark:border-slate-800">
                     <button id="btn-prev-month" class="p-2 w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"><i class="fas fa-chevron-left"></i></button>
                     <h2 id="calendar-month-display" class="text-lg font-bold tracking-widest text-zinc-800 dark:text-zinc-100 uppercase">年月</h2>
@@ -382,12 +365,7 @@
             </div>
 
             <div id="view-analytics" class="view-section p-5">
-                <div class="flex items-center mb-6">
-                    <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mr-3 shadow-soft border border-slate-200/60 dark:border-slate-800" onclick="document.getElementById('btn-go-home').click()">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight transition-colors">学習分析</h2>
-                </div>
+                
                 <div class="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-soft mb-6 transition-colors border border-zinc-200/60 dark:border-zinc-800 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-purple-500"></div>
                     <h3 class="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-1 text-center">配点比率 vs 学習時間</h3>
@@ -407,12 +385,6 @@
             </div>
 
             <div id="view-store" class="view-section p-5 pb-32">
-                <div class="flex items-center mb-6">
-                    <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mr-3 shadow-soft border border-slate-200/60 dark:border-slate-800" onclick="document.getElementById('btn-go-home').click()">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight transition-colors">英作文サポート</h2>
-                </div>
                 
                 <div id="store-loading" class="flex flex-col items-center justify-center py-20 hidden">
                     <i class="fas fa-circle-notch fa-spin text-3xl text-indigo-500 mb-4"></i>
@@ -430,12 +402,6 @@
 
             <!-- ▼ 新規: 設定メインメニュー画面 ▼ -->
             <div id="view-settings" class="view-section p-5 pb-32">
-                <div class="flex items-center mb-6">
-                    <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mr-3 shadow-soft border border-slate-200/60 dark:border-slate-800" onclick="document.getElementById('btn-go-home').click()">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight transition-colors">設定</h2>
-                </div>
                 
                 <div class="space-y-4 animate-pop-in">
                     <!-- マイプロフィール -->
@@ -472,12 +438,6 @@
 
             <!-- ▼ サブビュー1: マイプロフィール ▼ -->
             <div id="view-settings-profile" class="view-section p-5 pb-32">
-                <div class="flex items-center mb-6">
-                    <button class="btn-back-to-settings w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors mr-3 shadow-sm border border-slate-200/60 dark:border-slate-700">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">マイプロフィール</h2>
-                </div>
                 
                 <!-- ▼ 修正: 公開プロフィールのサマリー表示カード ▼ -->
                 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 border border-slate-200/60 dark:border-slate-800 transition-colors relative overflow-hidden animate-pop-in">
@@ -531,12 +491,6 @@
             
             <!-- ▼ サブビュー2: アカウント情報 ▼ -->
             <div id="view-settings-account" class="view-section p-5 pb-32">
-                <div class="flex items-center mb-6">
-                    <button class="btn-back-to-settings w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors mr-3 shadow-sm border border-slate-200/60 dark:border-slate-700">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">アカウント情報</h2>
-                </div>
 
                 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 border border-slate-200/60 dark:border-slate-800 transition-colors animate-pop-in">
                     <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center text-sm"><i class="fas fa-user-circle text-slate-400 mr-2"></i>Account</h3>
@@ -558,12 +512,6 @@
 
             <!-- ▼ サブビュー3: 固定ルーティン ▼ -->
             <div id="view-settings-routine" class="view-section p-5 pb-32">
-                <div class="flex items-center mb-6">
-                    <button class="btn-back-to-settings w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors mr-3 shadow-sm border border-slate-200/60 dark:border-slate-700">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">固定ルーティン</h2>
-                </div>
 
                 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 transition-colors border border-slate-200/60 dark:border-slate-800 animate-pop-in">
                     <div class="flex justify-between items-center mb-5">
@@ -575,12 +523,7 @@
             </div>
             
             <div id="view-drill" class="view-section p-5">
-                <div class="flex items-center mb-6">
-                    <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mr-3 shadow-soft border border-slate-200/60 dark:border-slate-800" onclick="document.getElementById('btn-go-home').click()">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight transition-colors">計算ドリル</h2>
-                </div>
+    
                 <div class="bg-white dark:bg-zinc-900 p-1.5 rounded-xl shadow-soft border border-zinc-200/60 dark:border-zinc-800 flex flex-col md:flex-row mb-6 gap-1 transition-colors">
                     <button id="drill-mode-training" class="flex-1 flex items-center justify-center gap-2 py-2.5 px-2 rounded-lg font-bold text-xs transition-all duration-200 bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-800 shadow-sm">
                         <i class="fas fa-fire text-orange-400"></i> Training
@@ -657,15 +600,7 @@
             </div>
 
             <div id="view-flashcard-app" class="view-section h-full relative flex-col bg-slate-50/50 dark:bg-slate-950">
-                <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-slate-200/60 dark:border-slate-800 sticky top-0 z-30">
-                    <div class="flex items-center">
-                        <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors mr-2 border border-slate-200/60 dark:border-slate-700" onclick="document.getElementById('btn-go-home').click()">
-                            <i class="fas fa-arrow-left"></i>
-                        </button>
-                        <h2 data-fc-view="fc-sets" class="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2 cursor-pointer tracking-tight">
-                            <i class="fa-solid fa-layer-group text-purple-500 pointer-events-none"></i> My単語帳
-                        </h2>
-                    </div>
+            
                     <h2 data-fc-view="fc-sets" class="text-base font-black text-zinc-800 dark:text-zinc-100 flex items-center gap-2 cursor-pointer tracking-tight">
                         <i class="fa-solid fa-layer-group text-purple-500 pointer-events-none"></i> My単語帳
                     </h2>
@@ -754,12 +689,7 @@
 
             <!-- 過去問ログ -->
             <div id="view-past-exams" class="view-section p-5">
-                <div class="flex items-center mb-6">
-                    <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mr-3 shadow-soft border border-slate-200/60 dark:border-slate-800" onclick="document.getElementById('btn-go-home').click()">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight transition-colors">過去問ログ</h2>
-                </div>
+                
                 <div class="overflow-x-auto mb-4 pb-2 border-b border-zinc-200/60 dark:border-zinc-800" style="scrollbar-width: none;">
                     <div id="pe-subject-tabs" class="flex space-x-2 w-max px-1">
                         <!-- タブがここに挿入されます -->
