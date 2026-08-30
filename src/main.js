@@ -728,13 +728,17 @@ function deleteTask() {
     });
 }
 
+// ▼ 修正: IDではなくClassを使って複数箇所に数字を書き込む ▼
 function updateCountdowns() {
     const now = new Date();
-    const cd = (dateStr, elId) => {
+    const cd = (dateStr, className) => {
         const diff = Math.ceil((new Date(dateStr) - now) / (1000 * 60 * 60 * 24));
-        const el = document.getElementById(elId);
-        if (el) el.innerText = diff > 0 ? diff : 0;
+        const val = diff > 0 ? diff : 0;
+        // 指定されたクラスを持つすべての要素（ウィジェットとヘッダーの両方）を更新
+        document.querySelectorAll(`.${className}`).forEach(el => {
+            el.innerText = val;
+        });
     };
-    cd('2027-01-16T00:00:00', 'cd-common');
-    cd('2027-02-25T00:00:00', 'cd-second');
+    cd('2027-01-16T00:00:00', 'cd-common-val');
+    cd('2027-02-25T00:00:00', 'cd-second-val');
 }
