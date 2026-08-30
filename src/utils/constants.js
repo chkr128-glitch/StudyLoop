@@ -75,3 +75,70 @@ export const SUBJECT_FIELDS = {
     '情報': ["情報社会", "ネットワーク", "プログラミング", "データ処理", "論理回路"],
     '共通': ["総合・その他"]
 };
+
+// ==========================================
+// プロフィール・タイムライン機能用 定数
+// ==========================================
+
+// アバター（身バレ防止のためのプリセットアイコン）
+export const AVATARS = [
+    { id: 'cat', icon: 'fa-solid fa-cat', label: 'ネコ', color: 'text-orange-500', bg: 'bg-orange-100 dark:bg-orange-900/30' },
+    { id: 'dog', icon: 'fa-solid fa-dog', label: 'イヌ', color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/30' },
+    { id: 'frog', icon: 'fa-solid fa-frog', label: 'カエル', color: 'text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+    { id: 'dragon', icon: 'fa-solid fa-dragon', label: 'ドラゴン', color: 'text-rose-500', bg: 'bg-rose-100 dark:bg-rose-900/30' },
+    { id: 'owl', icon: 'fa-brands fa-earlybirds', label: 'フクロウ', color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-900/30' },
+    { id: 'robot', icon: 'fa-solid fa-robot', label: 'ロボット', color: 'text-slate-500', bg: 'bg-slate-100 dark:bg-slate-800' },
+    { id: 'rocket', icon: 'fa-solid fa-rocket', label: 'ロケット', color: 'text-pink-500', bg: 'bg-pink-100 dark:bg-pink-900/30' },
+    { id: 'crown', icon: 'fa-solid fa-crown', label: 'クラウン', color: 'text-yellow-500', bg: 'bg-yellow-100 dark:bg-yellow-900/30' }
+];
+
+// 受験ステータス（学年）
+export const USER_STATUSES = [
+    "高1", "高2", "高3", 
+    "浪人・既卒 (1浪)", "浪人・既卒 (2浪以上)", 
+    "仮面浪人", "再受験 (社会人等)", "その他"
+];
+
+// 文理区分
+export const USER_TRACKS = [
+    "理系", "文系", "その他 (芸術・体育・総合 等)"
+];
+
+// 志望系統グループ（プライバシー保護とマッチング用）
+export const TARGET_CATEGORIES = [
+    "旧帝大・難関国公立",
+    "地方国公立",
+    "国公立医歯薬・獣医",
+    "早慶上理・ICU",
+    "MARCH・関関同立",
+    "日東駒専・産近甲龍",
+    "私立医歯薬・獣医",
+    "私立一般",
+    "海外大学",
+    "未定・その他"
+];
+
+// 学校区分
+export const SCHOOL_TYPES = [
+    "公立高校",
+    "私立中高一貫校",
+    "私立高校",
+    "通信制・定時制",
+    "予備校・塾",
+    "非公開"
+];
+
+// 都道府県（プライバシーに配慮し、地域ブロックでの登録も想定）
+export const PREFECTURES = [
+    "非公開",
+    // 地域ブロック（身バレ防止用）
+    "北海道・東北地方", "関東地方", "中部地方", "近畿地方", "中国・四国地方", "九州・沖縄地方",
+    // 個別都道府県
+    "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
+    "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
+    "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県",
+    "三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県",
+    "鳥取県", "島根県", "岡山県", "広島県", "山口県",
+    "徳島県", "香川県", "愛媛県", "高知県",
+    "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"
+];

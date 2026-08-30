@@ -1,15 +1,32 @@
-import { OPTIONS_COMMON_SOCIETY, OPTIONS_COMMON_SCIENCE, OPTIONS_SECOND_SOCIETY, OPTIONS_SECOND_SCIENCE, SUBJECT_COLORS } from '../utils/constants.js';
+import { 
+    OPTIONS_COMMON_SOCIETY, OPTIONS_COMMON_SCIENCE, OPTIONS_SECOND_SOCIETY, OPTIONS_SECOND_SCIENCE, SUBJECT_COLORS,
+    AVATARS, USER_STATUSES, USER_TRACKS, TARGET_CATEGORIES, SCHOOL_TYPES, PREFECTURES
+} from '../utils/constants.js';
 import { formatTime, escapeHTML } from '../utils/helpers.js';
-import { showToast, showConfirm } from './ui.js';
-import { getAppDocRef } from '../services/db.js';
+// ▼ switchViewUI を import に追加
+import { showToast, showConfirm, openModal, closeModal, switchViewUI } from './ui.js';
+import { getAppDocRef, getPublicProfile, savePublicProfile } from '../services/db.js';
 import { setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // main.js から渡される、現在のユーザーIDを取得する関数を保持
 let getCurrentUserIdFn = null;
 
-// ★ 新規追加: 設定画面のイベントリスナー初期化
+// 設定画面のイベントリスナー初期化
 export function initSettings(getUserIdCallback) {
     getCurrentUserIdFn = getUserIdCallback;
+
+    // ▼ サブビューへの遷移イベント ▼
+    document.getElementById('nav-settings-profile')?.addEventListener('click', () => {
+        switchViewUI('settings-profile');
+        renderPublicProfileSummary(); // 追加: 画面を開いた時にプロフィールを読み込んで表示
+    });
+    document.getElementById('nav-settings-account')?.addEventListener('click', () => switchViewUI('settings-account'));
+    document.getElementById('nav-settings-routine')?.addEventListener('click', () => switchViewUI('settings-routine'));
+
+    // サブビューから設定メイン画面への戻るボタン
+    document.querySelectorAll('.btn-back-to-settings').forEach(btn => {
+        btn.addEventListener('click', () => switchViewUI('settings'));
+    });
 
     // APIキー保存ボタン（HTMLに id="btn-save-api-key" を追加してください）
     document.getElementById('btn-save-api-key')?.addEventListener('click', saveApiKey);
@@ -19,6 +36,10 @@ export function initSettings(getUserIdCallback) {
     
     // 志望校情報を保存するボタン（HTMLに id="btn-save-profile" を追加してください）
     document.getElementById('btn-save-profile')?.addEventListener('click', () => saveUserProfile());
+
+    // ▼ 新規追加: 公開プロフィール設定 ▼
+    document.getElementById('btn-open-profile-settings')?.addEventListener('click', openPublicProfileModal);
+    document.getElementById('btn-save-public-profile')?.addEventListener('click', savePublicProfileData);
 
     // ルーティン一覧の削除ボタンに対するイベント委譲
     const routineList = document.getElementById('routine-list');
@@ -200,4 +221,176 @@ export function deleteRoutine(id) {
         await deleteDoc(getAppDocRef('routines', id)); 
         showToast("ルーティンを削除しました", "info"); 
     }); 
+}
+
+// ==========================================
+// ▼ 新規追加: 公開プロフィール設定ロジック ▼
+// ==========================================
+
+async function openPublicProfileModal() {
+    // 1. セレクトボックスの選択肢を定数から生成
+    buildProfileSelects();
+    
+    // 2. 現在のプロフィールデータを取得
+    let profile = null;
+    const btn = document.getElementById('btn-save-public-profile');
+    try {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 読み込み中...';
+        openModal('modal-public-profile'); // 先にモーダルを開いておく
+        
+        profile = await getPublicProfile();
+    } catch (e) {
+        console.error("プロフィールの読み込みに失敗:", e);
+        showToast("データの読み込みに失敗しました", "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check mr-2"></i> プロフィールを保存';
+    }
+
+    // 3. 取得したデータをフォームに反映（未設定の場合は空/デフォルト値）
+    document.getElementById('profile-display-name').value = profile?.displayName || '';
+    document.getElementById('profile-bio').value = profile?.bio || '';
+    
+    if (profile?.status) document.getElementById('profile-status').value = profile.status;
+    if (profile?.track) document.getElementById('profile-track').value = profile.track;
+    if (profile?.targetCategory) document.getElementById('profile-target-category').value = profile.targetCategory;
+    if (profile?.prefecture) document.getElementById('profile-prefecture').value = profile.prefecture;
+    if (profile?.schoolType) document.getElementById('profile-school-type').value = profile.schoolType;
+
+    // 4. アバターUIの構築（選択状態も復元）
+    buildAvatarSelector(profile?.avatarId || 'cat');
+}
+
+function buildProfileSelects() {
+    const buildOptions = (arr) => arr.map(item => `<option value="${item}">${item}</option>`).join('');
+    
+    document.getElementById('profile-status').innerHTML = '<option value="">- 選択 -</option>' + buildOptions(USER_STATUSES);
+    document.getElementById('profile-track').innerHTML = '<option value="">- 選択 -</option>' + buildOptions(USER_TRACKS);
+    document.getElementById('profile-target-category').innerHTML = '<option value="">- 選択 -</option>' + buildOptions(TARGET_CATEGORIES);
+    document.getElementById('profile-prefecture').innerHTML = buildOptions(PREFECTURES); // デフォルトが"非公開"なので未選択は不要
+    document.getElementById('profile-school-type').innerHTML = '<option value="">- 選択 -</option>' + buildOptions(SCHOOL_TYPES);
+}
+
+function buildAvatarSelector(currentAvatarId) {
+    const container = document.getElementById('profile-avatar-container');
+    const inputId = document.getElementById('profile-avatar-id');
+    
+    container.innerHTML = AVATARS.map(av => `
+        <div class="avatar-option flex-shrink-0 flex flex-col items-center gap-1 cursor-pointer transition-transform hover:scale-105" data-id="${av.id}">
+            <div class="w-14 h-14 rounded-full flex items-center justify-center text-2xl border-4 transition-colors ${av.id === currentAvatarId ? 'border-emerald-500 shadow-md ' + av.bg : 'border-transparent bg-slate-100 dark:bg-slate-800'}">
+                <i class="${av.icon} ${av.color}"></i>
+            </div>
+            <span class="text-[10px] font-bold ${av.id === currentAvatarId ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}">${av.label}</span>
+        </div>
+    `).join('');
+    
+    inputId.value = currentAvatarId;
+
+    // アバタークリック時の選択制御
+    container.querySelectorAll('.avatar-option').forEach(el => {
+        el.addEventListener('click', () => {
+            const selectedId = el.dataset.id;
+            inputId.value = selectedId;
+            buildAvatarSelector(selectedId); // UIを再描画してハイライトを更新
+        });
+    });
+}
+
+async function savePublicProfileData() {
+    const displayName = document.getElementById('profile-display-name').value.trim();
+    if (!displayName) {
+        showToast("ニックネームを入力してください", "error");
+        return;
+    }
+
+    const profileData = {
+        displayName: displayName,
+        bio: document.getElementById('profile-bio').value.trim(),
+        avatarId: document.getElementById('profile-avatar-id').value,
+        status: document.getElementById('profile-status').value,
+        track: document.getElementById('profile-track').value,
+        targetCategory: document.getElementById('profile-target-category').value,
+        prefecture: document.getElementById('profile-prefecture').value,
+        schoolType: document.getElementById('profile-school-type').value
+    };
+
+    const btn = document.getElementById('btn-save-public-profile');
+    try {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 保存中...';
+        
+        await savePublicProfile(profileData);
+        
+        showToast("公開プロフィールを保存しました");
+        closeModal('modal-public-profile');
+        
+        // ▼ 追加: 保存完了後、背面のカード表示を最新化する
+        renderPublicProfileSummary();
+        
+    } catch (e) {
+        console.error("保存エラー:", e);
+        showToast("保存に失敗しました", "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check mr-2"></i> プロフィールを保存';
+    }
+}
+
+// ▼ 新規追加: プロフィール情報をカードとして描画する関数
+export async function renderPublicProfileSummary() {
+    const summaryContainer = document.getElementById('public-profile-summary');
+    if (!summaryContainer) return;
+    
+    try {
+        const profile = await getPublicProfile();
+        
+        // 未設定の場合の表示
+        if (!profile || !profile.displayName) {
+            summaryContainer.innerHTML = `
+                <div class="text-center text-slate-400 dark:text-slate-500 text-xs font-bold py-4">
+                    <i class="fas fa-user-slash mb-2 text-3xl text-slate-300 dark:text-slate-600"></i><br>
+                    プロフィールが未設定です。<br>右上の「編集」から設定してください。
+                </div>
+            `;
+            return;
+        }
+
+        // 選択されたアバターの情報を取得
+        const avatar = AVATARS.find(a => a.id === profile.avatarId) || AVATARS[0];
+        
+        // 設定された情報をカード形式で描画
+        summaryContainer.innerHTML = `
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl border-2 border-emerald-100 dark:border-emerald-900/50 ${avatar.bg} shadow-sm flex-shrink-0">
+                    <i class="${avatar.icon} ${avatar.color}"></i>
+                </div>
+                <div class="flex-grow min-w-0">
+                    <h4 class="text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight truncate">${escapeHTML(profile.displayName)}</h4>
+                    ${profile.bio ? `<p class="text-xs text-slate-600 dark:text-slate-400 font-medium mt-1 truncate">"${escapeHTML(profile.bio)}"</p>` : ''}
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-3">
+                <div class="bg-white dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200/60 dark:border-slate-700 shadow-sm">
+                    <span class="block text-[9px] text-slate-400 font-bold mb-0.5">志望系統</span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200">${escapeHTML(profile.targetCategory || '未設定')}</span>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200/60 dark:border-slate-700 shadow-sm">
+                    <span class="block text-[9px] text-slate-400 font-bold mb-0.5">ステータス</span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200">${escapeHTML(profile.status || '未設定')} / ${escapeHTML(profile.track || '未設定')}</span>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200/60 dark:border-slate-700 shadow-sm">
+                    <span class="block text-[9px] text-slate-400 font-bold mb-0.5">所在</span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200">${escapeHTML(profile.prefecture || '非公開')}</span>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200/60 dark:border-slate-700 shadow-sm">
+                    <span class="block text-[9px] text-slate-400 font-bold mb-0.5">学校区分</span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200">${escapeHTML(profile.schoolType || '未設定')}</span>
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        console.error("プロフィールの読み込みに失敗:", e);
+        summaryContainer.innerHTML = `<div class="text-xs text-rose-500 font-bold text-center py-4"><i class="fas fa-exclamation-circle mb-1"></i><br>読み込みエラーが発生しました</div>`;
+    }
 }
