@@ -1,5 +1,5 @@
 import { db, isUsingPreviewDB, appId } from '../config/firebase.js';
-import { collection, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { collection, doc, getDoc, setDoc, serverTimestamp, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 let currentUserId = null;
 
@@ -68,9 +68,35 @@ export async function getPublicProfile(uid = currentUserId) {
 export async function savePublicProfile(profileData) {
     if (!currentUserId) throw new Error("User not authenticated");
     const ref = getPublicProfileRef(currentUserId);
-    // merge: true を指定することで、既存のデータ（フォロワー数など）を消さずに一部更新可能にする
     await setDoc(ref, {
         ...profileData,
         updatedAt: serverTimestamp()
     }, { merge: true });
+}
+
+// ==========================================
+// 5. タイムライン用データ参照・操作 (Timeline)
+// ==========================================
+export function getTimelineCollectionRef() {
+    if (isUsingPreviewDB) return collection(db, 'artifacts', appId, 'timeline_logs');
+    return collection(db, 'timeline_logs');
+}
+
+// タイムラインに学習ログを投稿する
+export async function addTimelineLog(logData) {
+    if (!currentUserId) throw new Error("User not authenticated");
+    const ref = getTimelineCollectionRef();
+    await addDoc(ref, {
+        ...logData,
+        userId: currentUserId,
+        createdAt: serverTimestamp()
+    });
+}
+
+// タイムラインの最新ログを取得する（最大20件）
+export async function getRecentTimelineLogs(limitCount = 20) {
+    const ref = getTimelineCollectionRef();
+    const q = query(ref, orderBy('createdAt', 'desc'), limit(limitCount));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
