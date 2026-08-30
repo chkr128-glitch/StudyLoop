@@ -51,45 +51,70 @@ export function displayDailyQuote() {
     if (elAuthor) elAuthor.innerText = `- ${quote.author}`;
 }
 
+export function displayDailyQuote() {
+    const today = new Date();
+    const daysSinceEpoch = Math.floor(today.getTime() / (1000 * 60 * 60 * 24));
+    const quote = QUOTES[daysSinceEpoch % QUOTES.length];
+    
+    // index.htmlの新しいID名に修正
+    const elText = document.getElementById('home-daily-quote-text'); 
+    const elAuthor = document.getElementById('home-daily-quote-author');
+    
+    if (elText) elText.innerText = `"${quote.text}"`; 
+    if (elAuthor) elAuthor.innerText = `- ${quote.author}`;
+}
+
 export function updateStreak(tasks) {
-    // 古いIDを探す処理を削除し、新しいウィジェットのIDを使用
+    const completedDates = [...new Set(tasks.filter(t => t.completed && !t.deleted).map(t => t.date))].sort((a, b) => b.localeCompare(a));
+    let streak = 0; 
+    let checkDate = new Date(); 
+    let checkDateStr = formatDate(checkDate);
+    
+    if (!completedDates.includes(checkDateStr)) { 
+        checkDate.setDate(checkDate.getDate() - 1); 
+        checkDateStr = formatDate(checkDate); 
+    }
+    
+    while (completedDates.includes(checkDateStr)) { 
+        streak++; 
+        checkDate.setDate(checkDate.getDate() - 1); 
+        checkDateStr = formatDate(checkDate); 
+    }
+
+    // 新しいお引越しウィジェット用のIDを取得
     const daysEl = document.getElementById('header-streak-days');
     const emojiEl = document.getElementById('header-streak-emoji');
 
-    if (!daysEl || !emojiEl) return; // 念のため要素がない場合は安全に停止
+    if (!daysEl || !emojiEl) return;
 
-    const todayStr = formatDate(new Date());
-    let streak = 0;
-    let d = new Date(todayStr);
-
-    const isDone = (ds) => tasks.some(t => t.date === ds && t.completed && !t.deleted);
-
-    if (!isDone(todayStr)) {
-        d.setDate(d.getDate() - 1);
-    }
-
-    while (isDone(formatDate(d))) {
-        streak++;
-        d.setDate(d.getDate() - 1);
-    }
-
+    // ストリーク日数を設定
     daysEl.innerText = streak;
+
+    // 日数に応じた絵文字と色を設定
     if (streak === 0) {
         emojiEl.innerText = '🌱';
-        daysEl.classList.replace('text-orange-500', 'text-slate-400');
-        daysEl.classList.add('dark:text-slate-500');
+        daysEl.classList.remove('text-orange-500');
+        daysEl.classList.add('text-slate-400');
     } else if (streak < 3) {
         emojiEl.innerText = '🔥';
-        daysEl.classList.replace('text-slate-400', 'text-orange-500');
-        daysEl.classList.remove('dark:text-slate-500');
+        daysEl.classList.add('text-orange-500');
+        daysEl.classList.remove('text-slate-400');
     } else if (streak < 7) {
         emojiEl.innerText = '🚀';
-        daysEl.classList.replace('text-slate-400', 'text-orange-500');
-        daysEl.classList.remove('dark:text-slate-500');
+        daysEl.classList.add('text-orange-500');
+        daysEl.classList.remove('text-slate-400');
+    } else if (streak < 22) {
+        emojiEl.innerText = '💎';
+        daysEl.classList.add('text-orange-500');
+        daysEl.classList.remove('text-slate-400');
+    } else if (streak < 61) {
+        emojiEl.innerText = '🏅';
+        daysEl.classList.add('text-orange-500');
+        daysEl.classList.remove('text-slate-400');
     } else {
-        emojiEl.innerText = '👑';
-        daysEl.classList.replace('text-slate-400', 'text-orange-500');
-        daysEl.classList.remove('dark:text-slate-500');
+        emojiEl.innerText = '🏆';
+        daysEl.classList.add('text-orange-500');
+        daysEl.classList.remove('text-slate-400');
     }
 }
 
