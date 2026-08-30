@@ -163,42 +163,47 @@
     </div>
 
     <div id="main-app" class="flex-1 flex-col hidden w-full h-full relative">
-        <header class="bg-gradient-to-r from-pink-500/90 via-purple-500/90 to-indigo-600/90 dark:from-pink-900/80 dark:via-purple-900/80 dark:to-indigo-900/80 backdrop-blur-md border-b border-white/20 dark:border-slate-800 text-white px-3 sm:px-5 shadow-sm fixed w-full z-20 top-0 flex justify-between items-center h-16 transition-colors">
-            <div class="flex items-center gap-2 z-20 flex-shrink-0">
-                <button id="btn-toggle-theme" class="w-9 h-9 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors focus:outline-none shadow-sm text-white border border-white/20" title="テーマ切替">
-                    <i id="theme-icon" class="fas fa-moon text-[13px]"></i>
-                </button>
-                <button id="btn-open-settings" class="w-9 h-9 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors focus:outline-none shadow-sm text-white border border-white/20" title="設定">
-                    <i class="fas fa-cog text-[13px]"></i>
-                </button>
-                <button id="btn-go-home" class="hidden" title="ホームに戻る">
-                    <i class="fas fa-home text-[13px]"></i>
-                </button>
-            </div>
+        <header class="bg-gradient-to-r from-pink-500/90 via-purple-500/90 to-indigo-600/90 dark:from-pink-900/80 dark:via-purple-900/80 dark:to-indigo-900/80 backdrop-blur-md border-b border-white/20 dark:border-slate-800 text-white px-3 sm:px-5 shadow-sm fixed w-full z-30 top-0 h-16 transition-colors">
             
-            <div class="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center z-10 cursor-pointer" id="btn-header-logo">
-                <div class="flex items-center space-x-2 pointer-events-auto group">
-                    <img src="icon.png" alt="Logo" class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg shadow-sm transition-transform group-hover:scale-105" onerror="this.style.display='none'">
-                    <h1 class="text-base sm:text-lg font-black tracking-tight text-white drop-shadow-md">StudyLoop</h1>
+            <!-- ▼ ホーム画面用ヘッダー ▼ -->
+            <div id="header-home" class="flex w-full h-full justify-between items-center">
+                <div class="flex items-center gap-2 z-20 flex-shrink-0">
+                    <button id="btn-toggle-theme" class="w-9 h-9 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors shadow-sm text-white border border-white/20">
+                        <i id="theme-icon" class="fas fa-moon text-[13px]"></i>
+                    </button>
+                    <button id="btn-open-settings" class="w-9 h-9 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors shadow-sm text-white border border-white/20">
+                        <i class="fas fa-cog text-[13px]"></i>
+                    </button>
                 </div>
+                <div class="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center z-10 pointer-events-none">
+                    <div class="flex items-center space-x-2">
+                        <img src="icon.png" class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg shadow-sm" onerror="this.style.display='none'">
+                        <h1 class="text-lg font-black tracking-tight text-white drop-shadow-md">StudyLoop</h1>
+                    </div>
+                </div>
+                <div class="w-[84px]"></div> <!-- レイアウト調整用スペース -->
             </div>
 
-            <div class="flex items-center space-x-2 sm:space-x-3 text-right z-20 flex-shrink-0">
-                <div id="header-streak-container" class="hidden items-center justify-center bg-white/20 dark:bg-black/20 px-2 py-1 rounded-full shadow-sm border border-white/20">
-                    <span id="header-streak-emoji" class="text-xs sm:text-sm drop-shadow-sm"></span>
-                    <span id="header-streak-days" class="font-black text-white text-xs sm:text-sm ml-1 leading-none tracking-tight"></span><span class="text-[8px] sm:text-[10px] ml-0.5 font-bold text-white/90 leading-none hidden sm:inline">日</span>
+            <!-- ▼ サブ画面用ヘッダー (初期hidden) ▼ -->
+            <div id="header-sub" class="hidden w-full h-full justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <button id="btn-header-back" class="w-9 h-9 flex items-center justify-center bg-white/20 rounded-xl hover:bg-white/30 transition-colors shadow-sm text-white border border-white/20">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 id="header-sub-title" class="text-base sm:text-lg font-black text-white tracking-tight truncate max-w-[140px] sm:max-w-[200px]">タイトル</h2>
                 </div>
-                <div class="flex space-x-3 sm:space-x-4 text-[9px] sm:text-xs">
-                    <div class="hidden sm:flex flex-col items-end">
-                        <p class="text-white/80 font-bold text-[9px]">共通テスト</p>
-                        <p class="font-black text-lg leading-tight text-white drop-shadow-sm"><span id="cd-common">--</span> <span class="text-[9px] font-bold text-white/70">日</span></p>
+                <div class="flex space-x-3 text-right">
+                    <div class="flex flex-col items-end">
+                        <p class="text-white/80 font-bold text-[8px] leading-tight mb-0.5">共通テスト</p>
+                        <p class="font-black text-sm leading-none text-white drop-shadow-sm"><span class="cd-common-val">--</span><span class="text-[8px] font-bold ml-0.5">日</span></p>
                     </div>
                     <div class="flex flex-col items-end">
-                        <p class="text-white/80 font-bold text-[9px]">国公立2次</p>
-                        <p class="font-black text-lg leading-tight text-yellow-300 drop-shadow-sm"><span id="cd-second">--</span> <span class="text-[9px] font-bold text-yellow-300/70">日</span></p>
+                        <p class="text-white/80 font-bold text-[8px] leading-tight mb-0.5">国公立2次</p>
+                        <p class="font-black text-sm leading-none text-yellow-300 drop-shadow-sm"><span class="cd-second-val">--</span><span class="text-[8px] font-bold ml-0.5">日</span></p>
                     </div>
                 </div>
             </div>
+            
         </header>
         <main class="flex-1 overflow-y-auto mt-16 pb-10 relative w-full max-w-lg mx-auto" id="main-content">
             
@@ -206,6 +211,33 @@
                 <div class="flex justify-between items-end mb-6">
                     <h2 id="home-date-display" class="text-2xl font-black text-zinc-800 dark:text-white ml-1 tracking-tight">Home</h2>
                     <p class="text-xs font-bold text-zinc-500 dark:text-zinc-400">Let's Start Studying!</p>
+                </div>
+
+                <!-- ▼ 新規追加: お引っ越ししたステータスウィジェット ▼ -->
+                <div class="mb-5 bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex justify-between items-center transition-colors animate-pop-in relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-pink-500 to-indigo-500"></div>
+                    
+                    <div id="home-widget-streak" class="flex flex-col">
+                        <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">継続</p>
+                        <div class="flex items-end gap-1">
+                            <span id="header-streak-emoji" class="text-lg">🔥</span>
+                            <span id="header-streak-days" class="font-black text-2xl text-slate-800 dark:text-white leading-none tracking-tight">0</span>
+                            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-tight mb-0.5">日</span>
+                        </div>
+                    </div>
+
+                    <div class="h-10 w-px bg-slate-200 dark:bg-slate-700"></div>
+
+                    <div class="flex gap-4 sm:gap-6 text-right">
+                        <div class="flex flex-col items-end">
+                            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">共通テスト</p>
+                            <p class="font-black text-xl text-slate-800 dark:text-white leading-none"><span class="cd-common-val">--</span><span class="text-[10px] text-slate-500 font-bold ml-1">日</span></p>
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">国公立2次</p>
+                            <p class="font-black text-xl text-slate-800 dark:text-white leading-none"><span class="cd-second-val">--</span><span class="text-[10px] text-slate-500 font-bold ml-1">日</span></p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 名言 -->
