@@ -52,40 +52,44 @@ export function displayDailyQuote() {
 }
 
 export function updateStreak(tasks) {
-    const completedDates = [...new Set(tasks.filter(t => t.completed && !t.deleted).map(t => t.date))].sort((a, b) => b.localeCompare(a));
-    let streak = 0; let checkDate = new Date(); let checkDateStr = formatDate(checkDate);
-    
-    if (!completedDates.includes(checkDateStr)) { 
-        checkDate.setDate(checkDate.getDate() - 1); checkDateStr = formatDate(checkDate); 
-    }
-    while (completedDates.includes(checkDateStr)) { 
-        streak++; checkDate.setDate(checkDate.getDate() - 1); checkDateStr = formatDate(checkDate); 
-    }
+    // 古いIDを探す処理を削除し、新しいウィジェットのIDを使用
+    const daysEl = document.getElementById('header-streak-days');
+    const emojiEl = document.getElementById('header-streak-emoji');
 
-    let emoji = '', msg = '';
-    if (streak >= 121) { emoji = '🏆'; msg = 'レジェンド級の継続力！'; } 
-    else if (streak >= 61) { emoji = '🏅'; msg = '素晴らしい習慣が定着しています！'; } 
-    else if (streak >= 22) { emoji = '💎'; msg = '完全に習慣化されましたね！'; } 
-    else if (streak >= 1) { emoji = '🔥'; msg = 'その調子！継続は力なり！'; }
+    if (!daysEl || !emojiEl) return; // 念のため要素がない場合は安全に停止
 
-    const headerContainer = document.getElementById('header-streak-container');
-    if (streak > 0) { 
-        headerContainer.classList.remove('hidden'); headerContainer.classList.add('flex'); 
-        document.getElementById('header-streak-emoji').innerText = emoji; 
-        document.getElementById('header-streak-days').innerText = streak; 
-    } else { 
-        headerContainer.classList.add('hidden'); headerContainer.classList.remove('flex'); 
+    const todayStr = formatDate(new Date());
+    let streak = 0;
+    let d = new Date(todayStr);
+
+    const isDone = (ds) => tasks.some(t => t.date === ds && t.completed && !t.deleted);
+
+    if (!isDone(todayStr)) {
+        d.setDate(d.getDate() - 1);
     }
 
-    // index.htmlの新しいID名に修正
-    const dashContainer = document.getElementById('home-dashboard-streak-container');
-    if (dashContainer) { // dashContainerが存在するかどうか（nullチェック）を追加して安全にする
-        if (streak > 0) {
-            dashContainer.classList.remove('hidden');
-            dashContainer.innerHTML = `<div class="flex items-center"><div class="text-4xl mr-4 drop-shadow-md animate-bounce-slight">${emoji}</div><div><p class="text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-0.5">${msg}</p><p class="text-lg font-black text-gray-800 dark:text-gray-100">現在 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 text-2xl mx-1">${streak}</span> 日連続学習中！</p></div></div>`;
-        } else { 
-            dashContainer.classList.add('hidden'); 
-        }
+    while (isDone(formatDate(d))) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+    }
+
+    daysEl.innerText = streak;
+    if (streak === 0) {
+        emojiEl.innerText = '🌱';
+        daysEl.classList.replace('text-orange-500', 'text-slate-400');
+        daysEl.classList.add('dark:text-slate-500');
+    } else if (streak < 3) {
+        emojiEl.innerText = '🔥';
+        daysEl.classList.replace('text-slate-400', 'text-orange-500');
+        daysEl.classList.remove('dark:text-slate-500');
+    } else if (streak < 7) {
+        emojiEl.innerText = '🚀';
+        daysEl.classList.replace('text-slate-400', 'text-orange-500');
+        daysEl.classList.remove('dark:text-slate-500');
+    } else {
+        emojiEl.innerText = '👑';
+        daysEl.classList.replace('text-slate-400', 'text-orange-500');
+        daysEl.classList.remove('dark:text-slate-500');
     }
 }
 
