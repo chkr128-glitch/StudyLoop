@@ -126,7 +126,7 @@ export function initTheme() {
 }
 
 // ==========================================
-// ビュー（画面）切り替えの基礎部分
+// ビュー（画面）切り替えの基礎部分とヘッダー制御
 // ==========================================
 export function switchViewUI(viewName) {
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active')); 
@@ -134,16 +134,72 @@ export function switchViewUI(viewName) {
     
     document.getElementById(`view-${viewName}`).classList.add('active');
     
+    // アイコンのアニメーション処理
     const btn = document.getElementById(`nav-${viewName}`);
     if (btn) { 
         btn.classList.add('active', 'text-pink-500', 'dark:text-pink-400'); 
         btn.classList.remove('text-gray-400', 'dark:text-gray-500'); 
         const icon = btn.querySelector('i'); 
         if (icon) { 
-            // アニメーションをリセットして再トリガー
             icon.classList.remove('animate-bounce-slight'); 
             void icon.offsetWidth; 
             icon.classList.add('animate-bounce-slight'); 
         } 
+    }
+
+    // ▼ 新規追加: ヘッダーの自動切り替え制御 ▼
+    const headerHome = document.getElementById('header-home');
+    const headerSub = document.getElementById('header-sub');
+    const subTitleEl = document.getElementById('header-sub-title');
+    const btnBack = document.getElementById('btn-header-back');
+
+    if (!headerHome || !headerSub) return;
+
+    if (viewName === 'home') {
+        // ホーム画面の時はホーム用ヘッダーを表示
+        headerHome.classList.remove('hidden');
+        headerHome.classList.add('flex');
+        headerSub.classList.add('hidden');
+        headerSub.classList.remove('flex');
+    } else {
+        // サブ画面の時はサブ用ヘッダーを表示し、タイトルを設定
+        headerHome.classList.add('hidden');
+        headerHome.classList.remove('flex');
+        headerSub.classList.remove('hidden');
+        headerSub.classList.add('flex');
+
+        // 画面ごとのタイトル名と戻り先のマッピング
+        const viewTitles = {
+            'dashboard': { title: '本日のタスク', backTo: 'home' },
+            'calendar': { title: 'カレンダー', backTo: 'home' },
+            'past-exams': { title: '過去問ログ', backTo: 'home' },
+            'analytics': { title: '学習分析', backTo: 'home' },
+            'drill': { title: '計算ドリル', backTo: 'home' },
+            'flashcard-app': { title: 'My単語帳', backTo: 'home' },
+            'store': { title: '英作文サポート', backTo: 'home' },
+            'timeline': { title: 'みんなの広場', backTo: 'home' },
+            'settings': { title: '設定', backTo: 'home' },
+            // 設定の中のドリルダウン画面
+            'settings-profile': { title: 'マイプロフィール', backTo: 'settings' },
+            'settings-account': { title: 'アカウント情報', backTo: 'settings' },
+            'settings-routine': { title: '固定ルーティン', backTo: 'settings' }
+        };
+
+        const viewInfo = viewTitles[viewName] || { title: 'StudyLoop', backTo: 'home' };
+        if (subTitleEl) subTitleEl.innerText = viewInfo.title;
+
+        // 戻るボタンのクリック処理を毎回上書き（古いリスナーを消すためにクローン）
+        if (btnBack) {
+            const newBtnBack = btnBack.cloneNode(true);
+            btnBack.parentNode.replaceChild(newBtnBack, btnBack);
+            newBtnBack.addEventListener('click', () => {
+                // `main.js` の `switchView` に相当する処理を間接的に呼ぶためのカスタムイベント等も可能ですが、
+                // ここではシンプルに対象のナビボタンをクリックさせる挙動で代用します
+                const targetNavBtn = document.querySelector(`[data-target="${viewInfo.backTo}"]`) 
+                                  || document.getElementById(`nav-${viewInfo.backTo}`);
+                if (targetNavBtn) targetNavBtn.click();
+                else document.getElementById('btn-go-home')?.click(); // 念のためフォールバック
+            });
+        }
     }
 }
