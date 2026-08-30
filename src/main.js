@@ -1,5 +1,5 @@
 import { observeAuthState } from './services/auth.js';
-import { setCurrentUserId, getCurrentUserId, getAppCollectionRef, getAppDocRef } from './services/db.js';
+import { setCurrentUserId, getCurrentUserId, getAppCollectionRef, getAppDocRef, addTimelineLog } from './services/db.js';
 import { showToast, showConfirm, closeConfirm, executeConfirm, openModal, closeModal, initUI, switchViewUI } from './components/ui.js';
 import { initAuthUI } from './components/authUI.js';
 import { renderDashboard, updateStreak, displayDailyQuote } from './components/dashboard.js';
@@ -11,6 +11,7 @@ import { initFlashcard, updateFcSets, showFcView } from './components/flashcard.
 import { initStore, renderStore } from './components/store.js';
 import { initTutorial, checkAndShowTutorial } from './components/tutorial.js';
 import { initPastExams, updatePastExamsData } from './components/pastExams.js';
+import { initTimeline, loadTimeline } from './components/timeline.js';
 import { SUBJECTS, REVIEW_INTERVALS } from './utils/constants.js';
 import { formatDate } from './utils/helpers.js';
 import { onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -39,6 +40,7 @@ export function initApp() {
     initStore();
     initTutorial(); 
     initPastExams();
+    initTimeline();
     
     populateSubjectDropdowns(); 
 
@@ -268,6 +270,10 @@ function updateAllViews() {
     if (state.currentView === 'flashcard-app') {
         const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
         showFcView(activeFcView);
+    }
+
+    if (state.currentView === 'timeline') {
+        loadTimeline();
     }
 }
 
@@ -655,6 +661,25 @@ async function saveTaskDetail() {
 
         if (!task.isReview && evaluation) {
             await scheduleReviews(task, evaluation, subEvaluations);
+        }
+
+        // タイムライン投稿処理
+        const shareTimelineCheckbox = document.getElementById('detail-share-timeline');
+        // レビュー（復習）タスクでない、かつチェックボックスがONの場合に投稿
+        if (shareTimelineCheckbox && shareTimelineCheckbox.checked && !task.isReview) {
+            try {
+                await addTimelineLog({
+                    taskId: id,
+                    taskTitle: task.title,
+                    subject: task.subject,
+                    actualTime: actualTime,
+                    evaluation: evaluation,
+                    note: note
+                });
+            } catch (err) {
+                console.error("タイムラインの投稿に失敗しました:", err);
+                // 投稿に失敗しても、タスクの保存処理自体は進行させる
+            }
         }
 
         const targetId = document.getElementById('modal-task-detail') ? 'modal-task-detail' : 'task-detail-modal';
