@@ -131,6 +131,13 @@ function setupEventListeners() {
     document.getElementById('btn-delete-task')?.addEventListener('click', deleteTask);
     document.getElementById('toggle-sub-eval-btn')?.addEventListener('click', toggleSubEvaluations);
     document.getElementById('btn-add-sub-eval')?.addEventListener('click', () => addSubEvaluation());
+    document.getElementById('btn-calendar-add-task')?.addEventListener('click', async () => {
+        const { getCalendarSelectedDate } = await import('./components/calendar.js');
+        openAddTaskModal(getCalendarSelectedDate());
+    });
+
+    document.getElementById('tab-add-custom')?.addEventListener('click', () => toggleAddTaskMode('custom'));
+    document.getElementById('tab-add-routine')?.addEventListener('click', () => toggleAddTaskMode('routine'));
     
     document.getElementById('sub-evaluations-list')?.addEventListener('click', (e) => {
         const deleteBtn = e.target.closest('.sub-eval-delete-btn');
@@ -394,48 +401,123 @@ async function generateRoutineTasks(targetDateStr = null) {
     }
 }
 
-function openAddTaskModal() {
+function toggleAddTaskMode(mode) {
+    const customTab = document.getElementById('tab-add-custom');
+    const routineTab = document.getElementById('tab-add-routine');
+    const customArea = document.getElementById('add-task-custom-area');
+    const routineArea = document.getElementById('add-task-routine-area');
+
+    if (mode === 'custom') {
+        customTab.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white dark:bg-zinc-700 shadow-sm text-zinc-800 dark:text-white transition-all";
+        routineTab.className = "flex-1 py-2 text-xs font-bold rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-all";
+        customArea.classList.remove('hidden');
+        routineArea.classList.add('hidden');
+    } else {
+        routineTab.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white dark:bg-zinc-700 shadow-sm text-zinc-800 dark:text-white transition-all";
+        customTab.className = "flex-1 py-2 text-xs font-bold rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-all";
+        routineArea.classList.remove('hidden');
+        customArea.classList.add('hidden');
+    }
+}
+
+function openAddTaskModal(targetDate = null) {
+    // 単発タスク用の初期化
     document.getElementById('input-task-title').value = '';
     document.getElementById('input-task-subject').value = '英語';
     document.getElementById('input-task-time').value = '30';
     
+    // 日付の初期化（引数があれば過去日、なければ今日）
     const dateInput = document.getElementById('input-task-date');
     if (dateInput) {
-        dateInput.value = state.currentView === 'calendar' ? getCalendarSelectedDate() : formatDate(new Date());
+        if (targetDate && typeof targetDate === 'string') {
+            dateInput.value = targetDate;
+        } else {
+            // ※必要に応じてカレンダーから日付を取得
+            dateInput.value = formatDate(new Date()); 
+        }
     }
     
+    // ルーティン補填用のプルダウンに現在のルーティン一覧をセット
+    const routineSelect = document.getElementById('input-routine-select');
+    if (routineSelect) {
+        routineSelect.innerHTML = '';
+        state.routines.forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r.id;
+            opt.innerText = `${r.title} (現在: ${r.currentPosition || 1}${r.unit || '問'})`;
+            routineSelect.appendChild(opt);
+        });
+    }
+
+    // デフォルトは単発タスクモード
+    toggleAddTaskMode('custom');
+
     const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
     openModal(targetId);
 }
 
 async function saveNewTask() {
-    const title = document.getElementById('input-task-title').value.trim();
-    const subject = document.getElementById('input-task-subject').value;
-    const timeVal = document.getElementById('input-task-time').value;
     const dateVal = document.getElementById('input-task-date')?.value || formatDate(new Date());
-
-    if (!title) {
-        showToast("タスクのタイトルを入力してください。", "error");
-        return;
-    }
+    const isRoutineMode = !document.getElementById('add-task-routine-area').classList.contains('hidden');
 
     try {
-        const newRef = doc(getAppCollectionRef('tasks'));
-        await setDoc(newRef, {
-            id: newRef.id,
-            title,
-            subject,
-            estimatedTime: parseInt(timeVal, 10) || 30,
-            date: dateVal,
-            completed: false,
-            isReview: false,
-            isRoutine: false,
-            createdAt: new Date().toISOString()
-        });
+        if (isRoutineMode) {
+            // 【ルーティン補填モード】の保存処理
+            const routineId = document.getElementById('input-routine-select').value;
+            const routine = state.routines.find(r => r.id === routineId);
+            if (!routine) return showToast("ルーティンが選択されていません", "error");
+
+            const startPos = routine.currentPosition || 1;
+            let endPos = startPos + (routine.dailyPace || 1) - 1;
+            if (routine.totalItems && endPos > routine.totalItems) endPos = routine.totalItems;
+
+            const docId = `routine_${routine.id}_${dateVal}_manual`; // 手動補填用のID
+            const newTaskData = {
+                title: routine.title,
+                subject: routine.subject,
+                estimatedTime: routine.estimatedTime,
+                date: dateVal,
+                completed: false, // タスク一覧に未完了として出し、あとで評価をつけられるようにする
+                isReview: false,
+                isRoutine: true,
+                sourceRoutineId: routine.id,
+                plannedStart: startPos,
+                plannedEnd: endPos,
+                unit: routine.unit || '問',
+                totalItems: routine.totalItems || null,
+                createdAt: new Date().toISOString()
+            };
+
+            await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
+            showToast(`${dateVal} にルーティン予定を補填しました。`, "info");
+
+        } else {
+            // 【単発タスクモード】の保存処理 (従来通り)
+            const title = document.getElementById('input-task-title').value.trim();
+            const subject = document.getElementById('input-task-subject').value;
+            const timeVal = document.getElementById('input-task-time').value;
+
+            if (!title) return showToast("タスクのタイトルを入力してください。", "error");
+
+            const newRef = doc(getAppCollectionRef('tasks'));
+            await setDoc(newRef, {
+                id: newRef.id,
+                title,
+                subject,
+                estimatedTime: parseInt(timeVal, 10) || 30,
+                date: dateVal,
+                completed: false,
+                isReview: false,
+                isRoutine: false,
+                createdAt: new Date().toISOString()
+            });
+            showToast(`${dateVal} にタスクを追加しました`);
+        }
         
         const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
         closeModal(targetId);
-        showToast("タスクを追加しました");
+        updateAllViews();
+
     } catch(err) {
         console.error("タスク追加エラー:", err);
         showToast("追加に失敗しました", "error");
