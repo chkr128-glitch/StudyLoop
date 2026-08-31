@@ -331,7 +331,16 @@ async function generateRoutineTasks(targetDateStr = null) {
             if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
 
             // 3. なければ新規作成（カレンダーで選択した日付のタスクを作る）
-            if (!existingTask) {
+            const existingTask = state.tasks.find(t => 
+                t.sourceRoutineId === r.id && t.isRoutine === true && t.date === dateStr && !t.deleted
+            );
+            
+            const startPos = r.currentPosition || 1;
+            let endPos = startPos + (r.dailyPace || 1) - 1;
+            if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
+
+            // 3. なければ新規作成（※今日または未来の日付のみ作成する）
+            if (!existingTask && dateStr >= todayStr) {
                 const docId = `routine_${r.id}_${dateStr}`;
                 const newTaskData = {
                     title: r.title,
@@ -358,7 +367,7 @@ async function generateRoutineTasks(targetDateStr = null) {
                         console.warn("DB保存に失敗:", err);
                     }
                 }
-            } else {
+            } else if (existingTask) {
                 // 4. 既存タスクがある場合、進行状況に応じて予定範囲を更新する
                 let needsUpdate = false;
                 const updateData = {};
@@ -720,32 +729,32 @@ async function scheduleReviews(originalTask, evaluation, subEvaluations) {
     const intervals = REVIEW_INTERVALS[evaluation];
     if (!intervals) return;
 
-    // ▼ 追加: ルーティンタスクの場合、問題範囲（10〜15問など）の文字列を作成する ▼
-    let rangeStr = '';
-    if (originalTask.isRoutine) {
-        const start = originalTask.actualStart || originalTask.plannedStart;
-        const end = originalTask.actualEnd || originalTask.plannedEnd;
-        const unit = originalTask.unit || '問';
-        if (start && end) {
-            rangeStr = start === end ? ` (${start}${unit})` : ` (${start}〜${end}${unit})`;
-        }
-    }
-
     const baseDate = new Date();
     for (let i = 0; i < intervals.length; i++) {
         const d = new Date(baseDate);
         d.setDate(d.getDate() + intervals[i]);
         const dateStr = formatDate(d);
 
-        // ▼ 修正: タトルに「何日後か」と「問題範囲」を含める ▼
-        let reviewTitle = `[復習:${intervals[i]}日後] ${originalTask.title}${rangeStr}`;
+        // 基本の復習タイトル生成
+        let reviewTitle = `[復習: ${intervals[i]}日後] ${originalTask.title}`;
+        
+        // ルーティンの場合は、実際にやった範囲をタイトルに追記
+        if (originalTask.isRoutine && originalTask.plannedStart) {
+            const start = originalTask.actualStart || originalTask.plannedStart;
+            const end = originalTask.actualEnd || originalTask.plannedEnd;
+            const unit = originalTask.unit || '問';
+            reviewTitle += ` (${start}〜${end}${unit})`;
+        } else {
+            reviewTitle += ` (評${evaluation})`;
+        }
+
         let reviewNote = '';
 
         if (subEvaluations && subEvaluations.length > 0) {
             const weakSubEvals = subEvaluations.filter(s => s.eval === 'C' || s.eval === 'D');
             if (weakSubEvals.length > 0) {
                 const weakPoints = weakSubEvals.map(s => s.name);
-                reviewTitle = `[復習:${intervals[i]}日後] ${originalTask.title}${rangeStr} (弱点: ${weakPoints.slice(0, 2).join(', ')}${weakPoints.length > 2 ? '...' : ''})`;
+                reviewTitle = `[復習: ${intervals[i]}日後] ${originalTask.title} (弱点: ${weakPoints.slice(0, 2).join(', ')}${weakPoints.length > 2 ? '...' : ''})`;
             }
 
             const itemsWithNotes = subEvaluations.filter(s => s.note && s.note.trim() !== '');
