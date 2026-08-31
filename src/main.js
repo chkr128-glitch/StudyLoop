@@ -857,3 +857,4 @@ function openReviewHistoryModal(id) {
 
     const targetId = document.getElementById('modal-review-history') ? 'modal-review-history' : 'review-history-modal';
     openModal(targetId);
+}
