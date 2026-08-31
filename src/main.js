@@ -296,85 +296,90 @@ async function generateRoutineTasks(targetDateStr = null) {
     try {
         const todayStr = formatDate(new Date());
         const dateStr = targetDateStr || todayStr;
-        if (dateStr !== todayStr) return;
 
-        for (const r of state.routines) {
-            if (r.totalItems && r.currentPosition > r.totalItems) continue;
+        // ▼ 修正: 「今日」の場合のみルーティンの自動生成を行うようブロックで囲む。
+        // これにより「今日以外」を選択した場合でも処理が中断されず、一番下の画面更新処理に到達する。 ▼
+        if (dateStr === todayStr) {
+            for (const r of state.routines) {
+                if (r.totalItems && r.currentPosition > r.totalItems) continue;
 
-            const pastIncompleteTasks = state.tasks.filter(t => 
-                t.sourceRoutineId === r.id && t.isRoutine === true && !t.completed && !t.deleted && t.date < todayStr
-            );
+                const pastIncompleteTasks = state.tasks.filter(t => 
+                    t.sourceRoutineId === r.id && t.isRoutine === true && !t.completed && !t.deleted && t.date < todayStr
+                );
 
-            for (const pastTask of pastIncompleteTasks) {
-                if (pastTask.deleted) continue;
-                pastTask.deleted = true;
-                if (!pastTask.id.startsWith('temp_')) {
-                    try {
-                        await setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true });
-                    } catch(e) {
-                        console.error("Error deleting past routine task:", e);
+                for (const pastTask of pastIncompleteTasks) {
+                    if (pastTask.deleted) continue;
+                    pastTask.deleted = true;
+                    if (!pastTask.id.startsWith('temp_')) {
+                        try {
+                            await setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true });
+                        } catch(e) {
+                            console.error("Error deleting past routine task:", e);
+                        }
                     }
                 }
-            }
 
-            const existingTask = state.tasks.find(t => 
-                t.sourceRoutineId === r.id && t.isRoutine === true && t.date === todayStr && !t.deleted
-            );
-            
-            const startPos = r.currentPosition || 1;
-            let endPos = startPos + (r.dailyPace || 1) - 1;
-            if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
-
-            if (!existingTask) {
-                const docId = `routine_${r.id}_${todayStr}`;
-                const newTaskData = {
-                    title: r.title,
-                    subject: r.subject,
-                    estimatedTime: r.estimatedTime,
-                    date: todayStr,
-                    completed: false,
-                    isReview: false,
-                    isRoutine: true,
-                    sourceRoutineId: r.id,
-                    plannedStart: startPos,
-                    plannedEnd: endPos,
-                    unit: r.unit || '問',
-                    totalItems: r.totalItems || null,
-                    createdAt: new Date().toISOString()
-                };
-
-                state.tasks.push({ id: docId, ...newTaskData });
+                const existingTask = state.tasks.find(t => 
+                    t.sourceRoutineId === r.id && t.isRoutine === true && t.date === todayStr && !t.deleted
+                );
                 
-                if (!r.id.startsWith('temp_')) {
-                    try {
-                        await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
-                    } catch(err) {
-                        console.warn("DB保存に失敗:", err);
+                const startPos = r.currentPosition || 1;
+                let endPos = startPos + (r.dailyPace || 1) - 1;
+                if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
+
+                if (!existingTask) {
+                    const docId = `routine_${r.id}_${todayStr}`;
+                    const newTaskData = {
+                        title: r.title,
+                        subject: r.subject,
+                        estimatedTime: r.estimatedTime,
+                        date: todayStr,
+                        completed: false,
+                        isReview: false,
+                        isRoutine: true,
+                        sourceRoutineId: r.id,
+                        plannedStart: startPos,
+                        plannedEnd: endPos,
+                        unit: r.unit || '問',
+                        totalItems: r.totalItems || null,
+                        createdAt: new Date().toISOString()
+                    };
+
+                    state.tasks.push({ id: docId, ...newTaskData });
+                    
+                    if (!r.id.startsWith('temp_')) {
+                        try {
+                            await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
+                        } catch(err) {
+                            console.warn("DB保存に失敗:", err);
+                        }
                     }
-                }
-            } else {
-                let needsUpdate = false;
-                const updateData = {};
+                } else {
+                    let needsUpdate = false;
+                    const updateData = {};
 
-                if (existingTask.plannedStart !== startPos) {
-                    existingTask.plannedStart = startPos; updateData.plannedStart = startPos; needsUpdate = true;
-                }
-                if (existingTask.plannedEnd !== endPos) {
-                    existingTask.plannedEnd = endPos; updateData.plannedEnd = endPos; needsUpdate = true;
-                }
-                if (!existingTask.unit && r.unit) {
-                    existingTask.unit = r.unit; updateData.unit = r.unit; needsUpdate = true;
-                }
+                    if (existingTask.plannedStart !== startPos) {
+                        existingTask.plannedStart = startPos; updateData.plannedStart = startPos; needsUpdate = true;
+                    }
+                    if (existingTask.plannedEnd !== endPos) {
+                        existingTask.plannedEnd = endPos; updateData.plannedEnd = endPos; needsUpdate = true;
+                    }
+                    if (!existingTask.unit && r.unit) {
+                        existingTask.unit = r.unit; updateData.unit = r.unit; needsUpdate = true;
+                    }
 
-                if (needsUpdate && !existingTask.id.startsWith('temp_')) {
-                    try {
-                        await setDoc(doc(getAppCollectionRef('tasks'), existingTask.id), updateData, { merge: true });
-                    } catch(err) {
-                        console.warn("タスクの範囲更新に失敗:", err);
+                    if (needsUpdate && !existingTask.id.startsWith('temp_')) {
+                        try {
+                            await setDoc(doc(getAppCollectionRef('tasks'), existingTask.id), updateData, { merge: true });
+                        } catch(err) {
+                            console.warn("タスクの範囲更新に失敗:", err);
+                        }
                     }
                 }
             }
-        }
+        } // ▲ if (dateStr === todayStr) のブロック終わり ▲
+
+        // ▼ 日付選択や、タスクの追加・削除などがあった場合、ここで必ず画面が即座に更新される ▼
         updateAllViews();
     } finally {
         isGeneratingTasks = false;
