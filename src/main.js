@@ -330,15 +330,6 @@ async function generateRoutineTasks(targetDateStr = null) {
             let endPos = startPos + (r.dailyPace || 1) - 1;
             if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
 
-            // 3. なければ新規作成（カレンダーで選択した日付のタスクを作る）
-            const existingTask = state.tasks.find(t => 
-                t.sourceRoutineId === r.id && t.isRoutine === true && t.date === dateStr && !t.deleted
-            );
-            
-            const startPos = r.currentPosition || 1;
-            let endPos = startPos + (r.dailyPace || 1) - 1;
-            if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
-
             // 3. なければ新規作成（※今日または未来の日付のみ作成する）
             if (!existingTask && dateStr >= todayStr) {
                 const docId = `routine_${r.id}_${dateStr}`;
