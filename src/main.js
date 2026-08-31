@@ -152,7 +152,17 @@ function setupEventListeners() {
             container.addEventListener('click', (e) => {
                 if (e.target.matches('.task-checkbox')) return; 
                 const targetEl = e.target.closest('.task-row-clickable, .task-edit-btn');
-                if (targetEl && targetEl.dataset.taskId) openTaskDetailModal(targetEl.dataset.taskId);
+                if (targetEl && targetEl.dataset.taskId) {
+                    const taskId = targetEl.dataset.taskId;
+                    const task = state.tasks.find(t => t.id === taskId);
+                    
+                    // ▼ 修正: タスクが復習用か通常かで開くモーダルを分岐させる ▼
+                    if (task && task.isReview) {
+                        openReviewHistoryModal(taskId);
+                    } else {
+                        openTaskDetailModal(taskId);
+                    }
+                }
             });
         }
     });
@@ -697,20 +707,32 @@ async function scheduleReviews(originalTask, evaluation, subEvaluations) {
     const intervals = REVIEW_INTERVALS[evaluation];
     if (!intervals) return;
 
+    // ▼ 追加: ルーティンタスクの場合、問題範囲（10〜15問など）の文字列を作成する ▼
+    let rangeStr = '';
+    if (originalTask.isRoutine) {
+        const start = originalTask.actualStart || originalTask.plannedStart;
+        const end = originalTask.actualEnd || originalTask.plannedEnd;
+        const unit = originalTask.unit || '問';
+        if (start && end) {
+            rangeStr = start === end ? ` (${start}${unit})` : ` (${start}〜${end}${unit})`;
+        }
+    }
+
     const baseDate = new Date();
     for (let i = 0; i < intervals.length; i++) {
         const d = new Date(baseDate);
         d.setDate(d.getDate() + intervals[i]);
         const dateStr = formatDate(d);
 
-        let reviewTitle = `[復習] ${originalTask.title} (評${evaluation})`;
+        // ▼ 修正: タトルに「何日後か」と「問題範囲」を含める ▼
+        let reviewTitle = `[復習:${intervals[i]}日後] ${originalTask.title}${rangeStr}`;
         let reviewNote = '';
 
         if (subEvaluations && subEvaluations.length > 0) {
             const weakSubEvals = subEvaluations.filter(s => s.eval === 'C' || s.eval === 'D');
             if (weakSubEvals.length > 0) {
                 const weakPoints = weakSubEvals.map(s => s.name);
-                reviewTitle = `[復習] ${originalTask.title} (弱点: ${weakPoints.slice(0, 2).join(', ')}${weakPoints.length > 2 ? '...' : ''})`;
+                reviewTitle = `[復習:${intervals[i]}日後] ${originalTask.title}${rangeStr} (弱点: ${weakPoints.slice(0, 2).join(', ')}${weakPoints.length > 2 ? '...' : ''})`;
             }
 
             const itemsWithNotes = subEvaluations.filter(s => s.note && s.note.trim() !== '');
@@ -767,3 +789,71 @@ function updateCountdowns() {
     cd('2027-01-16T00:00:00', 'cd-common-val');
     cd('2027-02-25T00:00:00', 'cd-second-val');
 }
+
+// ▼ 新規追加: 復習タスク専用の履歴モーダルを開く関数（ファイルの末尾に追記） ▼
+function openReviewHistoryModal(id) {
+    const task = state.tasks.find(t => t.id === id);
+    if (!task) return;
+
+    document.getElementById('history-task-title').innerText = task.title;
+
+    // 紐づいている初回学習タスク（originalTask）を取得
+    const originalTask = state.tasks.find(t => t.id === task.originalTaskId);
+    
+    // 最初の学習メモを描画
+    const originalNoteEl = document.getElementById('history-original-note');
+    if (originalNoteEl) {
+        if (originalTask && originalTask.note) {
+            originalNoteEl.innerText = originalTask.note;
+            originalNoteEl.classList.remove('text-zinc-400');
+        } else {
+            originalNoteEl.innerText = "学習メモはありません";
+            originalNoteEl.classList.add('text-zinc-400');
+        }
+    }
+
+    // 評価とスケジュール推移の描画
+    const timelineList = document.getElementById('history-timeline-list');
+    if (timelineList) {
+        timelineList.innerHTML = '';
+        let html = '';
+        
+        // ① 初回学習の情報を描画
+        if (originalTask) {
+             html += `
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="w-8 h-8 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center font-bold text-xs flex-shrink-0">初回</div>
+                    <div class="flex-1 bg-zinc-50 dark:bg-zinc-800 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-xs flex justify-between items-center">
+                        <span class="font-bold text-zinc-700 dark:text-zinc-200">初回学習</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">評価: ${originalTask.evaluation || '-'}</span>
+                    </div>
+                </div>
+             `;
+        }
+        
+        // ② 今後（および過去）の復習予定を時系列順に描画
+        const reviews = state.tasks.filter(t => t.originalTaskId === task.originalTaskId && t.isReview)
+                                   .sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        reviews.forEach((r, index) => {
+            const isCompleted = r.completed;
+            const evalText = r.evaluation ? `評価: ${r.evaluation}` : (isCompleted ? '完了' : '未完了');
+            const bgClass = isCompleted ? 'bg-emerald-100 text-emerald-600' : 'bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500';
+            const dateParts = r.date.split('-');
+            const dateStr = dateParts.length === 3 ? `${dateParts[1]}/${dateParts[2]}` : r.date;
+            
+            html += `
+                <div class="flex items-center space-x-3 mb-2 ${isCompleted ? '' : 'opacity-60'}">
+                    <div class="w-8 h-8 rounded-full ${bgClass} flex items-center justify-center font-bold text-xs flex-shrink-0">${index + 1}回</div>
+                    <div class="flex-1 bg-zinc-50 dark:bg-zinc-800 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-xs flex justify-between items-center">
+                        <span class="font-bold text-zinc-700 dark:text-zinc-200">${dateStr} 予定</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 ${isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400'}">${evalText}</span>
+                    </div>
+                </div>
+            `;
+        });
+        timelineList.innerHTML = html;
+    }
+
+    const targetId = document.getElementById('modal-review-history') ? 'modal-review-history' : 'review-history-modal';
+    openModal(targetId);
