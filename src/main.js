@@ -290,96 +290,104 @@ function updateAllViews() {
 let isGeneratingTasks = false; 
 
 async function generateRoutineTasks(targetDateStr = null) {
-    if (isGeneratingTasks) return;
+    if (isGeneratingTasks) {
+        // 処理中の場合でも、カレンダーの切り替えなどを反映させるために画面更新は行う
+        updateAllViews();
+        return;
+    }
     isGeneratingTasks = true;
 
     try {
         const todayStr = formatDate(new Date());
         const dateStr = targetDateStr || todayStr;
 
-        // ▼ 修正: 「今日」の場合のみルーティンの自動生成を行うようブロックで囲む。
-        // これにより「今日以外」を選択した場合でも処理が中断されず、一番下の画面更新処理に到達する。 ▼
-        if (dateStr === todayStr) {
-            for (const r of state.routines) {
-                if (r.totalItems && r.currentPosition > r.totalItems) continue;
+        for (const r of state.routines) {
+            if (r.totalItems && r.currentPosition > r.totalItems) continue;
 
-                const pastIncompleteTasks = state.tasks.filter(t => 
-                    t.sourceRoutineId === r.id && t.isRoutine === true && !t.completed && !t.deleted && t.date < todayStr
-                );
+            // 1. 過去の未完了ルーティンの削除（これは常に「今日」を基準に判定）
+            const pastIncompleteTasks = state.tasks.filter(t => 
+                t.sourceRoutineId === r.id && t.isRoutine === true && !t.completed && !t.deleted && t.date < todayStr
+            );
 
-                for (const pastTask of pastIncompleteTasks) {
-                    if (pastTask.deleted) continue;
-                    pastTask.deleted = true;
-                    if (!pastTask.id.startsWith('temp_')) {
-                        try {
-                            await setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true });
-                        } catch(e) {
-                            console.error("Error deleting past routine task:", e);
-                        }
+            for (const pastTask of pastIncompleteTasks) {
+                if (pastTask.deleted) continue;
+                pastTask.deleted = true;
+                if (!pastTask.id.startsWith('temp_')) {
+                    try {
+                        await setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true });
+                    } catch(e) {
+                        console.error("Error deleting past routine task:", e);
                     }
                 }
+            }
 
-                const existingTask = state.tasks.find(t => 
-                    t.sourceRoutineId === r.id && t.isRoutine === true && t.date === todayStr && !t.deleted
-                );
+            // 2. 選択された日付 (dateStr) のルーティンタスクを検索
+            const existingTask = state.tasks.find(t => 
+                t.sourceRoutineId === r.id && t.isRoutine === true && t.date === dateStr && !t.deleted
+            );
+            
+            const startPos = r.currentPosition || 1;
+            let endPos = startPos + (r.dailyPace || 1) - 1;
+            if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
+
+            // 3. なければ新規作成（カレンダーで選択した日付のタスクを作る）
+            if (!existingTask) {
+                const docId = `routine_${r.id}_${dateStr}`;
+                const newTaskData = {
+                    title: r.title,
+                    subject: r.subject,
+                    estimatedTime: r.estimatedTime,
+                    date: dateStr,
+                    completed: false,
+                    isReview: false,
+                    isRoutine: true,
+                    sourceRoutineId: r.id,
+                    plannedStart: startPos,
+                    plannedEnd: endPos,
+                    unit: r.unit || '問',
+                    totalItems: r.totalItems || null,
+                    createdAt: new Date().toISOString()
+                };
+
+                state.tasks.push({ id: docId, ...newTaskData });
                 
-                const startPos = r.currentPosition || 1;
-                let endPos = startPos + (r.dailyPace || 1) - 1;
-                if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
-
-                if (!existingTask) {
-                    const docId = `routine_${r.id}_${todayStr}`;
-                    const newTaskData = {
-                        title: r.title,
-                        subject: r.subject,
-                        estimatedTime: r.estimatedTime,
-                        date: todayStr,
-                        completed: false,
-                        isReview: false,
-                        isRoutine: true,
-                        sourceRoutineId: r.id,
-                        plannedStart: startPos,
-                        plannedEnd: endPos,
-                        unit: r.unit || '問',
-                        totalItems: r.totalItems || null,
-                        createdAt: new Date().toISOString()
-                    };
-
-                    state.tasks.push({ id: docId, ...newTaskData });
-                    
-                    if (!r.id.startsWith('temp_')) {
-                        try {
-                            await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
-                        } catch(err) {
-                            console.warn("DB保存に失敗:", err);
-                        }
+                if (!r.id.startsWith('temp_')) {
+                    try {
+                        await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
+                    } catch(err) {
+                        console.warn("DB保存に失敗:", err);
                     }
-                } else {
-                    let needsUpdate = false;
-                    const updateData = {};
+                }
+            } else {
+                // 4. 既存タスクがある場合、進行状況に応じて予定範囲を更新する
+                let needsUpdate = false;
+                const updateData = {};
 
+                // ※履歴保護のため、「今日以降」のタスクのみ開始・終了位置を自動追従させる
+                if (dateStr >= todayStr) {
                     if (existingTask.plannedStart !== startPos) {
                         existingTask.plannedStart = startPos; updateData.plannedStart = startPos; needsUpdate = true;
                     }
                     if (existingTask.plannedEnd !== endPos) {
                         existingTask.plannedEnd = endPos; updateData.plannedEnd = endPos; needsUpdate = true;
                     }
-                    if (!existingTask.unit && r.unit) {
-                        existingTask.unit = r.unit; updateData.unit = r.unit; needsUpdate = true;
-                    }
+                }
 
-                    if (needsUpdate && !existingTask.id.startsWith('temp_')) {
-                        try {
-                            await setDoc(doc(getAppCollectionRef('tasks'), existingTask.id), updateData, { merge: true });
-                        } catch(err) {
-                            console.warn("タスクの範囲更新に失敗:", err);
-                        }
+                if (!existingTask.unit && r.unit) {
+                    existingTask.unit = r.unit; updateData.unit = r.unit; needsUpdate = true;
+                }
+
+                if (needsUpdate && !existingTask.id.startsWith('temp_')) {
+                    try {
+                        await setDoc(doc(getAppCollectionRef('tasks'), existingTask.id), updateData, { merge: true });
+                    } catch(err) {
+                        console.warn("タスクの範囲更新に失敗:", err);
                     }
                 }
             }
-        } // ▲ if (dateStr === todayStr) のブロック終わり ▲
+        }
 
-        // ▼ 日付選択や、タスクの追加・削除などがあった場合、ここで必ず画面が即座に更新される ▼
+        // すべての処理・生成が終わったら画面を更新
         updateAllViews();
     } finally {
         isGeneratingTasks = false;
