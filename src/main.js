@@ -174,7 +174,9 @@ function setupEventListeners() {
                     openTaskDetailModal(targetEl.dataset.taskId);
                 }
             });
-    
+        }
+    }); // ←★ 消えていた閉じ括弧を復元しました
+
     document.getElementById('btn-seed-official')?.addEventListener('click', async () => {
         const { seedOfficialPacks } = await import('./components/store.js');
         seedOfficialPacks();
