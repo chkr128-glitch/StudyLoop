@@ -33,7 +33,7 @@ export function createImportantTaskHTML(t, imp) {
     const subjectBadge = `<span class="text-[10px] px-2 py-0.5 rounded font-semibold tracking-wide ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span>`;
     const rangeBadge = getRangeBadge(t);
     const historyBtn = (t.isReview && t.originalTaskId) ? 
-        `<button type="button" class="history-btn text-[10px] text-purple-600 bg-purple-100 dark:bg-purple-900/40 dark:text-purple-300 px-2 py-1 rounded-md font-bold hover:bg-purple-200 transition-colors ml-auto flex items-center" data-original-task-id="${t.originalTaskId}"><i class="fas fa-history mr-1 pointer-events-none"></i>履歴</button>` : '';
+        `<button type="button" class="task-history-btn text-[10px] text-purple-600 bg-purple-100 dark:bg-purple-900/40 dark:text-purple-300 px-2 py-1 rounded-md font-bold hover:bg-purple-200 transition-colors ml-auto flex items-center" data-task-id="${t.id}"><i class="fas fa-history mr-1 pointer-events-none"></i>履歴</button>` : '';
 
     // モダン化: shadow-soft, hover時のモダンシャドウと細いボーダー
     return `
@@ -56,7 +56,7 @@ export function createTaskHTML(t, hideSubjectBadge = false) {
     const subjectBadge = hideSubjectBadge ? '' : `<span class="text-[10px] px-2.5 py-0.5 rounded-full font-semibold tracking-wide ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span>`;
     const rangeBadge = getRangeBadge(t);
     const historyBtn = (t.isReview && t.originalTaskId) ? 
-        `<button type="button" class="history-btn text-[10px] text-purple-600 bg-purple-100 dark:bg-purple-900/40 dark:text-purple-300 px-2 py-1 rounded-md font-bold hover:bg-purple-200 transition-colors ml-auto flex items-center" data-original-task-id="${t.originalTaskId}"><i class="fas fa-history mr-1 pointer-events-none"></i>履歴</button>` : '';
+        `<button type="button" class="task-history-btn text-[10px] text-purple-600 bg-purple-100 dark:bg-purple-900/40 dark:text-purple-300 px-2 py-1 rounded-md font-bold hover:bg-purple-200 transition-colors ml-auto flex items-center" data-task-id="${t.id}"><i class="fas fa-history mr-1 pointer-events-none"></i>履歴</button>` : '';
 
     // モダン化: shadow-soft, border-zinc-200/60, hover時の挙動
     return `
