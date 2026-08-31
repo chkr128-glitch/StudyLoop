@@ -717,57 +717,79 @@ async function saveTaskDetail() {
 }
 
 async function scheduleReviews(originalTask, evaluation, subEvaluations) {
-    const intervals = REVIEW_INTERVALS[evaluation];
-    if (!intervals) return;
-
     const baseDate = new Date();
-    for (let i = 0; i < intervals.length; i++) {
-        const d = new Date(baseDate);
-        d.setDate(d.getDate() + intervals[i]);
-        const dateStr = formatDate(d);
 
-        // 基本の復習タイトル生成
-        let reviewTitle = `[復習: ${intervals[i]}日後] ${originalTask.title}`;
-        
-        // ルーティンの場合は、実際にやった範囲をタイトルに追記
-        if (originalTask.isRoutine && originalTask.plannedStart) {
-            const start = originalTask.actualStart || originalTask.plannedStart;
-            const end = originalTask.actualEnd || originalTask.plannedEnd;
-            const unit = originalTask.unit || '問';
-            reviewTitle += ` (${start}〜${end}${unit})`;
-        } else {
-            reviewTitle += ` (評${evaluation})`;
+    // 1. 問題別の詳細評価（subEvaluations）がある場合：問題ごとに個別の復習タスクを生成
+    if (subEvaluations && subEvaluations.length > 0) {
+        for (const sub of subEvaluations) {
+            const intervals = REVIEW_INTERVALS[sub.eval];
+            if (!intervals) continue;
+
+            for (let i = 0; i < intervals.length; i++) {
+                const d = new Date(baseDate);
+                d.setDate(d.getDate() + intervals[i]);
+                const dateStr = formatDate(d);
+
+                // 個別問題用のタイトルとメモを生成
+                const reviewTitle = `[復習: ${intervals[i]}日後] ${originalTask.title} ${sub.name} (評${sub.eval})`;
+                const reviewNote = sub.note ? `【${sub.name}】\n${sub.note}` : '';
+
+                const newDocRef = doc(getAppCollectionRef('tasks'));
+                await setDoc(newDocRef, {
+                    title: reviewTitle,
+                    subject: originalTask.subject,
+                    estimatedTime: 10, // 個別の問題なので10分等短めに設定
+                    date: dateStr,
+                    completed: false,
+                    isReview: true,
+                    isLastReview: i === intervals.length - 1,
+                    originalTaskId: originalTask.id,
+                    sourceEval: sub.eval,
+                    note: reviewNote, 
+                    createdAt: new Date().toISOString(),
+                    subName: sub.name // 参照用に追加
+                });
+            }
         }
+    } 
+    // 2. 詳細評価がない場合：タスク全体として1つの復習タスクを生成（従来通り）
+    else {
+        const intervals = REVIEW_INTERVALS[evaluation];
+        if (!intervals) return;
 
-        let reviewNote = '';
+        for (let i = 0; i < intervals.length; i++) {
+            const d = new Date(baseDate);
+            d.setDate(d.getDate() + intervals[i]);
+            const dateStr = formatDate(d);
 
-        if (subEvaluations && subEvaluations.length > 0) {
-            const weakSubEvals = subEvaluations.filter(s => s.eval === 'C' || s.eval === 'D');
-            if (weakSubEvals.length > 0) {
-                const weakPoints = weakSubEvals.map(s => s.name);
-                reviewTitle = `[復習: ${intervals[i]}日後] ${originalTask.title} (弱点: ${weakPoints.slice(0, 2).join(', ')}${weakPoints.length > 2 ? '...' : ''})`;
+            // 基本の復習タイトル生成
+            let reviewTitle = `[復習: ${intervals[i]}日後] ${originalTask.title}`;
+            
+            // ルーティンの場合は、実際にやった範囲をタイトルに追記
+            if (originalTask.isRoutine && originalTask.plannedStart) {
+                const start = originalTask.actualStart || originalTask.plannedStart;
+                const end = originalTask.actualEnd || originalTask.plannedEnd;
+                const unit = originalTask.unit || '問';
+                reviewTitle += ` (${start}〜${end}${unit})`;
+            } else {
+                reviewTitle += ` (評${evaluation})`;
             }
 
-            const itemsWithNotes = subEvaluations.filter(s => s.note && s.note.trim() !== '');
-            if (itemsWithNotes.length > 0) {
-                reviewNote = itemsWithNotes.map(s => `【${s.name}】(評${s.eval})\n${s.note}`).join('\n\n');
-            }
+            const newDocRef = doc(getAppCollectionRef('tasks'));
+            await setDoc(newDocRef, {
+                title: reviewTitle,
+                subject: originalTask.subject,
+                estimatedTime: Math.max(10, Math.floor((originalTask.actualTime || originalTask.estimatedTime || 30) * 0.5)),
+                date: dateStr,
+                completed: false,
+                isReview: true,
+                isLastReview: i === intervals.length - 1,
+                originalTaskId: originalTask.id,
+                sourceEval: evaluation,
+                note: "", 
+                createdAt: new Date().toISOString()
+            });
         }
-
-        const newDocRef = doc(getAppCollectionRef('tasks'));
-        await setDoc(newDocRef, {
-            title: reviewTitle,
-            subject: originalTask.subject,
-            estimatedTime: Math.max(10, Math.floor((originalTask.actualTime || originalTask.estimatedTime || 30) * 0.5)),
-            date: dateStr,
-            completed: false,
-            isReview: true,
-            isLastReview: i === intervals.length - 1,
-            originalTaskId: originalTask.id,
-            sourceEval: evaluation,
-            note: reviewNote, 
-            createdAt: new Date().toISOString()
-        });
     }
 }
 
@@ -775,12 +797,22 @@ function deleteTask() {
     const id = document.getElementById('detail-task-id').value;
     showConfirm("このタスクを削除しますか？\n(復習タスクも削除されます)", async () => {
         try {
+            // 1. 選択された親タスクを論理削除
             await setDoc(getAppDocRef('tasks', id), { deleted: true }, { merge: true });
+            
+            // 2. このタスクから生成された「未完了の復習タスク」を探して一括削除
+            const reviewTasks = state.tasks.filter(t => t.originalTaskId === id && !t.deleted && !t.completed);
+            
+            // 複数の更新を並列で実行
+            const deletePromises = reviewTasks.map(rt => 
+                setDoc(getAppDocRef('tasks', rt.id), { deleted: true }, { merge: true })
+            );
+            await Promise.all(deletePromises);
             
             const targetId = document.getElementById('modal-task-detail') ? 'modal-task-detail' : 'task-detail-modal';
             closeModal(targetId);
             
-            showToast("タスクを削除しました", "info");
+            showToast("タスクと復習タスクを削除しました", "info");
         } catch (e) {
             console.error(e);
             showToast("削除に失敗しました", "error");
