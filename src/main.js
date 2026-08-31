@@ -157,22 +157,23 @@ function setupEventListeners() {
                 if (e.target.matches('.task-checkbox')) toggleTaskComplete(e.target.dataset.taskId, e.target.checked);
             });
             container.addEventListener('click', (e) => {
+                // チェックボックスは無視
                 if (e.target.matches('.task-checkbox')) return; 
+
+                // 1. まず「履歴ボタン（.task-history-btn）」がクリックされたか判定
+                const historyBtn = e.target.closest('.task-history-btn');
+                if (historyBtn && historyBtn.dataset.taskId) {
+                    // 履歴ボタンなら履歴モーダルを開いて処理終了
+                    openReviewHistoryModal(historyBtn.dataset.taskId);
+                    return;
+                }
+
+                // 2. それ以外（タスク行全体や編集ボタン）がクリックされた場合は、記録画面（詳細モーダル）を開く
                 const targetEl = e.target.closest('.task-row-clickable, .task-edit-btn');
                 if (targetEl && targetEl.dataset.taskId) {
-                    const taskId = targetEl.dataset.taskId;
-                    const task = state.tasks.find(t => t.id === taskId);
-                    
-                    // ▼ 修正: タスクが復習用か通常かで開くモーダルを分岐させる ▼
-                    if (task && task.isReview) {
-                        openReviewHistoryModal(taskId);
-                    } else {
-                        openTaskDetailModal(taskId);
-                    }
+                    openTaskDetailModal(targetEl.dataset.taskId);
                 }
             });
-        }
-    });
     
     document.getElementById('btn-seed-official')?.addEventListener('click', async () => {
         const { seedOfficialPacks } = await import('./components/store.js');
