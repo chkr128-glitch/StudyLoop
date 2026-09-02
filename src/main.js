@@ -464,8 +464,6 @@ async function saveNewTask() {
     const isRoutineMode = !document.getElementById('add-task-routine-area').classList.contains('hidden');
 
     try {
-        let taskObjToPush = null; // ローカルstate即時追加用の変数
-
         if (isRoutineMode) {
             // 【ルーティン補填モード】の保存処理
             const routineId = document.getElementById('input-routine-select').value;
@@ -495,9 +493,6 @@ async function saveNewTask() {
             };
 
             await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
-            
-            // ローカルへの追加用オブジェクトを作成
-            taskObjToPush = { id: docId, ...newTaskData };
             showToast(`${dateVal} にルーティン予定を補填しました。`, "info");
 
         } else {
@@ -522,23 +517,29 @@ async function saveNewTask() {
             };
 
             await setDoc(newRef, newTaskData);
-            
-            // ローカルへの追加用オブジェクトを作成
-            taskObjToPush = newTaskData;
             showToast(`${dateVal} にタスクを追加しました`);
         }
         
-        // ★ 1. ローカルの配列(state.tasks)に即座に追加する
-        if (taskObjToPush) {
-            state.tasks.push(taskObjToPush);
-        }
-
         // モーダルを閉じる
         const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
         closeModal(targetId);
 
-        // ★ 2. 追加したタスクの日付をカレンダーで選択し、カレンダー画面を表示する
-        const { selectCalendarDate } = await import('./components/calendar.js');
+        // カレンダー側の月と日付を合わせる処理
+        const { selectCalendarDate, getCalendarSelectedDate, changeMonth } = await import('./components/calendar.js');
+        
+        // 現在カレンダーが選択している日付と、追加したタスクの日付を比較して月を計算
+        const targetDateObj = new Date(dateVal);
+        const currentDateObj = new Date(getCalendarSelectedDate() || new Date());
+        
+        const monthDiff = (targetDateObj.getFullYear() - currentDateObj.getFullYear()) * 12 
+                        + (targetDateObj.getMonth() - currentDateObj.getMonth());
+        
+        // 月が異なる場合のみカレンダーの表示月を切り替える
+        if (monthDiff !== 0) {
+            changeMonth(monthDiff);
+        }
+        
+        // カレンダー上で対象日を選択し、カレンダー画面へ遷移
         selectCalendarDate(dateVal); 
         switchView('calendar');
 
