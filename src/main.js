@@ -464,6 +464,8 @@ async function saveNewTask() {
     const isRoutineMode = !document.getElementById('add-task-routine-area').classList.contains('hidden');
 
     try {
+        let taskObjToPush = null; // ローカルstate即時追加用の変数
+
         if (isRoutineMode) {
             // 【ルーティン補填モード】の保存処理
             const routineId = document.getElementById('input-routine-select').value;
@@ -474,13 +476,14 @@ async function saveNewTask() {
             let endPos = startPos + (routine.dailyPace || 1) - 1;
             if (routine.totalItems && endPos > routine.totalItems) endPos = routine.totalItems;
 
-            const docId = `routine_${routine.id}_${dateVal}_manual`; // 手動補填用のID
+            // ID被りを防ぐためタイムスタンプを付与
+            const docId = `routine_${routine.id}_${dateVal}_manual_${Date.now()}`; 
             const newTaskData = {
                 title: routine.title,
                 subject: routine.subject,
                 estimatedTime: routine.estimatedTime,
                 date: dateVal,
-                completed: false, // タスク一覧に未完了として出し、あとで評価をつけられるようにする
+                completed: false, // 追加時は未完了とする
                 isReview: false,
                 isRoutine: true,
                 sourceRoutineId: routine.id,
@@ -492,10 +495,13 @@ async function saveNewTask() {
             };
 
             await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
+            
+            // ローカルへの追加用オブジェクトを作成
+            taskObjToPush = { id: docId, ...newTaskData };
             showToast(`${dateVal} にルーティン予定を補填しました。`, "info");
 
         } else {
-            // 【単発タスクモード】の保存処理 (従来通り)
+            // 【単発タスクモード】の保存処理
             const title = document.getElementById('input-task-title').value.trim();
             const subject = document.getElementById('input-task-subject').value;
             const timeVal = document.getElementById('input-task-time').value;
@@ -503,7 +509,7 @@ async function saveNewTask() {
             if (!title) return showToast("タスクのタイトルを入力してください。", "error");
 
             const newRef = doc(getAppCollectionRef('tasks'));
-            await setDoc(newRef, {
+            const newTaskData = {
                 id: newRef.id,
                 title,
                 subject,
@@ -513,13 +519,28 @@ async function saveNewTask() {
                 isReview: false,
                 isRoutine: false,
                 createdAt: new Date().toISOString()
-            });
+            };
+
+            await setDoc(newRef, newTaskData);
+            
+            // ローカルへの追加用オブジェクトを作成
+            taskObjToPush = newTaskData;
             showToast(`${dateVal} にタスクを追加しました`);
         }
         
+        // ★ 1. ローカルの配列(state.tasks)に即座に追加する
+        if (taskObjToPush) {
+            state.tasks.push(taskObjToPush);
+        }
+
+        // モーダルを閉じる
         const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
         closeModal(targetId);
-        updateAllViews();
+
+        // ★ 2. 追加したタスクの日付をカレンダーで選択し、カレンダー画面を表示する
+        const { selectCalendarDate } = await import('./components/calendar.js');
+        selectCalendarDate(dateVal); 
+        switchView('calendar');
 
     } catch(err) {
         console.error("タスク追加エラー:", err);
