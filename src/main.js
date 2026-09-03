@@ -141,8 +141,6 @@ function setupEventListeners() {
         openAddTaskModal(getCalendarSelectedDate());
     });
 
-    document.getElementById('tab-add-custom')?.addEventListener('click', () => toggleAddTaskMode('custom'));
-    document.getElementById('tab-add-routine')?.addEventListener('click', () => toggleAddTaskMode('routine'));
     
     document.getElementById('sub-evaluations-list')?.addEventListener('click', (e) => {
         const deleteBtn = e.target.closest('.sub-eval-delete-btn');
@@ -439,53 +437,15 @@ async function generateRoutineTasks(targetDateStr = null) {
     }
 }
 
-function toggleAddTaskMode(mode) {
-    const customTab = document.getElementById('tab-add-custom');
-    const routineTab = document.getElementById('tab-add-routine');
-    const customArea = document.getElementById('add-task-custom-area');
-    const routineArea = document.getElementById('add-task-routine-area');
-
-    if (mode === 'custom') {
-        customTab.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white dark:bg-zinc-700 shadow-sm text-zinc-800 dark:text-white transition-all";
-        routineTab.className = "flex-1 py-2 text-xs font-bold rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-all";
-        customArea.classList.remove('hidden');
-        routineArea.classList.add('hidden');
-    } else {
-        routineTab.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white dark:bg-zinc-700 shadow-sm text-zinc-800 dark:text-white transition-all";
-        customTab.className = "flex-1 py-2 text-xs font-bold rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-all";
-        routineArea.classList.remove('hidden');
-        customArea.classList.add('hidden');
-    }
-}
-
 function openAddTaskModal() {
     // 単発タスク用の入力欄初期化
     document.getElementById('input-task-title').value = '';
     document.getElementById('input-task-subject').value = '英語';
     document.getElementById('input-task-time').value = '30';
     
-    // ※日付やルーティン補填のUIは削除したため、初期化処理も不要になりました
     const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
     openModal(targetId);
 }
-    
-    // ルーティン補填用のプルダウンに現在のルーティン一覧をセット
-    const routineSelect = document.getElementById('input-routine-select');
-    if (routineSelect) {
-        routineSelect.innerHTML = '';
-        state.routines.forEach(r => {
-            const opt = document.createElement('option');
-            opt.value = r.id;
-            opt.innerText = `${r.title} (現在: ${r.currentPosition || 1}${r.unit || '問'})`;
-            routineSelect.appendChild(opt);
-        });
-    }
-
-    // デフォルトは単発タスクモード
-    toggleAddTaskMode('custom');
-
-    const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
-    openModal(targetId);
 
 async function saveNewTask() {
     // 追加対象の日は、ダッシュボードで現在表示している日付（state.dashboardDate）を適用
