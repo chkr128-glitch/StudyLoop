@@ -131,7 +131,15 @@ function setupEventListeners() {
     document.getElementById('btn-header-logo')?.addEventListener('click', () => switchView('home'));
     document.getElementById('btn-open-settings')?.addEventListener('click', () => switchView('settings'));
 
-    document.getElementById('btn-open-add-task')?.addEventListener('click', openAddTaskModal);
+    // ▼ 修正: 単独のID指定を廃止し、画面全体のクリックから「タスク追加ボタン」を探して検知する
+    document.addEventListener('click', (e) => {
+        const addTaskBtn = e.target.closest('#btn-open-add-task, .btn-open-add-task');
+        if (addTaskBtn) {
+            e.preventDefault();
+            openAddTaskModal();
+        }
+    });
+
     document.getElementById('btn-save-new-task')?.addEventListener('click', saveNewTask);
 
     document.getElementById('btn-dashboard-prev-day')?.addEventListener('click', () => changeDashboardDate(-1));
@@ -145,8 +153,10 @@ function setupEventListeners() {
     document.getElementById('btn-delete-task')?.addEventListener('click', deleteTask);
     document.getElementById('toggle-sub-eval-btn')?.addEventListener('click', toggleSubEvaluations);
     document.getElementById('btn-add-sub-eval')?.addEventListener('click', () => addSubEvaluation());
+    
     document.getElementById('btn-calendar-add-task')?.addEventListener('click', async () => {
         const { getCalendarSelectedDate } = await import('./components/calendar.js');
+        // カレンダー側で選択された日付を渡してモーダルを開く
         openAddTaskModal(getCalendarSelectedDate());
     });
 
@@ -161,7 +171,6 @@ function setupEventListeners() {
         });
     });
 
-    // ▼ 修正: ダッシュボードの監視を削除し、カレンダータスクのみ監視するように変更
     const calendarContainer = document.getElementById('calendar-tasks-container');
     if (calendarContainer) {
         calendarContainer.addEventListener('change', (e) => {
@@ -187,7 +196,7 @@ function setupEventListeners() {
         const { seedOfficialPacks } = await import('./components/store.js');
         seedOfficialPacks();
     });
-} // ← setupEventListeners の閉じ括弧
+}
 
 // ▼ 修正: ここから下のブロック（アプリの起動トリガー）を追加してください ▼
 if (document.readyState === 'loading') {
@@ -452,7 +461,14 @@ async function generateRoutineTasks(targetDateStr = null) {
 let isTaskModalInitialized = false;
 
 // ▼ 変更: タブ制御とルーティン一覧の展開処理を追加
-function openAddTaskModal() {
+let isTaskModalInitialized = false;
+
+function openAddTaskModal(targetDate = null) {
+    // カレンダーからの日付指定があれば状態を更新
+    if (targetDate) {
+        state.dashboardDate = targetDate;
+    }
+
     // タブのイベントリスナーを初回のみ登録
     if (!isTaskModalInitialized) {
         document.getElementById('tab-task-custom')?.addEventListener('click', () => switchTaskModalTab('custom'));
@@ -460,12 +476,17 @@ function openAddTaskModal() {
         isTaskModalInitialized = true;
     }
 
-    // 単発タスク用の入力欄初期化
-    document.getElementById('input-task-title').value = '';
-    document.getElementById('input-task-subject').value = '英語';
-    document.getElementById('input-task-time').value = '30';
+    // ▼ 修正: HTML要素が存在するかどうかを確認しながら安全に値をリセット（エラー停止を防止）
+    const titleInput = document.getElementById('input-task-title');
+    if (titleInput) titleInput.value = '';
     
-    // ルーティン用のセレクトボックス初期化（進行状況を展開）
+    const subjectInput = document.getElementById('input-task-subject');
+    if (subjectInput) subjectInput.value = '英語';
+    
+    const timeInput = document.getElementById('input-task-time');
+    if (timeInput) timeInput.value = '30';
+    
+    // ルーティン用のセレクトボックス初期化
     const routineSelect = document.getElementById('input-routine-select');
     if (routineSelect) {
         routineSelect.innerHTML = '<option value="">選択してください</option>';
@@ -473,7 +494,6 @@ function openAddTaskModal() {
             state.routines.forEach(r => {
                 const opt = document.createElement('option');
                 opt.value = r.id;
-                // タイトルと一緒に「現在の到達番号」を表示して分かりやすくする
                 opt.innerText = `${r.title} (現在の到達番号: ${r.currentPosition || 1}${r.unit || '問'})`;
                 routineSelect.appendChild(opt);
             });
