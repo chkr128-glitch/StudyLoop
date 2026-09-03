@@ -1,7 +1,7 @@
 import { getAppDocRef, getAppCollectionRef, getCurrentUserId } from '../services/db.js';
 import { showToast, showConfirm, openModal, closeModal } from './ui.js';
 import { MISTAKE_CAUSES, SUBJECT_FIELDS } from '../utils/constants.js';
-import { setDoc, doc, addDoc, collection, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { setDoc, doc, addDoc, collection, getDocs, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- 状態管理 ---
 let userProfile = null;
@@ -702,7 +702,8 @@ async function openQuickAddFlashcard() {
             select.innerHTML = `<option value="">セットがありません。先に作成してください。</option>`;
             document.getElementById('btn-quick-fc-save').disabled = true;
         } else {
-            select.innerHTML = fcSetsCache.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
+            // 修正箇所: s.title -> s.name （flashcard.jsのデータ構造と一致させる）
+            select.innerHTML = fcSetsCache.map(s => `<option value="${s.id}">${s.name || '名称未設定'}</option>`).join('');
             document.getElementById('btn-quick-fc-save').disabled = false;
         }
         
@@ -725,17 +726,41 @@ async function saveQuickFlashcard() {
         return;
     }
 
+    const btn = document.getElementById('btn-quick-fc-save');
+    if (btn) btn.disabled = true;
+
     try {
-        const wordRef = collection(getAppDocRef('flashcard_sets', setId), 'words');
-        await addDoc(wordRef, {
-            word, meaning, evaluation: 'N', interval: 0,
-            nextReviewDate: new Date().toISOString().split('T')[0],
-            history: [], createdAt: serverTimestamp()
+        // キャッシュから対象のセットを取得
+        const targetSet = fcSetsCache.find(s => s.id === setId);
+        if (!targetSet) throw new Error("対象の単語帳が見つかりません");
+
+        // flashcard.jsと同じデータ構造で新規単語オブジェクトを作成
+        const newWord = {
+            id: Date.now().toString(),
+            word: word,
+            meaning: meaning,
+            interval: 0,
+            ease: 2.5,
+            nextReviewDate: null // 初回学習前はnullとする
+        };
+
+        // 既存のwords配列に新しい単語を追加
+        const updatedWords = [...(targetSet.words || []), newWord];
+
+        // サブコレクションへのaddDocではなく、ドキュメントのupdateDocで配列をマージ上書き
+        await updateDoc(getAppDocRef('flashcard_sets', setId), {
+            words: updatedWords
         });
+
+        // 連続で追加する場合に備え、キャッシュ側の配列も更新しておく
+        targetSet.words = updatedWords;
+
         showToast("単語帳に追加しました！");
         closeModal('modal-fc-quick-add');
     } catch (e) {
         console.error(e);
         showToast("保存に失敗しました", "error");
+    } finally {
+        if (btn) btn.disabled = false;
     }
 }
