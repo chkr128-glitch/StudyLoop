@@ -284,9 +284,17 @@ async function changeDashboardDate(offsetDays, resetToToday = false) {
 }
 
 function updateAllViews() {
-    // 常に表示される名言ウィジェットはホーム画面の時のみ更新
+    // 常に表示される名言ウィジェットと日付はホーム画面の時のみ更新
     if (state.currentView === 'home') {
         displayDailyQuote();
+        
+        // ▼ 修正: ホーム画面に日付を表示するロジックを追加
+        const homeDateEl = document.getElementById('home-date-display');
+        if (homeDateEl) {
+            const d = new Date(state.dashboardDate);
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            homeDateEl.innerText = `${d.getMonth() + 1}月${d.getDate()}日(${days[d.getDay()]})`;
+        }
     }
 
     // ▼ 修正: switchの各caseを { } で囲み、安全なブロックスコープを作成
