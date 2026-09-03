@@ -4,12 +4,14 @@ import { getTaskImportance, createImportantTaskHTML, createTaskHTML } from './ta
 
 let onToggleTaskComplete = null;
 let onOpenTaskDetail = null;
-let onOpenReviewHistory = null; // 追加
+let onOpenReviewHistory = null;
+let onOpenAddTask = null; // 追加
 
-export function initDashboard(toggleCallback, openDetailCallback, openHistoryCallback) {
+export function initDashboard(toggleCallback, openDetailCallback, openHistoryCallback, openAddCallback) {
     onToggleTaskComplete = toggleCallback;
     onOpenTaskDetail = openDetailCallback;
-    onOpenReviewHistory = openHistoryCallback; // 追加
+    onOpenReviewHistory = openHistoryCallback;
+    onOpenAddTask = openAddCallback; // 追加
 
     const container = document.getElementById('dashboard-tasks-container');
     if (!container) return;
@@ -21,15 +23,23 @@ export function initDashboard(toggleCallback, openDetailCallback, openHistoryCal
         }
     });
 
-    // タスクのクリックイベントを監視
+    // タスクコンテナ内のクリックイベントを監視
     container.addEventListener('click', (e) => {
         if (e.target.matches('.task-checkbox')) return;
+
+        // ▼ 新規追加: タスクが0件の時などに表示される「タスクを追加」ボタンの検知
+        // （IDやクラス、ボタン内のテキストで汎用的に拾えるようにしています）
+        const addBtn = e.target.closest('#btn-open-add-task, .btn-open-add-task, [data-action="add-task"]');
+        if (addBtn || (e.target.tagName === 'BUTTON' && e.target.innerText.includes('タスクを追加'))) {
+            if (onOpenAddTask) onOpenAddTask();
+            return;
+        }
 
         // 1. 履歴ボタンがクリックされたか判定
         const historyBtn = e.target.closest('.task-history-btn');
         if (historyBtn && historyBtn.dataset.taskId) {
             if (onOpenReviewHistory) onOpenReviewHistory(historyBtn.dataset.taskId);
-            return; // 履歴ボタンの場合はここで終了
+            return; 
         }
 
         // 2. 行全体または編集ボタンがクリックされたか判定（詳細モーダルを開く）
