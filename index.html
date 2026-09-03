@@ -214,12 +214,7 @@
                                 <h2 id="home-date-display" class="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight"></h2>
                                 <button id="btn-dashboard-next-day" class="text-slate-400 hover:text-pink-500 transition-colors px-2.5 py-1.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm"><i class="fas fa-chevron-right text-xs pointer-events-none"></i></button>
                             </div>
-                            <!-- 新規追加: 今日へ戻るボタン (初期非表示) -->
-                            <button id="btn-dashboard-today" class="hidden text-[10px] font-bold text-pink-500 bg-pink-50 dark:bg-pink-900/30 px-2.5 py-1 rounded-md border border-pink-100 dark:border-pink-800 transition-all mt-1">
-                                <i class="fas fa-undo-alt mr-1 pointer-events-none"></i>今日に戻る
-                            </button>
-                        </div>
-                    </div>
+                            
 
                 <!-- ステータスウィジェット -->
                 <div class="mb-5 bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex justify-between items-center transition-colors animate-pop-in relative overflow-hidden">
@@ -300,8 +295,23 @@
             </div>
 
             <!-- サブ画面: ダッシュボード -->
+            <!-- サブ画面: ダッシュボード -->
             <div id="view-dashboard" class="view-section p-5">
-                <div class="mb-8 bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 p-6 rounded-2xl shadow-glow text-white relative overflow-hidden animate-pop-in border border-white/10 mt-2">
+                <!-- 移設: 日付ナビゲーション -->
+                <div class="flex justify-between items-end mb-4 px-1 mt-2 animate-pop-in">
+                    <div>
+                        <div class="flex items-center gap-3 mb-1">
+                            <button id="btn-dashboard-prev-day" class="text-slate-400 hover:text-pink-500 transition-colors px-2.5 py-1.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm"><i class="fas fa-chevron-left text-xs pointer-events-none"></i></button>
+                            <h2 id="dashboard-date-display" class="text-xl sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight"></h2>
+                            <button id="btn-dashboard-next-day" class="text-slate-400 hover:text-pink-500 transition-colors px-2.5 py-1.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm"><i class="fas fa-chevron-right text-xs pointer-events-none"></i></button>
+                        </div>
+                        <button id="btn-dashboard-today" class="hidden text-[10px] font-bold text-pink-500 bg-pink-50 dark:bg-pink-900/30 px-2.5 py-1 rounded-md border border-pink-100 dark:border-pink-800 transition-all mt-1">
+                            <i class="fas fa-undo-alt mr-1 pointer-events-none"></i>今日に戻る
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-8 bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 p-6 rounded-2xl shadow-glow text-white relative overflow-hidden animate-pop-in border border-white/10">
                     <div class="absolute -right-4 -top-4 w-24 h-24 bg-white opacity-10 rounded-full blur-xl"></div>
                     <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-white opacity-10 rounded-full blur-xl"></div>
                     <p class="text-sm font-medium opacity-90 relative z-10 flex items-center"><i class="fas fa-stopwatch mr-1.5 opacity-80"></i>推定学習時間</p>
