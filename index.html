@@ -206,10 +206,20 @@
             
             <!-- ホーム画面 -->
             <div id="view-home" class="view-section active p-5 pb-10 pt-8">
-                <div class="flex justify-between items-end mb-6">
-                    <h2 id="home-date-display" class="text-2xl font-black text-slate-800 dark:text-white ml-1 tracking-tight">Home</h2>
-                    <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Let's Start Studying!</p>
-                </div>
+                <div class="flex justify-between items-end mb-4">
+                        <div>
+                            <!-- 新規追加: 日付ナビゲーション -->
+                            <div class="flex items-center gap-3 mb-1">
+                                <button id="btn-dashboard-prev-day" class="text-slate-400 hover:text-pink-500 transition-colors px-2.5 py-1.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm"><i class="fas fa-chevron-left text-xs pointer-events-none"></i></button>
+                                <h2 id="home-date-display" class="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight"></h2>
+                                <button id="btn-dashboard-next-day" class="text-slate-400 hover:text-pink-500 transition-colors px-2.5 py-1.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm"><i class="fas fa-chevron-right text-xs pointer-events-none"></i></button>
+                            </div>
+                            <!-- 新規追加: 今日へ戻るボタン (初期非表示) -->
+                            <button id="btn-dashboard-today" class="hidden text-[10px] font-bold text-pink-500 bg-pink-50 dark:bg-pink-900/30 px-2.5 py-1 rounded-md border border-pink-100 dark:border-pink-800 transition-all mt-1">
+                                <i class="fas fa-undo-alt mr-1 pointer-events-none"></i>今日に戻る
+                            </button>
+                        </div>
+                    </div>
 
                 <!-- ステータスウィジェット -->
                 <div class="mb-5 bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex justify-between items-center transition-colors animate-pop-in relative overflow-hidden">
@@ -333,15 +343,11 @@
                     <h3 id="calendar-selected-date-display" class="font-bold text-slate-700 dark:text-slate-300 mb-3 flex justify-between items-end pb-2 border-b border-slate-200 dark:border-slate-800 ml-1">
                         Tasks <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2.5 py-0.5 rounded-md font-semibold border border-slate-200 dark:border-slate-700" id="calendar-task-count">0</span>
                     </h3>
-                        <!-- 新規追加：選択日に対する記録追加ボタン -->
-                        <button id="btn-calendar-add-task" class="text-[10px] bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400 font-bold px-3 py-1.5 rounded-lg hover:bg-pink-100 dark:hover:bg-pink-900/50 transition-colors border border-pink-100 dark:border-pink-800 shadow-sm flex items-center">
-                            <i class="fas fa-plus mr-1 pointer-events-none"></i> 記録を追加
-                        </button>
+                        <div class="flex justify-between items-end mb-3 pb-2 border-b border-slate-200 dark:border-slate-800 ml-1">
+                        <h3 id="calendar-selected-date-display" class="font-bold text-slate-700 dark:text-slate-300">
+                            Tasks <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2.5 py-0.5 rounded-md font-semibold border border-slate-200 dark:border-slate-700" id="calendar-task-count">0</span>
+                        </h3>
                     </div>
-                    <div id="calendar-daily-summary"></div>
-                    <div id="calendar-tasks-container" class="space-y-3 pb-10 mt-3"></div>
-                </div>
-            </div>
 
             <!-- サブ画面: 過去問ログ -->
             <div id="view-past-exams" class="view-section p-5">
@@ -724,24 +730,12 @@
         </div>
     </div>
 
-    <!-- モーダル: 新規タスク追加（過去の記録・ルーティン補填対応） -->
-    <div id="modal-add-task" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[100] justify-center items-end sm:items-center">
+    <!-- モーダル: 新規タスク追加（単発専用） -->
+    <div id="modal-add-task" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[100] hidden justify-center items-end sm:items-center">
         <div class="modal-content bg-white dark:bg-zinc-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-modern border border-zinc-200/60 dark:border-zinc-800">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-black text-zinc-800 dark:text-white tracking-tight" id="add-task-modal-title">学習記録の追加</h3>
                 <button class="modal-close-btn text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><i class="fas fa-times pointer-events-none"></i></button>
-            </div>
-            
-            <!-- 日付選択 (過去の記録用に追加) -->
-            <div class="mb-4">
-                <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">対象日</label>
-                <input type="date" id="input-task-date" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all text-sm font-bold">
-            </div>
-
-            <!-- モード切り替えタブ -->
-            <div class="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl mb-4">
-                <button id="tab-add-custom" class="flex-1 py-2 text-xs font-bold rounded-lg bg-white dark:bg-zinc-700 shadow-sm text-zinc-800 dark:text-white transition-all">単発タスク</button>
-                <button id="tab-add-routine" class="flex-1 py-2 text-xs font-bold rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-all">ルーティン補填</button>
             </div>
 
             <!-- 単発タスク入力領域 -->
@@ -760,23 +754,6 @@
                         <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">学習時間(分)</label>
                         <input type="number" id="input-task-time" min="1" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all text-sm font-bold" placeholder="60">
                     </div>
-                </div>
-            </div>
-
-            <!-- ルーティン補填領域 (初期非表示) -->
-            <div id="add-task-routine-area" class="space-y-4 hidden">
-                <div class="relative">
-                    <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">補填するルーティンを選択</label>
-                    <select id="input-routine-select" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all appearance-none text-sm font-medium">
-                        <!-- JSで動的に追加されます -->
-                    </select>
-                    <i class="fas fa-chevron-down absolute right-4 top-10 text-zinc-400 pointer-events-none text-[10px]"></i>
-                </div>
-                <div class="bg-blue-50/50 dark:bg-blue-950/30 p-3 rounded-xl border border-blue-100/50 dark:border-blue-900/50">
-                    <p class="text-[10px] text-blue-600 dark:text-blue-400 mb-2 font-bold"><i class="fas fa-info-circle mr-1"></i>ルーティン補填について</p>
-                    <p class="text-[10px] text-blue-600/80 dark:text-blue-400/80 leading-relaxed">
-                        過去の日付を指定してやり忘れたルーティンタスクを生成します。<br>追加したタスクを完了させることで、到達番号が進み予定が正常化されます。
-                    </p>
                 </div>
             </div>
 
