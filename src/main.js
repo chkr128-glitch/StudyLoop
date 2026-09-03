@@ -447,52 +447,166 @@ async function generateRoutineTasks(targetDateStr = null) {
     }
 }
 
+// ▼ 新規追加: モーダルの初期化状態を管理するフラグ
+let isTaskModalInitialized = false;
+
+// ▼ 変更: タブ制御とルーティン一覧の展開処理を追加
 function openAddTaskModal() {
+    // タブのイベントリスナーを初回のみ登録
+    if (!isTaskModalInitialized) {
+        document.getElementById('tab-task-custom')?.addEventListener('click', () => switchTaskModalTab('custom'));
+        document.getElementById('tab-task-routine')?.addEventListener('click', () => switchTaskModalTab('routine'));
+        isTaskModalInitialized = true;
+    }
+
     // 単発タスク用の入力欄初期化
     document.getElementById('input-task-title').value = '';
     document.getElementById('input-task-subject').value = '英語';
     document.getElementById('input-task-time').value = '30';
     
+    // ルーティン用のセレクトボックス初期化（進行状況を展開）
+    const routineSelect = document.getElementById('input-routine-select');
+    if (routineSelect) {
+        routineSelect.innerHTML = '<option value="">選択してください</option>';
+        if (state.routines && state.routines.length > 0) {
+            state.routines.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.id;
+                // タイトルと一緒に「現在の到達番号」を表示して分かりやすくする
+                opt.innerText = `${r.title} (現在の到達番号: ${r.currentPosition || 1}${r.unit || '問'})`;
+                routineSelect.appendChild(opt);
+            });
+        } else {
+            routineSelect.innerHTML = '<option value="">登録済みのルーティンがありません</option>';
+        }
+    }
+
+    // デフォルトで「単発タスク」タブを開く
+    switchTaskModalTab('custom');
+    
     const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
     openModal(targetId);
 }
 
+// ▼ 新規追加: タブの切り替えとUIの表示/非表示を制御する関数
+function switchTaskModalTab(tabId) {
+    const customTab = document.getElementById('tab-task-custom');
+    const routineTab = document.getElementById('tab-task-routine');
+    const customArea = document.getElementById('add-task-custom-area');
+    const routineArea = document.getElementById('add-task-routine-area');
+
+    if (!customTab || !routineTab || !customArea || !routineArea) return;
+
+    if (tabId === 'custom') {
+        customTab.className = "flex-1 py-2 text-xs font-bold rounded-md bg-white dark:bg-slate-600 text-slate-800 dark:text-white shadow-sm transition-all";
+        routineTab.className = "flex-1 py-2 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all";
+        customArea.classList.remove('hidden');
+        routineArea.classList.add('hidden');
+        customArea.dataset.active = 'true';
+    } else {
+        routineTab.className = "flex-1 py-2 text-xs font-bold rounded-md bg-white dark:bg-slate-600 text-slate-800 dark:text-white shadow-sm transition-all";
+        customTab.className = "flex-1 py-2 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all";
+        routineArea.classList.remove('hidden');
+        customArea.classList.add('hidden');
+        customArea.dataset.active = 'false';
+    }
+}
+
+// ▼ 変更: タブの状態に応じて保存処理を分岐させる
 async function saveNewTask() {
-    // 追加対象の日は、ダッシュボードで現在表示している日付（state.dashboardDate）を適用
-    const dateVal = state.dashboardDate;
-    
-    const title = document.getElementById('input-task-title').value.trim();
-    const subject = document.getElementById('input-task-subject').value;
-    const timeVal = document.getElementById('input-task-time').value;
-
-    if (!title) return showToast("タスクのタイトルを入力してください。", "error");
-
+    const dateVal = state.dashboardDate; // 選択中の日付
+    const isCustom = document.getElementById('add-task-custom-area').dataset.active !== 'false';
     const btn = document.getElementById('btn-save-new-task');
     if (btn) btn.disabled = true;
 
     try {
-        const newRef = doc(getAppCollectionRef('tasks'));
-        const newTaskData = {
-            id: newRef.id,
-            title,
-            subject,
-            estimatedTime: parseInt(timeVal, 10) || 30,
-            date: dateVal,
-            completed: false,
-            isReview: false,
-            isRoutine: false,
-            createdAt: new Date().toISOString()
-        };
+        if (isCustom) {
+            // ------------------------------------
+            // 処理A: 単発タスクの保存（既存処理）
+            // ------------------------------------
+            const title = document.getElementById('input-task-title').value.trim();
+            const subject = document.getElementById('input-task-subject').value;
+            const timeVal = document.getElementById('input-task-time').value;
 
-        await setDoc(newRef, newTaskData);
-        showToast(`${dateVal} にタスクを追加しました`);
+            if (!title) {
+                showToast("タスクのタイトルを入力してください。", "error");
+                return;
+            }
+
+            const newRef = doc(getAppCollectionRef('tasks'));
+            const newTaskData = {
+                id: newRef.id,
+                title,
+                subject,
+                estimatedTime: parseInt(timeVal, 10) || 30,
+                date: dateVal,
+                completed: false,
+                isReview: false,
+                isRoutine: false,
+                createdAt: new Date().toISOString()
+            };
+
+            await setDoc(newRef, newTaskData);
+            showToast(`${dateVal} にタスクを追加しました`);
+
+        } else {
+            // ------------------------------------
+            // 処理B: 固定ルーティンの補填生成
+            // ------------------------------------
+            const routineId = document.getElementById('input-routine-select').value;
+            if (!routineId) {
+                showToast("ルーティンを選択してください。", "error");
+                return;
+            }
+
+            const r = state.routines.find(x => x.id === routineId);
+            if (!r) throw new Error("対象のルーティンが見つかりません");
+
+            // すでに同じ日付に該当ルーティンが登録されていないか重複チェック
+            const existingTask = state.tasks.find(t => 
+                t.sourceRoutineId === r.id && t.isRoutine === true && t.date === dateVal && !t.deleted
+            );
+            
+            if (existingTask) {
+                showToast("この日にはすでに同じルーティンが登録されています", "error");
+                return;
+            }
+
+            // 現在のルーティン設定（到達番号と1日のペース）から補填タスクの範囲を計算
+            const startPos = r.currentPosition || 1;
+            let endPos = startPos + (r.dailyPace || 1) - 1;
+            if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
+
+            const docId = `routine_${r.id}_${dateVal}`;
+            const newTaskData = {
+                title: r.title,
+                subject: r.subject,
+                estimatedTime: r.estimatedTime,
+                date: dateVal,
+                completed: false,
+                isReview: false,
+                isRoutine: true,
+                sourceRoutineId: r.id,
+                plannedStart: startPos,
+                plannedEnd: endPos,
+                unit: r.unit || '問',
+                totalItems: r.totalItems || null,
+                createdAt: new Date().toISOString()
+            };
+
+            // DBに保存
+            await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
+            
+            // 画面反映のラグを防ぐため、ローカルのstateにも一時的にPushしておく
+            state.tasks.push({ id: docId, ...newTaskData });
+            showToast(`${dateVal} にルーティンを補填しました`);
+        }
         
+        // モーダルを閉じて画面を更新
         const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
         closeModal(targetId);
+        updateAllViews();
 
-        // FirestoreのonSnapshotが発火するまでのラグを防ぐ必要があればここで画面更新
-        // （通常はonSnapshotが自動で updateAllViews を呼ぶため省略可能ですが、UX向上として残します）
-        
     } catch(err) {
         console.error("タスク追加エラー:", err);
         showToast("追加に失敗しました", "error");
