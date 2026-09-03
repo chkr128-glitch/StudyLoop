@@ -118,7 +118,7 @@ export function renderDashboard(tasks, dashboardDate) {
     const targetDateStr = dashboardDate || formatDate(new Date()); 
     
     // 対象日のタスク、または対象日より過去の「未完了の復習タスク」をフィルタリング
-    const dashboardTasks = tasks.filter(t => !t.deleted && (t.date === targetDateStr || (!t.completed && t.date < targetDateStr && t.isReview))); 
+    const dashboardTasks = tasks.filter(t => t.date === targetDateStr && !t.deleted); 
     
     const incomplete = dashboardTasks.filter(t => !t.completed); 
     const completed = dashboardTasks.filter(t => t.date === targetDateStr && t.completed);
