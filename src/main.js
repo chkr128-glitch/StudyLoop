@@ -372,24 +372,9 @@ async function generateRoutineTasks(targetDateStr = null) {
         for (const r of state.routines) {
             if (r.totalItems && r.currentPosition > r.totalItems) continue;
 
-            // 1. 過去の未完了ルーティンの削除（これは常に「今日」を基準に判定）
-            const pastIncompleteTasks = state.tasks.filter(t => 
-                t.sourceRoutineId === r.id && t.isRoutine === true && !t.completed && !t.deleted && t.date < todayStr
-            );
+            // ▼ 修正: 過去の未完了タスクを自動削除するブロックを廃止しました ▼
 
-            for (const pastTask of pastIncompleteTasks) {
-                if (pastTask.deleted) continue;
-                pastTask.deleted = true;
-                if (!pastTask.id.startsWith('temp_')) {
-                    try {
-                        await setDoc(doc(getAppCollectionRef('tasks'), pastTask.id), { deleted: true }, { merge: true });
-                    } catch(e) {
-                        console.error("Error deleting past routine task:", e);
-                    }
-                }
-            }
-
-            // 2. 選択された日付 (dateStr) のルーティンタスクを検索
+            // 1. 選択された日付 (dateStr) のルーティンタスクを検索
             const existingTask = state.tasks.find(t => 
                 t.sourceRoutineId === r.id && t.isRoutine === true && t.date === dateStr && !t.deleted
             );
@@ -398,7 +383,7 @@ async function generateRoutineTasks(targetDateStr = null) {
             let endPos = startPos + (r.dailyPace || 1) - 1;
             if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
 
-            // 3. なければ新規作成（※今日または未来の日付のみ作成する）
+            // 2. なければ新規作成（※今日または未来の日付のみ自動生成する）
             if (!existingTask && dateStr >= todayStr) {
                 const docId = `routine_${r.id}_${dateStr}`;
                 const newTaskData = {
@@ -427,7 +412,7 @@ async function generateRoutineTasks(targetDateStr = null) {
                     }
                 }
             } else if (existingTask) {
-                // 4. 既存タスクがある場合、進行状況に応じて予定範囲を更新する
+                // 3. 既存タスクがある場合、進行状況に応じて予定範囲を追従させる
                 let needsUpdate = false;
                 const updateData = {};
 
