@@ -486,7 +486,6 @@ function openAddTaskModal() {
 
     const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
     openModal(targetId);
-}
 
 async function saveNewTask() {
     // 追加対象の日は、ダッシュボードで現在表示している日付（state.dashboardDate）を適用
