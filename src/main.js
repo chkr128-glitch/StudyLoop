@@ -186,6 +186,13 @@ function setupEventListeners() {
         const { seedOfficialPacks } = await import('./components/store.js');
         seedOfficialPacks();
     });
+} // ← setupEventListeners の閉じ括弧
+
+// ▼ 修正: ここから下のブロック（アプリの起動トリガー）を追加してください ▼
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
 }
 
 function subscribeToData() {
