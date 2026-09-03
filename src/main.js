@@ -282,18 +282,22 @@ function changeDashboardDate(offsetDays, resetToToday = false) {
 
 function updateAllViews() {
     if (state.currentView === 'home') {
-        const dateEl = document.getElementById('home-date-display');
+        // ホーム画面は名言の表示のみに変更
+        displayDailyQuote();
+    }
+
+    if (state.currentView === 'dashboard') {
+        // 移設した日付表示要素のIDに変更
+        const dateEl = document.getElementById('dashboard-date-display');
         const todayBtn = document.getElementById('btn-dashboard-today');
         
         if (dateEl) {
-            // 常に state.dashboardDate の日付を表示する
             const d = new Date(state.dashboardDate);
             const days = ['日', '月', '火', '水', '木', '金', '土'];
             dateEl.innerText = `${d.getMonth() + 1}月${d.getDate()}日(${days[d.getDay()]})`;
         }
         
         if (todayBtn) {
-            // 今日以外の日付を見ている時だけ「今日に戻る」ボタンを表示
             const todayStr = formatDate(new Date());
             if (state.dashboardDate !== todayStr) {
                 todayBtn.classList.remove('hidden');
@@ -301,13 +305,10 @@ function updateAllViews() {
                 todayBtn.classList.add('hidden');
             }
         }
-        displayDailyQuote();
+        
+        // ダッシュボードにタスクを描画
+        renderDashboard(state.tasks, state.dashboardDate);
     }
-
-    if (state.currentView === 'dashboard') renderDashboard(state.tasks, state.dashboardDate);
-    
-
-    if (state.currentView === 'dashboard') renderDashboard(state.tasks);
     if (state.currentView === 'calendar') {
         renderCalendar(state.tasks);
         renderCalendarTasks(state.tasks);
