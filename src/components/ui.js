@@ -177,7 +177,7 @@ export function switchViewUI(viewName) {
             'drill': { title: '計算ドリル', backTo: 'home' },
             'flashcard-app': { title: 'My単語帳', backTo: 'home' },
             'store': { title: '英作文サポート', backTo: 'home' },
-            'timeline': { title: 'みんなの広場', backTo: 'home' },
+            'timeline': { title: 'タイムライン', backTo: 'home' },
             'settings': { title: '設定', backTo: 'home' },
             // 設定の中のドリルダウン画面
             'settings-profile': { title: 'マイプロフィール', backTo: 'settings' },

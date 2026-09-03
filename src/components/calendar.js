@@ -41,25 +41,20 @@ export function changeMonth(offset) {
     calendarMonthObj.setMonth(calendarMonthObj.getMonth() + offset); 
     calendarSelectedDateStr = formatDate(calendarMonthObj);
     
+    // main.js のコールバック（generateRoutineTasks）のみを呼び出し、描画はそちらに委ねる
     if (onMonthChanged) {
         onMonthChanged(calendarSelectedDateStr);
     }
-    
-    const tasks = getLatestTasks();
-    renderCalendar(tasks); 
-    renderCalendarTasks(tasks);
 }
 
 export function selectCalendarDate(dateStr) { 
     calendarSelectedDateStr = dateStr; 
+    
+    // main.js のコールバックのみを呼び出し、描画はそちらに委ねる
     if (onDateChanged) {
         onDateChanged(calendarSelectedDateStr);
     }
-    const tasks = getLatestTasks();
-    renderCalendar(tasks); 
-    renderCalendarTasks(tasks); 
 }
-
 export function renderCalendar(tasks) {
     if (!tasks) return;
     const y = calendarMonthObj.getFullYear(), m = calendarMonthObj.getMonth();

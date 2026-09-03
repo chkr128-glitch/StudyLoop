@@ -98,12 +98,15 @@ export function updateStreak(tasks) {
     }
 }
 
-export function renderDashboard(tasks) {
-    const todayStr = formatDate(new Date()); 
-    const dashboardTasks = tasks.filter(t => !t.deleted && (t.date === todayStr || (!t.completed && t.date < todayStr && t.isReview))); 
+export function renderDashboard(tasks, dashboardDate) {
+    // 引数として渡された dashboardDate を基準日にする（未指定の場合は今日）
+    const targetDateStr = dashboardDate || formatDate(new Date()); 
+    
+    // 対象日のタスク、または対象日より過去の「未完了の復習タスク」をフィルタリング
+    const dashboardTasks = tasks.filter(t => !t.deleted && (t.date === targetDateStr || (!t.completed && t.date < targetDateStr && t.isReview))); 
     
     const incomplete = dashboardTasks.filter(t => !t.completed); 
-    const completed = dashboardTasks.filter(t => t.date === todayStr && t.completed);
+    const completed = dashboardTasks.filter(t => t.date === targetDateStr && t.completed);
 
     const totalMinutes = incomplete.reduce((sum, t) => sum + (Number(t.estimatedTime) || 0), 0); 
     const hours = Math.floor(totalMinutes / 60); const mins = totalMinutes % 60;
@@ -118,9 +121,10 @@ export function renderDashboard(tasks) {
 
     const importantTasks = []; const normalTasks = [];
     dashboardTasks.forEach(t => {
-        const imp = getTaskImportance(t, todayStr);
+        // 重要度判定も対象日を基準に行う
+        const imp = getTaskImportance(t, targetDateStr);
         if (imp.rank !== 'NORMAL' && !t.completed) importantTasks.push({ task: t, imp: imp }); 
-        else if (t.date === todayStr) normalTasks.push(t);
+        else if (t.date === targetDateStr) normalTasks.push(t);
     });
     importantTasks.sort((a, b) => b.imp.score - a.imp.score);
 
@@ -146,7 +150,9 @@ export function renderDashboard(tasks) {
 
     const container = document.getElementById('dashboard-tasks-container');
     if (container) { 
-        if (tasksHtml === '') container.innerHTML = '<p class="text-sm font-medium text-slate-400 dark:text-slate-500 text-center py-6 bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">今日のタスクはありません</p>'; 
+        // 過去日や未来日を見ている際のメッセージの違和感をなくすため、テキストを調整
+        const emptyMessage = targetDateStr === formatDate(new Date()) ? '今日のタスクはありません' : 'タスクはありません';
+        if (tasksHtml === '') container.innerHTML = `<p class="text-sm font-medium text-slate-400 dark:text-slate-500 text-center py-6 bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">${emptyMessage}</p>`; 
         else container.innerHTML = tasksHtml; 
     }
 }

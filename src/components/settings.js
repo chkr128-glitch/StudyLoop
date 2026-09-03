@@ -41,13 +41,24 @@ export function initSettings(getUserIdCallback) {
     document.getElementById('btn-open-profile-settings')?.addEventListener('click', openPublicProfileModal);
     document.getElementById('btn-save-public-profile')?.addEventListener('click', savePublicProfileData);
 
-    // ルーティン一覧の削除ボタンに対するイベント委譲
+    // ルーティン一覧のボタン操作に対するイベント委譲
     const routineList = document.getElementById('routine-list');
     if (routineList) {
         routineList.addEventListener('click', (e) => {
+            // 削除ボタンの処理
             const deleteBtn = e.target.closest('.routine-delete-btn');
             if (deleteBtn && deleteBtn.dataset.routineId) {
                 deleteRoutine(deleteBtn.dataset.routineId);
+            }
+            
+            // ▼ 新規追加: 位置更新ボタンの処理 ▼
+            const updateBtn = e.target.closest('.routine-update-pos-btn');
+            if (updateBtn && updateBtn.dataset.routineId) {
+                const routineId = updateBtn.dataset.routineId;
+                const inputEl = document.querySelector(`.routine-pos-input[data-routine-id="${routineId}"]`);
+                if (inputEl) {
+                    updateRoutinePosition(routineId, inputEl.value);
+                }
             }
         });
     }
@@ -152,21 +163,33 @@ export function renderSettings(routines, userProfile) {
     }
     
     document.getElementById('routine-list').innerHTML = routines.map(r => `
-        <li class="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-2xl mb-3 border border-gray-100 dark:border-gray-700 transition-colors">
-            <div>
-                <p class="font-bold text-sm text-gray-800 dark:text-gray-100 mb-1.5 tracking-wide">${escapeHTML(r.title)}</p>
-                <p class="text-[11px] text-gray-500 dark:text-gray-400 font-medium flex items-center flex-wrap gap-y-1">
-                    <span class="${SUBJECT_COLORS[r.subject] || SUBJECT_COLORS['その他']} px-2 py-0.5 rounded-full mr-2 font-bold">${escapeHTML(r.subject)}</span>
-                    <span>予定: ${formatTime(r.estimatedTime)}</span>
-                    ${r.totalItems ? `<span class="mx-1.5 opacity-50">|</span><span>全${r.totalItems}${escapeHTML(r.unit || '問')} (1日${r.dailyPace}${escapeHTML(r.unit || '問')}ペース)</span>` : ''}
-                </p>
-            </div>
-            <!-- ★ onclick を削除し、class と data-routine-id を付与 -->
-            <button class="routine-delete-btn text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 w-10 h-10 rounded-full flex items-center justify-center transition-colors" data-routine-id="${r.id}">
-                <i class="fas fa-trash pointer-events-none"></i>
-            </button>
-        </li>
-    `).join('');
+        <li class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-2xl mb-3 border border-gray-100 dark:border-gray-700 transition-colors">
+            <div class="flex justify-between items-start mb-3">
+                <div>
+                    <p class="font-bold text-sm text-gray-800 dark:text-gray-100 mb-1.5 tracking-wide">${escapeHTML(r.title)}</p>
+                    <p class="text-[11px] text-gray-500 dark:text-gray-400 font-medium flex items-center flex-wrap gap-y-1">
+                        <span class="${SUBJECT_COLORS[r.subject] || SUBJECT_COLORS['その他']} px-2 py-0.5 rounded-full mr-2 font-bold">${escapeHTML(r.subject)}</span>
+                        <span>予定: ${formatTime(r.estimatedTime)}</span>
+                        ${r.totalItems ? `<span class="mx-1.5 opacity-50">|</span><span>全${r.totalItems}${escapeHTML(r.unit || '問')} (1日${r.dailyPace}${escapeHTML(r.unit || '問')}ペース)</span>` : ''}
+                    </p>
+                </div>
+                <button class="routine-delete-btn text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 w-8 h-8 rounded-full flex items-center justify-center transition-colors flex-shrink-0 mt-0.5" data-routine-id="${r.id}">
+                    <i class="fas fa-trash pointer-events-none text-xs"></i>
+                </button>
+            </div>
+            
+            <!-- ▼ 新規追加: 現在位置の補正UI ▼ -->
+            <div class="flex items-center space-x-2 bg-white dark:bg-gray-800/80 p-2.5 rounded-xl border border-gray-200/80 dark:border-gray-600 shadow-sm mt-2">
+                <span class="text-[11px] font-bold text-gray-500 dark:text-gray-400 pl-1">現在の到達番号:</span>
+                <input type="number" min="1" class="routine-pos-input w-16 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold text-center p-1.5 outline-none dark:text-white focus:ring-2 focus:ring-pink-500 transition-all" data-routine-id="${r.id}" value="${r.currentPosition || 1}">
+                <span class="text-[11px] font-bold text-gray-500 dark:text-gray-400">${escapeHTML(r.unit || '問')}</span>
+                <div class="flex-grow"></div>
+                <button class="routine-update-pos-btn text-[10px] bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-800 font-bold px-3 py-1.5 rounded-lg hover:bg-zinc-900 dark:hover:bg-white transition-colors shadow-sm flex items-center" data-routine-id="${r.id}">
+                    <i class="fas fa-sync-alt mr-1 pointer-events-none"></i>更新
+                </button>
+            </div>
+        </li>
+    `).join('');
 }
 
 export async function saveUserProfile() {
@@ -221,6 +244,25 @@ export function deleteRoutine(id) {
         await deleteDoc(getAppDocRef('routines', id)); 
         showToast("ルーティンを削除しました", "info"); 
     }); 
+}
+
+export async function updateRoutinePosition(id, newPosStr) {
+    const newPos = parseInt(newPosStr, 10);
+    if (isNaN(newPos) || newPos < 1) {
+        showToast("有効な番号を入力してください", "error");
+        return;
+    }
+
+    try {
+        await setDoc(getAppDocRef('routines', id), { currentPosition: newPos }, { merge: true });
+        showToast("ルーティンの現在地を修正しました", "info");
+        
+        // メモ: Firestoreのデータが更新されると、main.jsのonSnapshotが発火し、
+        // generateRoutineTasksが自動実行されて今日の予定範囲が即座に修正されます。
+    } catch (e) {
+        console.error(e);
+        showToast("現在地の更新に失敗しました", "error");
+    }
 }
 
 // ==========================================
