@@ -4,10 +4,12 @@ import { getTaskImportance, createImportantTaskHTML, createTaskHTML } from './ta
 
 let onToggleTaskComplete = null;
 let onOpenTaskDetail = null;
+let onOpenReviewHistory = null; // 追加
 
-export function initDashboard(toggleCallback, openDetailCallback) {
+export function initDashboard(toggleCallback, openDetailCallback, openHistoryCallback) {
     onToggleTaskComplete = toggleCallback;
     onOpenTaskDetail = openDetailCallback;
+    onOpenReviewHistory = openHistoryCallback; // 追加
 
     const container = document.getElementById('dashboard-tasks-container');
     if (!container) return;
@@ -15,22 +17,25 @@ export function initDashboard(toggleCallback, openDetailCallback) {
     // タスク完了（チェックボックス）の変更イベントを監視
     container.addEventListener('change', (e) => {
         if (e.target.matches('.task-checkbox')) {
-            const taskId = e.target.dataset.taskId;
-            if (taskId && onToggleTaskComplete) {
-                onToggleTaskComplete(taskId, e.target.checked);
-            }
+            if (onToggleTaskComplete) onToggleTaskComplete(e.target.dataset.taskId, e.target.checked);
         }
     });
 
-    // タスクのクリック（詳細モーダルを開く）イベントを監視
+    // タスクのクリックイベントを監視
     container.addEventListener('click', (e) => {
         if (e.target.matches('.task-checkbox')) return;
 
-        const taskRow = e.target.closest('.task-row-clickable');
-        if (taskRow && taskRow.dataset.taskId) {
-            if (onOpenTaskDetail) {
-                onOpenTaskDetail(taskRow.dataset.taskId);
-            }
+        // 1. 履歴ボタンがクリックされたか判定
+        const historyBtn = e.target.closest('.task-history-btn');
+        if (historyBtn && historyBtn.dataset.taskId) {
+            if (onOpenReviewHistory) onOpenReviewHistory(historyBtn.dataset.taskId);
+            return; // 履歴ボタンの場合はここで終了
+        }
+
+        // 2. 行全体または編集ボタンがクリックされたか判定（詳細モーダルを開く）
+        const targetEl = e.target.closest('.task-row-clickable, .task-edit-btn');
+        if (targetEl && targetEl.dataset.taskId) {
+            if (onOpenTaskDetail) onOpenTaskDetail(targetEl.dataset.taskId);
         }
     });
 }
