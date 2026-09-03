@@ -458,9 +458,11 @@ function handleDataChange(e) {
     const qEl = e.target.closest('.pe-question-item');
     if (qEl) {
         const q = sec.questions.find(q => q.id === qEl.dataset.qId);
+        
         if (e.target.classList.contains('select-q-result')) {
             q.result = e.target.value;
-            renderSections();
+            // ▼ 修正: フルレンダリングを避け、対象のセレクトボックスのクラスのみ書き換える
+            e.target.className = `select-q-result text-xs font-bold p-2 rounded-lg outline-none cursor-pointer shadow-sm ${getResultColor(q.result)}`;
         }
         if (e.target.classList.contains('select-q-conf')) q.confidence = e.target.value;
         if (e.target.classList.contains('input-q-note')) q.note = e.target.value;
@@ -468,15 +470,32 @@ function handleDataChange(e) {
 
         if (e.target.classList.contains('check-q-cause')) {
             if (!q.causes) q.causes = [];
-            if (e.target.checked) { if (!q.causes.includes(e.target.value)) q.causes.push(e.target.value); } 
-            else { q.causes = q.causes.filter(t => t !== e.target.value); }
-            renderSections();
+            const label = e.target.closest('label'); // 親のlabel要素を取得
+            
+            if (e.target.checked) { 
+                if (!q.causes.includes(e.target.value)) q.causes.push(e.target.value); 
+                // ▼ 修正: labelのスタイルをアクティブ状態に直接変更
+                label.className = `text-[10px] font-bold border rounded px-2 py-1 cursor-pointer transition-colors shadow-sm bg-rose-500 border-rose-500 text-white`;
+            } else { 
+                q.causes = q.causes.filter(t => t !== e.target.value); 
+                // ▼ 修正: labelのスタイルを非アクティブ状態に直接変更
+                label.className = `text-[10px] font-bold border rounded px-2 py-1 cursor-pointer transition-colors shadow-sm border-rose-200 dark:border-rose-900/50 bg-white dark:bg-slate-800 dark:text-slate-300`;
+            }
         }
+        
         if (e.target.classList.contains('check-q-field')) {
             if (!q.fields) q.fields = [];
-            if (e.target.checked) { if (!q.fields.includes(e.target.value)) q.fields.push(e.target.value); } 
-            else { q.fields = q.fields.filter(t => t !== e.target.value); }
-            renderSections();
+            const label = e.target.closest('label'); // 親のlabel要素を取得
+            
+            if (e.target.checked) { 
+                if (!q.fields.includes(e.target.value)) q.fields.push(e.target.value); 
+                // ▼ 修正: labelのスタイルをアクティブ状態に直接変更
+                label.className = `text-[10px] font-bold border rounded px-2 py-1 cursor-pointer transition-colors shadow-sm bg-blue-500 border-blue-500 text-white`;
+            } else { 
+                q.fields = q.fields.filter(t => t !== e.target.value); 
+                // ▼ 修正: labelのスタイルを非アクティブ状態に直接変更
+                label.className = `text-[10px] font-bold border rounded px-2 py-1 cursor-pointer transition-colors shadow-sm border-blue-200 dark:border-blue-900/50 bg-white dark:bg-slate-800 dark:text-slate-300`;
+            }
         }
     }
 }
