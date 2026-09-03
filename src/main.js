@@ -37,11 +37,12 @@ export function initApp() {
     initAuthUI();
     initSettings(() => getCurrentUserId());
     
-    // ▼ 追加: ダッシュボードの初期化とコールバックの登録
+    // ▼ 修正: ダッシュボードの初期化とコールバックの登録（第4引数を追加）
     initDashboard(
         (taskId, checked) => toggleTaskComplete(taskId, checked),
         (taskId) => openTaskDetailModal(taskId),
-        (taskId) => openReviewHistoryModal(taskId) // 第3引数を追加
+        (taskId) => openReviewHistoryModal(taskId),
+        () => openAddTaskModal() // ← 追加: タスク追加モーダルを開くコールバック
     );
     
     initDrill();
