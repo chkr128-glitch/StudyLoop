@@ -282,9 +282,9 @@ function updateAllViews() {
         displayDailyQuote();
     }
 
-    // ▼ 修正: アクティブなビューに応じて必要なコンポーネントのみをレンダリング（不要な再計算を防止）
+    // ▼ 修正: switchの各caseを { } で囲み、安全なブロックスコープを作成
     switch (state.currentView) {
-        case 'dashboard':
+        case 'dashboard': {
             const dateEl = document.getElementById('dashboard-date-display');
             const todayBtn = document.getElementById('btn-dashboard-today');
             
@@ -305,40 +305,42 @@ function updateAllViews() {
             
             renderDashboard(state.tasks, state.dashboardDate);
             break;
-
-        case 'calendar':
+        }
+        case 'calendar': {
             renderCalendar(state.tasks);
             renderCalendarTasks(state.tasks);
             break;
-
-        case 'analytics':
+        }
+        case 'analytics': {
             renderAnalytics(state.tasks, state.userProfile);
             break;
-
-        case 'settings':
+        }
+        case 'settings': {
             renderSettings(state.routines, state.userProfile);
             break;
-
-        case 'store':
+        }
+        case 'store': {
             renderStore(state.storeSets);
             break;
-
-        case 'past-exams':
+        }
+        case 'past-exams': {
             updatePastExamsData(state.userProfile, state.pastExams);
             break;
-
-        case 'flashcard-app':
+        }
+        case 'flashcard-app': {
             const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
-            // showFcView の呼び出しは循環を引き起こす可能性があるため、明示的なレンダリングのみを行うのが理想ですが、
-            // 現在のアーキテクチャに沿って、必要な描画トリガーを呼び出します。
             showFcView(activeFcView);
             break;
-
-        case 'timeline':
+        }
+        case 'timeline': {
             loadTimeline();
             break;
+        }
     }
-} 
+}
+
+// ▼ 修正: 誤って削除されていた変数宣言を復元（これがReferenceErrorの原因でした）
+let isGeneratingTasks = false;
 
 async function generateRoutineTasks(targetDateStr = null) {
     if (isGeneratingTasks) {
