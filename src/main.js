@@ -458,22 +458,16 @@ function toggleAddTaskMode(mode) {
     }
 }
 
-function openAddTaskModal(targetDate = null) {
-    // 単発タスク用の初期化
+function openAddTaskModal() {
+    // 単発タスク用の入力欄初期化
     document.getElementById('input-task-title').value = '';
     document.getElementById('input-task-subject').value = '英語';
     document.getElementById('input-task-time').value = '30';
     
-    // 日付の初期化（引数があれば過去日、なければ今日）
-    const dateInput = document.getElementById('input-task-date');
-    if (dateInput) {
-        if (targetDate && typeof targetDate === 'string') {
-            dateInput.value = targetDate;
-        } else {
-            // ※必要に応じてカレンダーから日付を取得
-            dateInput.value = formatDate(new Date()); 
-        }
-    }
+    // ※日付やルーティン補填のUIは削除したため、初期化処理も不要になりました
+    const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
+    openModal(targetId);
+}
     
     // ルーティン補填用のプルダウンに現在のルーティン一覧をセット
     const routineSelect = document.getElementById('input-routine-select');
@@ -495,92 +489,46 @@ function openAddTaskModal(targetDate = null) {
 }
 
 async function saveNewTask() {
-    const dateVal = document.getElementById('input-task-date')?.value || formatDate(new Date());
-    const isRoutineMode = !document.getElementById('add-task-routine-area').classList.contains('hidden');
+    // 追加対象の日は、ダッシュボードで現在表示している日付（state.dashboardDate）を適用
+    const dateVal = state.dashboardDate;
+    
+    const title = document.getElementById('input-task-title').value.trim();
+    const subject = document.getElementById('input-task-subject').value;
+    const timeVal = document.getElementById('input-task-time').value;
+
+    if (!title) return showToast("タスクのタイトルを入力してください。", "error");
+
+    const btn = document.getElementById('btn-save-new-task');
+    if (btn) btn.disabled = true;
 
     try {
-        if (isRoutineMode) {
-            // 【ルーティン補填モード】の保存処理
-            const routineId = document.getElementById('input-routine-select').value;
-            const routine = state.routines.find(r => r.id === routineId);
-            if (!routine) return showToast("ルーティンが選択されていません", "error");
+        const newRef = doc(getAppCollectionRef('tasks'));
+        const newTaskData = {
+            id: newRef.id,
+            title,
+            subject,
+            estimatedTime: parseInt(timeVal, 10) || 30,
+            date: dateVal,
+            completed: false,
+            isReview: false,
+            isRoutine: false,
+            createdAt: new Date().toISOString()
+        };
 
-            const startPos = routine.currentPosition || 1;
-            let endPos = startPos + (routine.dailyPace || 1) - 1;
-            if (routine.totalItems && endPos > routine.totalItems) endPos = routine.totalItems;
-
-            // ID被りを防ぐためタイムスタンプを付与
-            const docId = `routine_${routine.id}_${dateVal}_manual_${Date.now()}`; 
-            const newTaskData = {
-                title: routine.title,
-                subject: routine.subject,
-                estimatedTime: routine.estimatedTime,
-                date: dateVal,
-                completed: false, // 追加時は未完了とする
-                isReview: false,
-                isRoutine: true,
-                sourceRoutineId: routine.id,
-                plannedStart: startPos,
-                plannedEnd: endPos,
-                unit: routine.unit || '問',
-                totalItems: routine.totalItems || null,
-                createdAt: new Date().toISOString()
-            };
-
-            await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
-            showToast(`${dateVal} にルーティン予定を補填しました。`, "info");
-
-        } else {
-            // 【単発タスクモード】の保存処理
-            const title = document.getElementById('input-task-title').value.trim();
-            const subject = document.getElementById('input-task-subject').value;
-            const timeVal = document.getElementById('input-task-time').value;
-
-            if (!title) return showToast("タスクのタイトルを入力してください。", "error");
-
-            const newRef = doc(getAppCollectionRef('tasks'));
-            const newTaskData = {
-                id: newRef.id,
-                title,
-                subject,
-                estimatedTime: parseInt(timeVal, 10) || 30,
-                date: dateVal,
-                completed: false,
-                isReview: false,
-                isRoutine: false,
-                createdAt: new Date().toISOString()
-            };
-
-            await setDoc(newRef, newTaskData);
-            showToast(`${dateVal} にタスクを追加しました`);
-        }
+        await setDoc(newRef, newTaskData);
+        showToast(`${dateVal} にタスクを追加しました`);
         
-        // モーダルを閉じる
         const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
         closeModal(targetId);
 
-        // カレンダー側の月と日付を合わせる処理
-        const { selectCalendarDate, getCalendarSelectedDate, changeMonth } = await import('./components/calendar.js');
+        // FirestoreのonSnapshotが発火するまでのラグを防ぐ必要があればここで画面更新
+        // （通常はonSnapshotが自動で updateAllViews を呼ぶため省略可能ですが、UX向上として残します）
         
-        // 現在カレンダーが選択している日付と、追加したタスクの日付を比較して月を計算
-        const targetDateObj = new Date(dateVal);
-        const currentDateObj = new Date(getCalendarSelectedDate() || new Date());
-        
-        const monthDiff = (targetDateObj.getFullYear() - currentDateObj.getFullYear()) * 12 
-                        + (targetDateObj.getMonth() - currentDateObj.getMonth());
-        
-        // 月が異なる場合のみカレンダーの表示月を切り替える
-        if (monthDiff !== 0) {
-            changeMonth(monthDiff);
-        }
-        
-        // カレンダー上で対象日を選択し、カレンダー画面へ遷移
-        selectCalendarDate(dateVal); 
-        switchView('calendar');
-
     } catch(err) {
         console.error("タスク追加エラー:", err);
         showToast("追加に失敗しました", "error");
+    } finally {
+        if (btn) btn.disabled = false;
     }
 }
 
