@@ -2,7 +2,7 @@ import { observeAuthState } from './services/auth.js';
 import { setCurrentUserId, getCurrentUserId, getAppCollectionRef, getAppDocRef, addTimelineLog } from './services/db.js';
 import { showToast, showConfirm, closeConfirm, executeConfirm, openModal, closeModal, initUI, switchViewUI } from './components/ui.js';
 import { initAuthUI } from './components/authUI.js';
-import { renderDashboard, updateStreak, displayDailyQuote } from './components/dashboard.js';
+import { initDashboard, renderDashboard, updateStreak, displayDailyQuote } from './components/dashboard.js';
 import { initCalendar, renderCalendar, renderCalendarTasks, changeMonth, selectCalendarDate, getCalendarSelectedDate } from './components/calendar.js';
 import { renderAnalytics, updateChartColors } from './components/analytics.js';
 import { initSettings, renderSettings, saveUserProfile, buildWeightInputs } from './components/settings.js';
@@ -36,6 +36,13 @@ export function initApp() {
     initUI(() => updateChartColors());
     initAuthUI();
     initSettings(() => getCurrentUserId());
+    
+    // ▼ 追加: ダッシュボードの初期化とコールバックの登録
+    initDashboard(
+        (taskId, checked) => toggleTaskComplete(taskId, checked),
+        (taskId) => openTaskDetailModal(taskId)
+    );
+    
     initDrill();
     initFlashcard();
     initStore();
@@ -141,7 +148,6 @@ function setupEventListeners() {
         openAddTaskModal(getCalendarSelectedDate());
     });
 
-    
     document.getElementById('sub-evaluations-list')?.addEventListener('click', (e) => {
         const deleteBtn = e.target.closest('.sub-eval-delete-btn');
         if (deleteBtn) deleteBtn.closest('.flex-col').remove();
@@ -153,43 +159,32 @@ function setupEventListeners() {
         });
     });
 
-    ['dashboard-tasks-container', 'calendar-tasks-container'].forEach(containerId => {
-        const container = document.getElementById(containerId);
-        if (container) {
-            container.addEventListener('change', (e) => {
-                if (e.target.matches('.task-checkbox')) toggleTaskComplete(e.target.dataset.taskId, e.target.checked);
-            });
-            container.addEventListener('click', (e) => {
-                // チェックボックスは無視
-                if (e.target.matches('.task-checkbox')) return; 
+    // ▼ 修正: ダッシュボードの監視を削除し、カレンダータスクのみ監視するように変更
+    const calendarContainer = document.getElementById('calendar-tasks-container');
+    if (calendarContainer) {
+        calendarContainer.addEventListener('change', (e) => {
+            if (e.target.matches('.task-checkbox')) toggleTaskComplete(e.target.dataset.taskId, e.target.checked);
+        });
+        calendarContainer.addEventListener('click', (e) => {
+            if (e.target.matches('.task-checkbox')) return; 
 
-                // 1. まず「履歴ボタン（.task-history-btn）」がクリックされたか判定
-                const historyBtn = e.target.closest('.task-history-btn');
-                if (historyBtn && historyBtn.dataset.taskId) {
-                    // 履歴ボタンなら履歴モーダルを開いて処理終了
-                    openReviewHistoryModal(historyBtn.dataset.taskId);
-                    return;
-                }
+            const historyBtn = e.target.closest('.task-history-btn');
+            if (historyBtn && historyBtn.dataset.taskId) {
+                openReviewHistoryModal(historyBtn.dataset.taskId);
+                return;
+            }
 
-                // 2. それ以外（タスク行全体や編集ボタン）がクリックされた場合は、記録画面（詳細モーダル）を開く
-                const targetEl = e.target.closest('.task-row-clickable, .task-edit-btn');
-                if (targetEl && targetEl.dataset.taskId) {
-                    openTaskDetailModal(targetEl.dataset.taskId);
-                }
-            });
-        }
-    }); // ←★ 消えていた閉じ括弧を復元しました
+            const targetEl = e.target.closest('.task-row-clickable, .task-edit-btn');
+            if (targetEl && targetEl.dataset.taskId) {
+                openTaskDetailModal(targetEl.dataset.taskId);
+            }
+        });
+    }
 
     document.getElementById('btn-seed-official')?.addEventListener('click', async () => {
         const { seedOfficialPacks } = await import('./components/store.js');
         seedOfficialPacks();
     });
-}
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
 }
 
 function subscribeToData() {
@@ -266,7 +261,7 @@ function switchView(viewName) {
     updateAllViews();
 }
 
-function changeDashboardDate(offsetDays, resetToToday = false) {
+async function changeDashboardDate(offsetDays, resetToToday = false) {
     if (resetToToday) {
         state.dashboardDate = formatDate(new Date());
     } else {
@@ -275,63 +270,74 @@ function changeDashboardDate(offsetDays, resetToToday = false) {
         state.dashboardDate = formatDate(d);
     }
     
-    // 日付が変わったら該当日のルーティンタスクを生成・更新して画面を再描画
-    generateRoutineTasks(state.dashboardDate);
+    // ▼ 修正: ルーティンタスクの生成完了を待ってから画面を再描画する
+    await generateRoutineTasks(state.dashboardDate);
     updateAllViews();
 }
 
 function updateAllViews() {
+    // 常に表示される名言ウィジェットはホーム画面の時のみ更新
     if (state.currentView === 'home') {
-        // ホーム画面は名言の表示のみに変更
         displayDailyQuote();
     }
 
-    if (state.currentView === 'dashboard') {
-        // 移設した日付表示要素のIDに変更
-        const dateEl = document.getElementById('dashboard-date-display');
-        const todayBtn = document.getElementById('btn-dashboard-today');
-        
-        if (dateEl) {
-            const d = new Date(state.dashboardDate);
-            const days = ['日', '月', '火', '水', '木', '金', '土'];
-            dateEl.innerText = `${d.getMonth() + 1}月${d.getDate()}日(${days[d.getDay()]})`;
-        }
-        
-        if (todayBtn) {
-            const todayStr = formatDate(new Date());
-            if (state.dashboardDate !== todayStr) {
-                todayBtn.classList.remove('hidden');
-            } else {
-                todayBtn.classList.add('hidden');
+    // ▼ 修正: アクティブなビューに応じて必要なコンポーネントのみをレンダリング（不要な再計算を防止）
+    switch (state.currentView) {
+        case 'dashboard':
+            const dateEl = document.getElementById('dashboard-date-display');
+            const todayBtn = document.getElementById('btn-dashboard-today');
+            
+            if (dateEl) {
+                const d = new Date(state.dashboardDate);
+                const days = ['日', '月', '火', '水', '木', '金', '土'];
+                dateEl.innerText = `${d.getMonth() + 1}月${d.getDate()}日(${days[d.getDay()]})`;
             }
-        }
-        
-        // ダッシュボードにタスクを描画
-        renderDashboard(state.tasks, state.dashboardDate);
-    }
-    if (state.currentView === 'calendar') {
-        renderCalendar(state.tasks);
-        renderCalendarTasks(state.tasks);
-    }
-    if (state.currentView === 'analytics') renderAnalytics(state.tasks, state.userProfile);
-    if (state.currentView === 'settings') renderSettings(state.routines, state.userProfile);
-    if (state.currentView === 'store') renderStore(state.storeSets);
-    
-    if (state.currentView === 'past-exams') {
-        updatePastExamsData(state.userProfile, state.pastExams);
-    }
-    
-    if (state.currentView === 'flashcard-app') {
-        const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
-        showFcView(activeFcView);
-    }
+            
+            if (todayBtn) {
+                const todayStr = formatDate(new Date());
+                if (state.dashboardDate !== todayStr) {
+                    todayBtn.classList.remove('hidden');
+                } else {
+                    todayBtn.classList.add('hidden');
+                }
+            }
+            
+            renderDashboard(state.tasks, state.dashboardDate);
+            break;
 
-    if (state.currentView === 'timeline') {
-        loadTimeline();
-    }
-}
+        case 'calendar':
+            renderCalendar(state.tasks);
+            renderCalendarTasks(state.tasks);
+            break;
 
-let isGeneratingTasks = false; 
+        case 'analytics':
+            renderAnalytics(state.tasks, state.userProfile);
+            break;
+
+        case 'settings':
+            renderSettings(state.routines, state.userProfile);
+            break;
+
+        case 'store':
+            renderStore(state.storeSets);
+            break;
+
+        case 'past-exams':
+            updatePastExamsData(state.userProfile, state.pastExams);
+            break;
+
+        case 'flashcard-app':
+            const activeFcView = document.querySelector('.fc-view:not(.hidden)')?.id || 'fc-sets';
+            // showFcView の呼び出しは循環を引き起こす可能性があるため、明示的なレンダリングのみを行うのが理想ですが、
+            // 現在のアーキテクチャに沿って、必要な描画トリガーを呼び出します。
+            showFcView(activeFcView);
+            break;
+
+        case 'timeline':
+            loadTimeline();
+            break;
+    }
+} 
 
 async function generateRoutineTasks(targetDateStr = null) {
     if (isGeneratingTasks) {
