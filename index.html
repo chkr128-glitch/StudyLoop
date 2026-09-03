@@ -745,105 +745,62 @@
         </div>
     </div>
 
-    <!-- モーダル: 新規タスク追加（単発専用） -->
-    <div id="modal-add-task" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[100] hidden justify-center items-end sm:items-center">
-        <div class="modal-content bg-white dark:bg-zinc-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-modern border border-zinc-200/60 dark:border-zinc-800">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-black text-zinc-800 dark:text-white tracking-tight" id="add-task-modal-title">学習記録の追加</h3>
-                <button class="modal-close-btn text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><i class="fas fa-times pointer-events-none"></i></button>
-            </div>
-
-            <!-- 単発タスク入力領域 -->
-            <div id="add-task-custom-area" class="space-y-4">
-                <div>
-                    <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">タスク名</label>
-                    <input type="text" id="input-task-title" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all text-sm font-medium" placeholder="例: 青チャート 数学II B 第1章">
-                </div>
-                <div class="flex space-x-3">
-                    <div class="w-1/2 relative">
-                        <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">科目</label>
-                        <select id="input-task-subject" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all appearance-none text-sm font-medium"></select>
-                        <i class="fas fa-chevron-down absolute right-4 top-10 text-zinc-400 pointer-events-none text-[10px]"></i>
-                    </div>
-                    <div class="w-1/2">
-                        <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">学習時間(分)</label>
-                        <input type="number" id="input-task-time" min="1" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all text-sm font-bold" placeholder="60">
-                    </div>
-                </div>
-            </div>
-
-            <button id="btn-save-new-task" class="w-full bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-800 font-bold py-3.5 rounded-xl mt-6 hover:bg-zinc-900 dark:hover:bg-white transition-all shadow-sm disabled:opacity-50 text-sm">タスクを追加</button>
-        </div>
-    </div>
-    
-    <!-- モーダル: タスク詳細 -->
-    <div id="modal-task-detail" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[100] justify-center items-center">
-        <div class="modal-content bg-white dark:bg-zinc-900 w-11/12 max-w-md rounded-2xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-modern relative border border-zinc-200/60 dark:border-zinc-800">
-            <button class="modal-close-btn absolute top-5 right-5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><i class="fas fa-times pointer-events-none"></i></button>
-            <h3 class="text-lg font-black mb-1.5 text-zinc-800 dark:text-white pr-8 tracking-tight leading-tight" id="detail-title">タスク名</h3>
-            <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mb-6 font-medium flex items-center">
-                <span id="detail-subject" class="px-2 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 mr-2 font-bold">科目</span>
-                Schedule: <span id="detail-est-time" class="mx-1 font-bold text-zinc-700 dark:text-zinc-300"></span>
-            </p>
-            <input type="hidden" id="detail-task-id">
-            <div class="space-y-5">
-                <div>
-                    <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">実際の学習時間(分)</label>
-                    <input type="number" id="detail-actual-time" min="0" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all font-bold text-lg text-center">
-                </div>
-                
-                <div id="routine-progress-section" class="hidden bg-blue-50/50 dark:bg-blue-950/30 p-4 rounded-xl border border-blue-100/50 dark:border-blue-900/50 transition-all duration-300 mt-2">
-                    <div class="flex justify-between items-end mb-2">
-                        <label class="block text-[11px] font-bold text-blue-800 dark:text-blue-400">今日の進捗（到達番号）</label>
-                        <button id="btn-sync-sub-evals" class="hidden text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-100/50 dark:bg-blue-900/40 px-2 py-1 rounded hover:bg-blue-200/50 transition-colors border border-blue-200 dark:border-blue-800"><i class="fas fa-sync-alt mr-1"></i>明細を再生成</button>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <span id="detail-routine-start" class="text-xl font-black text-blue-600 dark:text-blue-400">1</span>
-                        <span class="text-blue-300 dark:text-blue-700 font-bold">〜</span>
-                        <input type="number" id="detail-routine-end" class="w-20 bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-800 rounded-lg text-center font-black text-blue-600 dark:text-blue-400 p-2 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm text-lg" min="1">
-                        <span id="detail-routine-unit" class="text-[11px] font-bold text-blue-600 dark:text-blue-400">問</span>
-                    </div>
-                    <p class="text-[10px] text-blue-600/70 dark:text-blue-400/70 mt-2 font-medium leading-tight">予定より多く/少なく進んだ場合、ここを修正すると明日の予定が自動調整されます。</p>
-                </div>
-                
-                <div>
-                    <div class="flex justify-between items-center mb-2 ml-1">
-                        <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400">定着度評価</label>
-                        <button id="toggle-sub-eval-btn" class="text-[10px] text-pink-500 dark:text-pink-400 hover:text-pink-600 font-bold transition-colors">問題別に評価 <i class="fas fa-list-ul ml-1 pointer-events-none"></i></button>
-                    </div>
-                    <div id="main-evaluation-section" class="grid grid-cols-2 gap-2 text-xs font-medium transition-all duration-300">
-                        <label class="eval-label border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-3 flex items-center cursor-pointer transition-colors dark:text-zinc-300">
-                            <input type="radio" name="evaluation" value="A" class="mr-2 text-pink-500 focus:ring-pink-500 w-3.5 h-3.5 bg-white dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600"> A: 完璧
-                        </label>
-                        <label class="eval-label border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-3 flex items-center cursor-pointer transition-colors dark:text-zinc-300">
-                            <input type="radio" name="evaluation" value="B" class="mr-2 text-pink-500 focus:ring-pink-500 w-3.5 h-3.5 bg-white dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600"> B: やや不安
-                        </label>
-                        <label class="eval-label border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-3 flex items-center cursor-pointer transition-colors dark:text-zinc-300">
-                            <input type="radio" name="evaluation" value="C" class="mr-2 text-pink-500 focus:ring-pink-500 w-3.5 h-3.5 bg-white dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600"> C: 要復習
-                        </label>
-                        <label class="eval-label border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-3 flex items-center cursor-pointer transition-colors dark:text-zinc-300">
-                            <input type="radio" name="evaluation" value="D" class="mr-2 text-pink-500 focus:ring-pink-500 w-3.5 h-3.5 bg-white dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600"> D: 歯が立たず
-                        </label>
-                    </div>
-                    <div id="sub-evaluations-section" class="hidden mt-3 bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-200/60 dark:border-zinc-700">
-                        <p class="text-[10px] text-zinc-500 dark:text-zinc-400 mb-3 font-medium leading-tight">問題名と評価を入力してください。</p>
-                        <div id="sub-evaluations-list" class="space-y-2 mb-3"></div>
-                        <button id="btn-add-sub-eval" class="text-[11px] text-purple-600 dark:text-purple-400 font-bold flex items-center justify-center w-full py-2 bg-purple-50 dark:bg-purple-950/40 rounded-lg transition-colors border border-purple-100 dark:border-purple-900/50"><i class="fas fa-plus mr-1 pointer-events-none text-[10px]"></i> 問題を追加</button>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">Note</label>
-                    <textarea id="detail-note" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl h-20 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all resize-none leading-relaxed text-xs" placeholder="気づきや弱点などをメモ..."></textarea>
+    <!-- タスク追加モーダル -->
+    <div id="modal-add-task" class="fixed inset-0 bg-slate-900/60 dark:bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-xl font-black text-slate-800 dark:text-slate-100">タスクを追加</h3>
+                    <button class="modal-close text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
 
-                <div class="flex items-center bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-700 mt-2">
-                    <input type="checkbox" id="detail-share-timeline" class="w-5 h-5 text-sky-500 bg-white dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 rounded focus:ring-2 focus:ring-sky-500 mr-3 cursor-pointer" checked>
-                    <label for="detail-share-timeline" class="text-[11px] font-bold text-zinc-600 dark:text-zinc-300 cursor-pointer flex-1 select-none">学習記録をタイムラインに投稿</label>
+                <!-- ▼ 新設: タブ切り替えUI ▼ -->
+                <div class="flex p-1 bg-slate-100 dark:bg-slate-700 rounded-lg mb-5">
+                    <button id="tab-task-custom" class="flex-1 py-2 text-xs font-bold rounded-md bg-white dark:bg-slate-600 text-slate-800 dark:text-white shadow-sm transition-all">単発タスク</button>
+                    <button id="tab-task-routine" class="flex-1 py-2 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all">固定ルーティン</button>
                 </div>
 
-                <div class="flex space-x-2 pt-1">
-                    <button id="btn-delete-task" class="w-12 flex-shrink-0 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 font-bold rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors border border-rose-200/50 dark:border-rose-900/50 disabled:opacity-50"><i class="fas fa-trash pointer-events-none"></i></button>
-                    <button id="btn-save-task-detail" class="flex-grow bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-800 font-bold py-3.5 rounded-xl hover:bg-zinc-900 dark:hover:bg-white transition-all shadow-sm disabled:opacity-50 text-sm">完了して記録する</button>
+                <!-- ▼ 既存: 単発タスク入力エリア ▼ -->
+                <div id="add-task-custom-area" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">タスク名</label>
+                        <input type="text" id="input-task-title" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all placeholder:text-slate-400 font-sans" placeholder="例: 英単語 第1章">
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">教科</label>
+                            <select id="input-task-subject" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-pink-500 transition-all appearance-none cursor-pointer">
+                                <!-- JSで動的生成 -->
+                            </select>
+                        </div>
+                        <div class="w-28">
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">予定(分)</label>
+                            <input type="number" id="input-task-time" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-pink-500 transition-all font-sans" value="30" min="1" step="5">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ▼ 新設: ルーティン補填エリア ▼ -->
+                <div id="add-task-routine-area" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">補填するルーティンを選択</label>
+                        <select id="input-routine-select" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-pink-500 transition-all appearance-none cursor-pointer">
+                            <option value="">ルーティンを読み込んでいます...</option>
+                        </select>
+                    </div>
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-lg p-3">
+                        <p class="text-[11px] text-blue-600 dark:text-blue-400 font-bold leading-relaxed">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            選択した固定ルーティンの現在の進行状況（到達番号）を引き継いで、この日のタスクとして生成します。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex gap-3">
+                    <button class="modal-close flex-1 py-3.5 rounded-xl font-bold text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">キャンセル</button>
+                    <button id="btn-save-new-task" class="flex-1 py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/30 hover:shadow-pink-500/50 transform hover:-translate-y-0.5 transition-all">追加する</button>
                 </div>
             </div>
         </div>
