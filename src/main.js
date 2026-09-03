@@ -40,7 +40,8 @@ export function initApp() {
     // ▼ 追加: ダッシュボードの初期化とコールバックの登録
     initDashboard(
         (taskId, checked) => toggleTaskComplete(taskId, checked),
-        (taskId) => openTaskDetailModal(taskId)
+        (taskId) => openTaskDetailModal(taskId),
+        (taskId) => openReviewHistoryModal(taskId) // 第3引数を追加
     );
     
     initDrill();
