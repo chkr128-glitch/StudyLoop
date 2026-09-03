@@ -23,6 +23,7 @@ const state = {
     storeSets: [],
     pastExams: [],
     currentView: 'home',
+    dashboardDate: formatDate(new Date()), // 新規追加: ダッシュボードの表示対象日
     unsubscribeTasks: null,
     unsubscribeRoutines: null,
     unsubscribeProfile: null,
@@ -123,6 +124,10 @@ function setupEventListeners() {
 
     document.getElementById('btn-open-add-task')?.addEventListener('click', openAddTaskModal);
     document.getElementById('btn-save-new-task')?.addEventListener('click', saveNewTask);
+
+    document.getElementById('btn-dashboard-prev-day')?.addEventListener('click', () => changeDashboardDate(-1));
+    document.getElementById('btn-dashboard-next-day')?.addEventListener('click', () => changeDashboardDate(1));
+    document.getElementById('btn-dashboard-today')?.addEventListener('click', () => changeDashboardDate(0, true));
     
     document.getElementById('btn-open-add-routine')?.addEventListener('click', openAddRoutineModal);
     document.getElementById('btn-save-new-routine')?.addEventListener('click', saveNewRoutine);
@@ -263,16 +268,46 @@ function switchView(viewName) {
     updateAllViews();
 }
 
+function changeDashboardDate(offsetDays, resetToToday = false) {
+    if (resetToToday) {
+        state.dashboardDate = formatDate(new Date());
+    } else {
+        const d = new Date(state.dashboardDate);
+        d.setDate(d.getDate() + offsetDays);
+        state.dashboardDate = formatDate(d);
+    }
+    
+    // 日付が変わったら該当日のルーティンタスクを生成・更新して画面を再描画
+    generateRoutineTasks(state.dashboardDate);
+    updateAllViews();
+}
+
 function updateAllViews() {
     if (state.currentView === 'home') {
         const dateEl = document.getElementById('home-date-display');
+        const todayBtn = document.getElementById('btn-dashboard-today');
+        
         if (dateEl) {
-            const today = new Date();
+            // 常に state.dashboardDate の日付を表示する
+            const d = new Date(state.dashboardDate);
             const days = ['日', '月', '火', '水', '木', '金', '土'];
-            dateEl.innerText = `${today.getMonth() + 1}月${today.getDate()}日(${days[today.getDay()]})`;
+            dateEl.innerText = `${d.getMonth() + 1}月${d.getDate()}日(${days[d.getDay()]})`;
+        }
+        
+        if (todayBtn) {
+            // 今日以外の日付を見ている時だけ「今日に戻る」ボタンを表示
+            const todayStr = formatDate(new Date());
+            if (state.dashboardDate !== todayStr) {
+                todayBtn.classList.remove('hidden');
+            } else {
+                todayBtn.classList.add('hidden');
+            }
         }
         displayDailyQuote();
     }
+
+    if (state.currentView === 'dashboard') renderDashboard(state.tasks, state.dashboardDate);
+    
 
     if (state.currentView === 'dashboard') renderDashboard(state.tasks);
     if (state.currentView === 'calendar') {
