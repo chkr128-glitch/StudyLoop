@@ -37,12 +37,11 @@ export function initApp() {
     initAuthUI();
     initSettings(() => getCurrentUserId());
     
-    // ▼ 修正: ダッシュボードの初期化とコールバックの登録（第4引数を追加）
     initDashboard(
         (taskId, checked) => toggleTaskComplete(taskId, checked),
         (taskId) => openTaskDetailModal(taskId),
         (taskId) => openReviewHistoryModal(taskId),
-        () => openAddTaskModal() // ← 追加: タスク追加モーダルを開くコールバック
+        () => openAddTaskModal()
     );
     
     initDrill();
@@ -54,10 +53,16 @@ export function initApp() {
     
     populateSubjectDropdowns(); 
 
+    // ★ 修正: カレンダーからの通知を受け取り、一元管理しているdashboardDateを更新する
     initCalendar(
-        () => state.tasks, 
-        (dateStr) => generateRoutineTasks(dateStr), 
-        (dateStr) => generateRoutineTasks(dateStr)
+        (dateStr) => { 
+            state.dashboardDate = dateStr;
+            changeDashboardDate(0, false); // タスク生成と画面更新をトリガー
+        },
+        (dateStr) => { 
+            state.dashboardDate = dateStr;
+            changeDashboardDate(0, false); 
+        }
     );
     
     buildWeightInputs();
@@ -122,16 +127,23 @@ function populateSubjectDropdowns() {
 function setupEventListeners() {
     document.querySelectorAll('.nav-tile').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            // ★ 修正: ホーム画面から各機能へ遷移する際は、常に「今日」にリセットしてUXを統一
+            state.dashboardDate = formatDate(new Date());
             const viewId = e.currentTarget.dataset.target;
             switchView(viewId);
         });
     });
 
-    document.getElementById('btn-go-home')?.addEventListener('click', () => switchView('home'));
-    document.getElementById('btn-header-logo')?.addEventListener('click', () => switchView('home'));
+    document.getElementById('btn-go-home')?.addEventListener('click', () => {
+        state.dashboardDate = formatDate(new Date());
+        switchView('home');
+    });
+    document.getElementById('btn-header-logo')?.addEventListener('click', () => {
+        state.dashboardDate = formatDate(new Date());
+        switchView('home');
+    });
     document.getElementById('btn-open-settings')?.addEventListener('click', () => switchView('settings'));
 
-    // ▼ 修正: 単独のID指定を廃止し、画面全体のクリックから「タスク追加ボタン」を探して検知する
     document.addEventListener('click', (e) => {
         const addTaskBtn = e.target.closest('#btn-open-add-task, .btn-open-add-task');
         if (addTaskBtn) {
@@ -154,10 +166,9 @@ function setupEventListeners() {
     document.getElementById('toggle-sub-eval-btn')?.addEventListener('click', toggleSubEvaluations);
     document.getElementById('btn-add-sub-eval')?.addEventListener('click', () => addSubEvaluation());
     
-    document.getElementById('btn-calendar-add-task')?.addEventListener('click', async () => {
-        const { getCalendarSelectedDate } = await import('./components/calendar.js');
-        // カレンダー側で選択された日付を渡してモーダルを開く
-        openAddTaskModal(getCalendarSelectedDate());
+    document.getElementById('btn-calendar-add-task')?.addEventListener('click', () => {
+        // ★ 修正: カレンダー画面からタスクを追加する際も、統合された日付を渡す
+        openAddTaskModal(state.dashboardDate);
     });
 
     document.getElementById('sub-evaluations-list')?.addEventListener('click', (e) => {
@@ -196,13 +207,6 @@ function setupEventListeners() {
         const { seedOfficialPacks } = await import('./components/store.js');
         seedOfficialPacks();
     });
-}
-
-// ▼ 修正: ここから下のブロック（アプリの起動トリガー）を追加してください ▼
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
 }
 
 function subscribeToData() {
@@ -282,23 +286,21 @@ function switchView(viewName) {
 async function changeDashboardDate(offsetDays, resetToToday = false) {
     if (resetToToday) {
         state.dashboardDate = formatDate(new Date());
-    } else {
+    } else if (offsetDays !== 0) {
+        // ★ 修正: offsetDaysが0の場合は、現在設定されている dashboardDate をそのまま使う
         const d = new Date(state.dashboardDate);
         d.setDate(d.getDate() + offsetDays);
         state.dashboardDate = formatDate(d);
     }
     
-    // ▼ 修正: ルーティンタスクの生成完了を待ってから画面を再描画する
     await generateRoutineTasks(state.dashboardDate);
     updateAllViews();
 }
 
 function updateAllViews() {
-    // 常に表示される名言ウィジェットと日付はホーム画面の時のみ更新
     if (state.currentView === 'home') {
         displayDailyQuote();
         
-        // ▼ 修正: ホーム画面に日付を表示するロジックを追加
         const homeDateEl = document.getElementById('home-date-display');
         if (homeDateEl) {
             const d = new Date(state.dashboardDate);
@@ -307,7 +309,6 @@ function updateAllViews() {
         }
     }
 
-    // ▼ 修正: switchの各caseを { } で囲み、安全なブロックスコープを作成
     switch (state.currentView) {
         case 'dashboard': {
             const dateEl = document.getElementById('dashboard-date-display');
@@ -332,8 +333,9 @@ function updateAllViews() {
             break;
         }
         case 'calendar': {
-            renderCalendar(state.tasks);
-            renderCalendarTasks(state.tasks);
+            // ★ 修正: 統合された状態 (state.dashboardDate) を渡して描画させる
+            renderCalendar(state.tasks, state.dashboardDate);
+            renderCalendarTasks(state.tasks, state.dashboardDate);
             break;
         }
         case 'analytics': {
