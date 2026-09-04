@@ -745,6 +745,117 @@
         </div>
     </div>
 
+    <!-- モーダル: タスク詳細・記録（※復元） -->
+    <div id="modal-task-detail" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[100] justify-center items-end sm:items-center">
+        <div class="modal-content bg-white dark:bg-zinc-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-modern border border-zinc-200/60 dark:border-zinc-800 relative overflow-y-auto max-h-[90vh]">
+            <button class="modal-close-btn absolute top-5 right-5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 transition-colors z-10"><i class="fas fa-times pointer-events-none"></i></button>
+
+            <!-- 内部処理用: タスクID保持 -->
+            <input type="hidden" id="detail-task-id">
+
+            <div class="mb-5 pr-8">
+                <div class="flex items-center gap-2 mb-1">
+                    <span id="detail-subject" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">教科</span>
+                    <span class="text-[10px] font-bold text-zinc-500"><i class="fas fa-stopwatch mr-1"></i>予定: <span id="detail-est-time">0分</span></span>
+                </div>
+                <h3 id="detail-title" class="text-xl font-black text-zinc-800 dark:text-white tracking-tight leading-tight">タスク名</h3>
+            </div>
+
+            <div class="space-y-5">
+                <!-- 実際の学習時間 -->
+                <div>
+                    <label class="block text-[11px] font-bold text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1">実際の学習時間 (分) <span class="text-rose-500">*</span></label>
+                    <input type="number" id="detail-actual-time" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700 rounded-xl text-lg font-black p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white transition-all" placeholder="例: 30" required>
+                </div>
+
+                <!-- ルーティン進捗（ルーティン時のみ表示） -->
+                <div id="routine-progress-section" class="hidden bg-blue-50/50 dark:bg-blue-950/30 p-3.5 rounded-xl border border-blue-100 dark:border-blue-900/50">
+                    <label class="block text-[11px] font-bold text-blue-800 dark:text-blue-400 mb-2 ml-1">今日の到達範囲</label>
+                    <div class="flex items-center justify-center gap-2">
+                        <span id="detail-routine-start" class="font-bold text-blue-600 dark:text-blue-400 text-sm">1</span>
+                        <span class="text-blue-400 text-xs">〜</span>
+                        <input type="number" id="detail-routine-end" class="w-16 bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-800 rounded-lg p-1.5 text-center font-black text-blue-600 dark:text-blue-400 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <span id="detail-routine-unit" class="text-xs font-bold text-blue-600 dark:text-blue-400">問</span>
+                    </div>
+                </div>
+
+                <!-- 定着度評価 -->
+                <div>
+                    <div class="flex justify-between items-end mb-2 ml-1">
+                        <label class="block text-[11px] font-bold text-zinc-600 dark:text-zinc-400">定着度評価 <span class="text-rose-500">*</span></label>
+                        <button id="toggle-sub-eval-btn" class="text-[10px] font-bold text-pink-500 hover:text-pink-600 bg-pink-50 dark:bg-pink-900/30 px-2 py-1 rounded border border-pink-100 dark:border-pink-800 transition-colors"><i class="fas fa-list-ul mr-1"></i>問題別に詳細評価</button>
+                    </div>
+
+                    <!-- メイン評価 -->
+                    <div id="main-evaluation-section" class="grid grid-cols-4 gap-2 transition-opacity">
+                        <label class="eval-label cursor-pointer relative">
+                            <input type="radio" name="evaluation" value="A" class="peer sr-only">
+                            <div class="w-full text-center py-2.5 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all peer-checked:border-pink-500 peer-checked:bg-pink-50 dark:peer-checked:bg-pink-900/30">
+                                <div class="font-black text-lg text-zinc-700 dark:text-zinc-200 peer-checked:text-pink-600 dark:peer-checked:text-pink-400">A</div>
+                                <div class="text-[9px] font-bold text-zinc-400 mt-0.5">完璧・即答</div>
+                            </div>
+                        </label>
+                        <label class="eval-label cursor-pointer relative">
+                            <input type="radio" name="evaluation" value="B" class="peer sr-only">
+                            <div class="w-full text-center py-2.5 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/30">
+                                <div class="font-black text-lg text-zinc-700 dark:text-zinc-200 peer-checked:text-emerald-600 dark:peer-checked:text-emerald-400">B</div>
+                                <div class="text-[9px] font-bold text-zinc-400 mt-0.5">悩んで正解</div>
+                            </div>
+                        </label>
+                        <label class="eval-label cursor-pointer relative">
+                            <input type="radio" name="evaluation" value="C" class="peer sr-only">
+                            <div class="w-full text-center py-2.5 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all peer-checked:border-orange-500 peer-checked:bg-orange-50 dark:peer-checked:bg-orange-900/30">
+                                <div class="font-black text-lg text-zinc-700 dark:text-zinc-200 peer-checked:text-orange-600 dark:peer-checked:text-orange-400">C</div>
+                                <div class="text-[9px] font-bold text-zinc-400 mt-0.5">要復習</div>
+                            </div>
+                        </label>
+                        <label class="eval-label cursor-pointer relative">
+                            <input type="radio" name="evaluation" value="D" class="peer sr-only">
+                            <div class="w-full text-center py-2.5 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all peer-checked:border-rose-500 peer-checked:bg-rose-50 dark:peer-checked:bg-rose-900/30">
+                                <div class="font-black text-lg text-zinc-700 dark:text-zinc-200 peer-checked:text-rose-600 dark:peer-checked:text-rose-400">D</div>
+                                <div class="text-[9px] font-bold text-zinc-400 mt-0.5">全く不明</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- サブ評価 (問題別の詳細評価) -->
+                    <div id="sub-evaluations-section" class="hidden mt-3 bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-700">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[10px] font-bold text-zinc-500">問題ごとの評価</span>
+                            <div class="flex gap-2">
+                                <button id="btn-sync-sub-evals" class="hidden text-[10px] font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded border border-blue-100 dark:border-blue-800"><i class="fas fa-sync-alt mr-1"></i>自動生成</button>
+                                <button id="btn-add-sub-eval" class="text-[10px] font-bold text-zinc-600 dark:text-zinc-300 bg-white dark:bg-zinc-700 px-2 py-1 rounded border border-zinc-200 dark:border-zinc-600"><i class="fas fa-plus mr-1"></i>追加</button>
+                            </div>
+                        </div>
+                        <div id="sub-evaluations-list" class="max-h-48 overflow-y-auto pr-1"></div>
+                    </div>
+                </div>
+
+                <!-- メモ -->
+                <div>
+                    <label class="block text-[11px] font-bold text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1">学習メモ・振り返り (任意)</label>
+                    <textarea id="detail-note" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700 rounded-xl text-sm p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white h-20 resize-none transition-all" placeholder="間違えた理由や、次に活かすポイントなど"></textarea>
+                </div>
+
+                <!-- タイムライン共有 -->
+                <div class="flex items-center gap-2 ml-1">
+                    <input type="checkbox" id="detail-share-timeline" class="w-4 h-4 text-pink-500 bg-zinc-100 border-zinc-300 rounded focus:ring-pink-500 dark:focus:ring-pink-600 dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600" checked>
+                    <label for="detail-share-timeline" class="text-[11px] font-bold text-zinc-600 dark:text-zinc-400 cursor-pointer">この記録をタイムラインに共有する</label>
+                </div>
+            </div>
+
+            <!-- フッターボタン -->
+            <div class="flex space-x-2 mt-6 pt-4 border-t border-zinc-200/60 dark:border-zinc-800">
+                <button id="btn-delete-task" class="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-rose-500 border border-zinc-200 dark:border-zinc-700 rounded-xl transition-colors hover:bg-rose-50 dark:hover:bg-rose-900/30" title="タスクを削除">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button id="btn-save-task-detail" class="flex-1 bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-800 font-bold py-3.5 rounded-xl shadow-sm transition-all hover:opacity-90 text-sm">
+                    <i class="fas fa-check mr-1"></i> 完了して記録する
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- タスク追加モーダル -->
     <div id="modal-add-task" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[100] justify-center items-center p-4">
         <div class="modal-content bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-transform duration-300">
