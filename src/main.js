@@ -461,10 +461,15 @@ async function generateRoutineTasks(targetDateStr = null) {
 let isTaskModalInitialized = false;
 
 function openAddTaskModal(targetDate = null) {
-    // カレンダーからの日付指定があれば状態を更新
-    if (targetDate) {
-        state.dashboardDate = targetDate;
-    }
+    // カレンダーやダッシュボードからの日付指定をセット。指定がなければ現在表示中の日付
+    const dateToSet = targetDate || state.dashboardDate;
+    
+    // 隠しフィールドに保存用日付をセット
+    const dateInput = document.getElementById('add-task-date');
+    if (dateInput) dateInput.value = dateToSet;
+
+    // ダッシュボードの日付も同期させる
+    state.dashboardDate = dateToSet;
 
     // タブのイベントリスナーを初回のみ登録
     if (!isTaskModalInitialized) {
@@ -532,7 +537,10 @@ function switchTaskModalTab(tabId) {
 
 // ▼ 変更: タブの状態に応じて保存処理を分岐させる
 async function saveNewTask() {
-    const dateVal = state.dashboardDate; // 選択中の日付
+    // 隠しフィールドから対象日付を取得。万が一取れなければ state の日付を使う
+    const dateInputVal = document.getElementById('add-task-date')?.value;
+    const dateVal = dateInputVal || state.dashboardDate;
+    
     const isCustom = document.getElementById('add-task-custom-area').dataset.active !== 'false';
     const btn = document.getElementById('btn-save-new-task');
     if (btn) btn.disabled = true;
