@@ -1,4 +1,4 @@
-const CACHE_NAME = 'studyloop-cache-v2'; // バージョンを上げて古いキャッシュを強制更新
+const CACHE_NAME = 'studyloop-cache-v3'; // バージョンを更新
 const urlsToCache = [
     './',
     './index.html',
@@ -15,10 +15,10 @@ const urlsToCache = [
     './src/components/flashcard.js',
     './src/components/store.js',
     './src/components/ui.js',
-    './src/components/taskUI.js',      // 追加
-    './src/components/timeline.js',    // 追加
-    './src/components/tutorial.js',    // 追加
-    './src/components/pastExams.js',   // 追加
+    './src/components/taskUI.js',
+    './src/components/timeline.js',
+    './src/components/tutorial.js',
+    './src/components/pastExams.js',
     './src/services/auth.js',
     './src/services/db.js',
     './src/utils/constants.js',
@@ -27,9 +27,7 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
-    // 新しいService Workerがすぐにアクティブになるようにする
     self.skipWaiting();
-    
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
@@ -40,35 +38,32 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
-    // http または https のリクエスト以外（拡張機能の通信など）は無視する
-    if (!event.request.url.startsWith('http')) {
+    const url = new URL(event.request.url);
+    
+    // FirestoreやGoogle APIなどの外部通信はキャッシュせず、必ずネットワークを使う
+    if (!event.request.url.startsWith('http') || 
+        url.hostname.includes('googleapis.com') || 
+        url.hostname.includes('firebaseio.com') ||
+        url.origin !== self.location.origin) {
         return;
     }
 
     event.respondWith(
         caches.match(event.request)
             .then(response => {
-                // キャッシュがあればそれを返す
                 if (response) {
                     return response;
                 }
-                
-                // キャッシュがない場合はネットワークへリクエスト
                 return fetch(event.request).then(
                     function(response) {
-                        // 有効なレスポンスかチェック
                         if(!response || response.status !== 200 || response.type !== 'basic') {
                             return response;
                         }
-
-                        // レスポンスをクローンしてキャッシュに保存
                         var responseToCache = response.clone();
-
                         caches.open(CACHE_NAME)
                             .then(function(cache) {
                                 cache.put(event.request, responseToCache);
                             });
-
                         return response;
                     }
                 );
@@ -76,13 +71,9 @@ self.addEventListener('fetch', event => {
     );
 });
 
-// 古いキャッシュの削除
 self.addEventListener('activate', event => {
     const cacheWhitelist = [CACHE_NAME];
-    
-    // 新しいService Workerがコントロールをすぐに引き継ぐようにする
     event.waitUntil(self.clients.claim());
-    
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
