@@ -216,37 +216,56 @@
                 </div>
 
                 <!-- ステータスウィジェット -->
-                <div class="mb-5 bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex justify-between items-center transition-colors animate-pop-in relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-pink-500 to-indigo-500"></div>
-                    
-                    <div id="home-widget-streak" class="flex flex-col pl-2">
-                        <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">継続</p>
-                        <div class="flex items-end gap-1">
-                            <span id="header-streak-emoji" class="text-lg">🔥</span>
-                            <span id="header-streak-days" class="font-black text-2xl text-slate-800 dark:text-white leading-none tracking-tight">0</span>
-                            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-tight mb-0.5">日</span>
+                <div class="mb-5 grid grid-cols-3 gap-3 animate-pop-in">
+                    <!-- 継続日数 -->
+                    <div class="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col items-center justify-center relative overflow-hidden group hover:shadow-modern hover:border-orange-200 dark:hover:border-orange-900/50 transition-all">
+                        <div class="absolute -right-3 -top-3 w-14 h-14 bg-orange-50 dark:bg-orange-900/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
+                        <p class="text-[9px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-widest relative z-10">Streak</p>
+                        <div class="flex items-baseline gap-0.5 relative z-10">
+                            <span id="header-streak-emoji" class="text-sm sm:text-base mr-0.5 drop-shadow-sm">🔥</span>
+                            <span id="header-streak-days" class="font-black text-2xl sm:text-3xl text-slate-800 dark:text-white leading-none tracking-tighter drop-shadow-sm">0</span>
+                            <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400 ml-0.5">日</span>
                         </div>
                     </div>
 
-                    <div class="h-10 w-px bg-slate-200 dark:bg-slate-700"></div>
-
-                    <div class="flex gap-4 sm:gap-6 text-right">
-                        <div class="flex flex-col items-end">
-                            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">共通テスト</p>
-                            <p class="font-black text-xl text-slate-800 dark:text-white leading-none"><span class="cd-common-val">--</span><span class="text-[10px] text-slate-500 font-bold ml-1">日</span></p>
+                    <!-- 共通テスト -->
+                    <div class="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col items-center justify-center relative overflow-hidden group hover:shadow-modern hover:border-pink-200 dark:hover:border-pink-900/50 transition-all">
+                        <div class="absolute -left-3 -bottom-3 w-14 h-14 bg-pink-50 dark:bg-pink-900/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
+                        <p class="text-[9px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-widest relative z-10">共通テスト</p>
+                        <div class="flex items-baseline gap-0.5 relative z-10">
+                            <span class="font-black text-2xl sm:text-3xl text-transparent bg-clip-text bg-gradient-to-br from-pink-500 to-rose-500 leading-none tracking-tighter drop-shadow-sm cd-common-val">--</span>
+                            <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400 ml-0.5">日</span>
                         </div>
-                        <div class="flex flex-col items-end">
-                            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">国公立2次</p>
-                            <p class="font-black text-xl text-slate-800 dark:text-white leading-none"><span class="cd-second-val">--</span><span class="text-[10px] text-slate-500 font-bold ml-1">日</span></p>
+                    </div>
+
+                    <!-- 2次試験 -->
+                    <div class="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col items-center justify-center relative overflow-hidden group hover:shadow-modern hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-all">
+                        <div class="absolute -right-3 -bottom-3 w-14 h-14 bg-indigo-50 dark:bg-indigo-900/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
+                        <p class="text-[9px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-widest relative z-10">国公立2次</p>
+                        <div class="flex items-baseline gap-0.5 relative z-10">
+                            <span class="font-black text-2xl sm:text-3xl text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-purple-500 leading-none tracking-tighter drop-shadow-sm cd-second-val">--</span>
+                            <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400 ml-0.5">日</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- 名言 -->
-                <div id="home-quote-container" class="mb-5 bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 transition-colors animate-pop-in relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-indigo-400 dark:bg-indigo-500"></div>
-                    <p id="home-daily-quote-text" class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 leading-relaxed tracking-wide ml-2">""</p>
-                    <p id="home-daily-quote-author" class="text-[11px] text-right text-slate-500 dark:text-slate-400 font-semibold">- </p>
+                <div id="home-quote-container" class="mb-5 bg-gradient-to-br from-slate-800 to-slate-900 dark:from-slate-800 dark:to-slate-950 p-6 rounded-2xl shadow-modern transition-all animate-pop-in relative overflow-hidden border border-slate-700/50 hover:shadow-glow">
+                    <!-- 背景の装飾アイコン -->
+                    <i class="fas fa-quote-left absolute -top-3 -left-2 text-7xl text-white/5 dark:text-white/5 transform -rotate-12 pointer-events-none"></i>
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                    
+                    <div class="relative z-10 flex flex-col h-full justify-between min-h-[5rem]">
+                        <p id="home-daily-quote-text" class="text-sm sm:text-base font-bold text-slate-100 dark:text-slate-200 leading-relaxed tracking-wide mb-3 z-10">
+                            ""
+                        </p>
+                        <div class="flex items-center justify-end gap-2 mt-auto">
+                            <div class="h-px w-8 bg-indigo-400/60"></div>
+                            <p id="home-daily-quote-author" class="text-[11px] text-indigo-200 dark:text-indigo-300 font-black tracking-widest uppercase drop-shadow-sm">
+                                -
+                            </p>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- ナビゲーションタイル -->
