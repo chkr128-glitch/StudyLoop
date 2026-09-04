@@ -3,7 +3,7 @@ import { setCurrentUserId, getCurrentUserId, getAppCollectionRef, getAppDocRef, 
 import { showToast, showConfirm, closeConfirm, executeConfirm, openModal, closeModal, initUI, switchViewUI } from './components/ui.js';
 import { initAuthUI } from './components/authUI.js';
 import { initDashboard, renderDashboard, updateStreak, displayDailyQuote } from './components/dashboard.js';
-import { initCalendar, renderCalendar, renderCalendarTasks, changeMonth, selectCalendarDate, getCalendarSelectedDate } from './components/calendar.js';
+import { initCalendar, renderCalendar, renderCalendarTasks, changeMonth } from './components/calendar.js';
 import { renderAnalytics, updateChartColors } from './components/analytics.js';
 import { initSettings, renderSettings, saveUserProfile, buildWeightInputs } from './components/settings.js';
 import { initDrill, stopDrillTimer, focusDrillInput } from './components/drill.js';
