@@ -1,8 +1,11 @@
 import { escapeHTML } from '../utils/helpers.js';
 
+// ★ 新規追加: 現在の「戻る」ボタンの遷移先を保持する変数
+let currentBackTarget = 'home';
+
 // ★ 新規追加: 共通UIのイベント初期化
 export function initUI(onThemeChangeCallback) {
-    // 1. ダークモード切り替えボタン（HTMLに id="btn-toggle-theme" を追加してください）
+    // 1. ダークモード切り替えボタン
     document.getElementById('btn-toggle-theme')?.addEventListener('click', () => {
         toggleDarkMode(onThemeChangeCallback);
     });
@@ -10,29 +13,30 @@ export function initUI(onThemeChangeCallback) {
     // 2. カスタム確認モーダルのイベント
     const confirmModal = document.getElementById('custom-confirm-modal');
     if (confirmModal) {
-        // 背景クリックで閉じる
         confirmModal.addEventListener('click', (e) => {
             if (e.target === confirmModal) closeConfirm();
         });
-        // キャンセルボタン（HTMLに id="confirm-cancel-btn" を追加してください）
         document.getElementById('confirm-cancel-btn')?.addEventListener('click', closeConfirm);
-        // 実行ボタン
         document.getElementById('confirm-execute-btn')?.addEventListener('click', executeConfirm);
     }
 
-    // 3. 各種モーダルの「閉じる」イベントをまとめて処理（イベント委譲）
-    // HTMLの各種モーダル（.modal-overlay）に対して設定
+    // 3. 各種モーダルの「閉じる」イベント
     document.querySelectorAll('.modal-overlay').forEach(modal => {
-        // 背景クリックで閉じる
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeModal(modal.id);
         });
-
-        // モーダル内の「閉じる(×)」ボタン（class="modal-close-btn" を追加してください）
         const closeBtn = modal.querySelector('.modal-close-btn');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => closeModal(modal.id));
         }
+    });
+
+    // ★ 新規追加: 戻るボタンのイベントリスナーを「一度だけ」登録する
+    document.getElementById('btn-header-back')?.addEventListener('click', () => {
+        const targetNavBtn = document.querySelector(`[data-target="${currentBackTarget}"]`) 
+                          || document.getElementById(`nav-${currentBackTarget}`);
+        if (targetNavBtn) targetNavBtn.click();
+        else document.getElementById('btn-go-home')?.click();
     });
 
     initTheme();
@@ -179,7 +183,6 @@ export function switchViewUI(viewName) {
             'store': { title: '英作文サポート', backTo: 'home' },
             'timeline': { title: 'タイムライン', backTo: 'home' },
             'settings': { title: '設定', backTo: 'home' },
-            // 設定の中のドリルダウン画面
             'settings-profile': { title: 'マイプロフィール', backTo: 'settings' },
             'settings-account': { title: 'アカウント情報', backTo: 'settings' },
             'settings-routine': { title: '固定ルーティン', backTo: 'settings' }
@@ -188,18 +191,7 @@ export function switchViewUI(viewName) {
         const viewInfo = viewTitles[viewName] || { title: 'StudyLoop', backTo: 'home' };
         if (subTitleEl) subTitleEl.innerText = viewInfo.title;
 
-        // 戻るボタンのクリック処理を毎回上書き（古いリスナーを消すためにクローン）
-        if (btnBack) {
-            const newBtnBack = btnBack.cloneNode(true);
-            btnBack.parentNode.replaceChild(newBtnBack, btnBack);
-            newBtnBack.addEventListener('click', () => {
-                // `main.js` の `switchView` に相当する処理を間接的に呼ぶためのカスタムイベント等も可能ですが、
-                // ここではシンプルに対象のナビボタンをクリックさせる挙動で代用します
-                const targetNavBtn = document.querySelector(`[data-target="${viewInfo.backTo}"]`) 
-                                  || document.getElementById(`nav-${viewInfo.backTo}`);
-                if (targetNavBtn) targetNavBtn.click();
-                else document.getElementById('btn-go-home')?.click(); // 念のためフォールバック
-            });
-        }
+        // ★ 修正: cloneNodeでの強引なリスナー付け替えを廃止し、遷移先変数を更新するだけにする
+        currentBackTarget = viewInfo.backTo;
     }
 }
