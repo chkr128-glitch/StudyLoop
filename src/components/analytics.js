@@ -21,14 +21,22 @@ export function updateChartColors() {
     if (chartEvalInstance) chartEvalInstance.update(); 
 }
 
+let chartLoadRetries = 0; // リトライ回数を管理
+
 export function renderAnalytics(tasks, userProfile) {
     if (!tasks || !userProfile) return;
     
-    // Chart.jsが読み込まれていない場合は処理を中断
+    // ★ 修正: Chart.jsのロードが遅延している場合、最大5秒間（500ms × 10回）待機して再試行する
     if (typeof window.Chart === 'undefined') {
-        console.error("Chart.js is not loaded.");
+        if (chartLoadRetries < 10) {
+            chartLoadRetries++;
+            setTimeout(() => renderAnalytics(tasks, userProfile), 500);
+        } else {
+            console.error("Chart.jsの読み込みに失敗しました。");
+        }
         return;
     }
+    chartLoadRetries = 0; // 成功時はリセット
 
     // 各Canvas要素を取得し、存在しない場合は中断（エラー防止）
     const radarCtx = document.getElementById('chart-radar');
