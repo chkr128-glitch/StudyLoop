@@ -527,18 +527,14 @@ function switchTaskModalTab(tabId) {
 }
 
 // ▼ 変更: タブの状態に応じて保存処理を分岐させる
-// ▼ 変更: タブの状態に応じて保存処理を分岐させる
 async function saveNewTask() {
-    const dateVal = state.dashboardDate; // 選択中のダッシュボード日付を確実に使用
+    const dateVal = state.dashboardDate; 
     const isCustom = document.getElementById('add-task-custom-area').dataset.active !== 'false';
     const btn = document.getElementById('btn-save-new-task');
     if (btn) btn.disabled = true;
 
     try {
         if (isCustom) {
-            // ------------------------------------
-            // 処理A: 単発タスクの保存
-            // ------------------------------------
             const title = document.getElementById('input-task-title').value.trim();
             const subject = document.getElementById('input-task-subject').value;
             const timeVal = document.getElementById('input-task-time').value;
@@ -561,17 +557,12 @@ async function saveNewTask() {
                 createdAt: new Date().toISOString()
             };
 
-            // ▼ 修正: 画面のちらつき・消滅を防ぐため、先にローカル配列に強制追加する
-            state.tasks.push(newTaskData);
-
-            // DB保存は裏側で非同期実行（ネットワーク遅延によるUIブロックを防ぐ）
+            // ★ 修正: state.tasks.push(newTaskData) を削除。
+            // setDocを実行するとonSnapshotが即座に発火し、自動的に画面が更新されるため競合を防ぎます。
             setDoc(newRef, newTaskData).catch(err => console.error("タスク保存エラー:", err));
             showToast(`${dateVal} にタスクを追加しました`);
 
         } else {
-            // ------------------------------------
-            // 処理B: 固定ルーティンの補填生成
-            // ------------------------------------
             const routineId = document.getElementById('input-routine-select').value;
             if (!routineId) {
                 showToast("ルーティンを選択してください。", "error");
@@ -581,7 +572,6 @@ async function saveNewTask() {
             const r = state.routines.find(x => x.id === routineId);
             if (!r) throw new Error("対象のルーティンが見つかりません");
 
-            // すでに同じ日付に該当ルーティンが登録されていないか重複チェック
             const existingTask = state.tasks.find(t => 
                 t.sourceRoutineId === r.id && t.isRoutine === true && t.date === dateVal && !t.deleted
             );
@@ -591,7 +581,6 @@ async function saveNewTask() {
                 return;
             }
 
-            // 現在のルーティン設定（到達番号と1日のペース）から補填タスクの範囲を計算
             const startPos = r.currentPosition || 1;
             let endPos = startPos + (r.dailyPace || 1) - 1;
             if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
@@ -613,20 +602,17 @@ async function saveNewTask() {
                 createdAt: new Date().toISOString()
             };
 
-            // ▼ 修正: ローカル配列に即時反映
-            state.tasks.push({ id: docId, ...newTaskData });
-
-            // DBに保存は裏側で非同期実行
+            // ★ 修正: state.tasks.push(...) を削除
             setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true })
                 .catch(err => console.error("ルーティン保存エラー:", err));
             
             showToast(`${dateVal} にルーティンを補填しました`);
         }
         
-        // モーダルを閉じて画面を即時更新
         const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
         closeModal(targetId);
-        updateAllViews();
+        
+        // ★ 修正: 手動での updateAllViews() を削除。onSnapshotに描画を完全に委ねます。
 
     } catch(err) {
         console.error("タスク追加エラー:", err);
@@ -825,6 +811,9 @@ async function saveTaskDetail() {
     const task = state.tasks.find(t => t.id === id);
     if (!task) return;
 
+    // ★ 追加: すでに完了済みのタスクかどうかを事前に記録しておく
+    const wasCompleted = task.completed;
+
     const actualTime = parseInt(document.getElementById('detail-actual-time').value, 10) || 0;
     const note = document.getElementById('detail-note').value.trim();
     
@@ -866,7 +855,6 @@ async function saveTaskDetail() {
                 updateData.actualEnd = actualEnd;
                 updateData.actualStart = parseInt(document.getElementById('detail-routine-start').innerText, 10) || task.plannedStart;
                 
-                // ★ 修正: 進捗の巻き戻り防止。現在の到達点と、今回完了した到達点の「大きい方」を採用する
                 const routine = state.routines.find(r => r.id === task.sourceRoutineId);
                 const currentPos = routine ? (routine.currentPosition || 1) : 1;
                 const nextPos = Math.max(currentPos, actualEnd + 1);
@@ -881,7 +869,8 @@ async function saveTaskDetail() {
 
         await setDoc(getAppDocRef('tasks', id), updateData, { merge: true });
 
-        if (!task.isReview && evaluation) {
+        // ★ 修正: 「以前は未完了だった場合（!wasCompleted）」のみ復習タスクをスケジュールする
+        if (!task.isReview && evaluation && !wasCompleted) {
             await scheduleReviews(task, evaluation, subEvaluations);
         }
 
