@@ -105,9 +105,9 @@
         .rotate-y-180 { transform: rotateY(180deg); }
     </style>
 </head>
-<body class="text-slate-800 dark:text-slate-100 h-screen overflow-hidden flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 antialiased selection:bg-pink-200 selection:text-pink-900">
+<body class="text-zinc-800 dark:text-slate-100 h-screen overflow-hidden flex flex-col bg-zinc-50 dark:bg-slate-900 transition-colors duration-300 antialiased selection:bg-pink-200 selection:text-pink-900">
 
-    <div id="loading-screen" class="absolute inset-0 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center transition-colors">
+    <div id="loading-screen" class="absolute inset-0 bg-zinc-50/90 dark:bg-slate-900/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center transition-colors">
         <i class="fas fa-spinner fa-spin text-5xl text-pink-500 mb-4"></i>
         <p class="text-zinc-500 dark:text-zinc-400 font-medium tracking-wide">LOADING...</p>
     </div>
@@ -118,38 +118,38 @@
         <div class="absolute top-[20%] right-[-10%] w-72 h-72 bg-purple-300/40 dark:bg-purple-900/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
         <div class="absolute bottom-[-20%] left-[20%] w-72 h-72 bg-indigo-300/40 dark:bg-indigo-900/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
 
-        <div class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-xl p-8 sm:p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md border border-white/50 dark:border-gray-700/50 relative z-10">
+        <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl p-8 sm:p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md border border-white/50 dark:border-gray-700/50 relative z-10">
             <div class="text-center mb-8">
                 <div class="inline-flex items-center justify-center w-24 h-24 mb-3 transform hover:scale-105 transition-transform duration-300">
                     <img src="icon.png" alt="StudyLoop Logo" class="w-full h-full object-contain drop-shadow-xl rounded-3xl" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGFsaWdubWVudC1iYXNlbGluZT0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Mb2dvPC90ZXh0Pjwvc3ZnPg=='">
                 </div>
-                <h1 class="text-3xl font-black text-gray-800 dark:text-white tracking-tight mb-1">StudyLoop</h1>
+                <h1 class="text-3xl font-black text-zinc-800 dark:text-white tracking-tight mb-1">StudyLoop</h1>
                 <p class="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 tracking-widest">Learning Manager for students</p>
             </div>
             
             <div class="space-y-4">
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-envelope text-gray-400"></i></div>
-                    <input type="email" id="auth-email" class="w-full border-none bg-white dark:bg-gray-900 dark:text-white py-3.5 pl-11 pr-4 rounded-xl focus:ring-2 focus:ring-pink-500 shadow-inner transition-all outline-none text-sm font-medium" placeholder="メールアドレス">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-envelope text-zinc-400"></i></div>
+                    <input type="email" id="auth-email" class="w-full border-none bg-zinc-50 dark:bg-gray-900 dark:text-white py-3.5 pl-11 pr-4 rounded-xl focus:ring-2 focus:ring-pink-500 shadow-inner transition-all outline-none text-sm font-medium" placeholder="メールアドレス">
                 </div>
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-lock text-gray-400"></i></div>
-                    <input type="password" id="auth-password" class="w-full border-none bg-white dark:bg-gray-900 dark:text-white py-3.5 pl-11 pr-4 rounded-xl focus:ring-2 focus:ring-pink-500 shadow-inner transition-all outline-none text-sm font-medium" placeholder="パスワード (6文字以上)">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-lock text-zinc-400"></i></div>
+                    <input type="password" id="auth-password" class="w-full border-none bg-zinc-50 dark:bg-gray-900 dark:text-white py-3.5 pl-11 pr-4 rounded-xl focus:ring-2 focus:ring-pink-500 shadow-inner transition-all outline-none text-sm font-medium" placeholder="パスワード (6文字以上)">
                 </div>
                 <button id="auth-btn-action" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-3.5 rounded-xl mt-2 hover:opacity-90 transition-all shadow-sm transform hover:-translate-y-0.5">ログイン</button>
             </div>
 
             <div class="relative flex items-center justify-center my-6">
-                <hr class="w-full border-gray-200 dark:border-gray-600">
-                <span class="absolute px-3 bg-transparent text-[10px] text-gray-400 font-bold uppercase tracking-wider">or</span>
+                <hr class="w-full border-zinc-200 dark:border-gray-600">
+                <span class="absolute px-3 bg-transparent text-[10px] text-zinc-400 font-bold uppercase tracking-wider">or</span>
             </div>
             
-            <button id="auth-google-btn" class="w-full bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold py-3.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm border border-gray-200 dark:border-gray-600 flex justify-center items-center">
+            <button id="auth-google-btn" class="w-full bg-white dark:bg-gray-700 text-zinc-700 dark:text-gray-200 font-bold py-3.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-gray-600 transition-all shadow-sm border border-zinc-200 dark:border-gray-600 flex justify-center items-center">
                 <i class="fab fa-google text-red-500 mr-2 text-lg"></i> Sign in with Google
             </button>
 
             <div class="mt-8 text-center">
-                <button id="auth-toggle-btn" class="text-xs text-gray-500 hover:text-pink-500 font-bold transition-colors">アカウントをお持ちでない方はこちら</button>
+                <button id="auth-toggle-btn" class="text-xs text-zinc-500 hover:text-pink-500 font-bold transition-colors">アカウントをお持ちでない方はこちら</button>
             </div>
             <p id="auth-error-msg" class="text-red-500 text-xs font-bold text-center mt-4 min-h-[1rem]"></p>
         </div>
@@ -206,121 +206,111 @@
             
             <!-- ホーム画面 -->
             <div id="view-home" class="view-section active p-5 pb-10 pt-8">
-                <!-- ▼ 修正: 矢印ボタンを削除し、日付表示のみに変更 -->
                 <div class="flex justify-between items-end mb-4">
                     <div>
                         <div class="flex items-center mb-1">
-                            <h2 id="home-date-display" class="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight"></h2>
+                            <h2 id="home-date-display" class="text-xl sm:text-2xl font-black text-zinc-800 dark:text-slate-100 tracking-tight"></h2>
                         </div>
                     </div>
                 </div>
 
                 <!-- ステータスウィジェット -->
                 <div class="mb-5 grid grid-cols-3 gap-3 animate-pop-in">
-                    <!-- 継続日数 -->
-                    <div class="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col items-center justify-center relative overflow-hidden group hover:shadow-modern hover:border-orange-200 dark:hover:border-orange-900/50 transition-all">
+                    <div class="bg-white/90 dark:bg-slate-900 p-3 sm:p-4 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center relative overflow-hidden group hover:shadow-modern hover:border-orange-200 dark:hover:border-orange-900/50 transition-all">
                         <div class="absolute -right-3 -top-3 w-14 h-14 bg-orange-50 dark:bg-orange-900/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
-                        <p class="text-[9px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-widest relative z-10">Streak</p>
+                        <p class="text-[9px] font-bold text-zinc-500 dark:text-slate-500 mb-1.5 uppercase tracking-widest relative z-10">Streak</p>
                         <div class="flex items-baseline gap-0.5 relative z-10">
                             <span id="header-streak-emoji" class="text-sm sm:text-base mr-0.5 drop-shadow-sm">🔥</span>
-                            <span id="header-streak-days" class="font-black text-2xl sm:text-3xl text-slate-800 dark:text-white leading-none tracking-tighter drop-shadow-sm">0</span>
-                            <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400 ml-0.5">日</span>
+                            <span id="header-streak-days" class="font-black text-2xl sm:text-3xl text-zinc-800 dark:text-white leading-none tracking-tighter drop-shadow-sm">0</span>
+                            <span class="text-[9px] font-bold text-zinc-500 dark:text-slate-400 ml-0.5">日</span>
                         </div>
                     </div>
 
-                    <!-- 共通テスト -->
-                    <div class="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col items-center justify-center relative overflow-hidden group hover:shadow-modern hover:border-pink-200 dark:hover:border-pink-900/50 transition-all">
+                    <div class="bg-white/90 dark:bg-slate-900 p-3 sm:p-4 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center relative overflow-hidden group hover:shadow-modern hover:border-pink-200 dark:hover:border-pink-900/50 transition-all">
                         <div class="absolute -left-3 -bottom-3 w-14 h-14 bg-pink-50 dark:bg-pink-900/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
-                        <p class="text-[9px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-widest relative z-10">共通テスト</p>
+                        <p class="text-[9px] font-bold text-zinc-500 dark:text-slate-500 mb-1.5 uppercase tracking-widest relative z-10">共通テスト</p>
                         <div class="flex items-baseline gap-0.5 relative z-10">
                             <span class="font-black text-2xl sm:text-3xl text-transparent bg-clip-text bg-gradient-to-br from-pink-500 to-rose-500 leading-none tracking-tighter drop-shadow-sm cd-common-val">--</span>
-                            <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400 ml-0.5">日</span>
+                            <span class="text-[9px] font-bold text-zinc-500 dark:text-slate-400 ml-0.5">日</span>
                         </div>
                     </div>
 
-                    <!-- 2次試験 -->
-                    <div class="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col items-center justify-center relative overflow-hidden group hover:shadow-modern hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-all">
+                    <div class="bg-white/90 dark:bg-slate-900 p-3 sm:p-4 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center relative overflow-hidden group hover:shadow-modern hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-all">
                         <div class="absolute -right-3 -bottom-3 w-14 h-14 bg-indigo-50 dark:bg-indigo-900/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
-                        <p class="text-[9px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-widest relative z-10">国公立2次</p>
+                        <p class="text-[9px] font-bold text-zinc-500 dark:text-slate-500 mb-1.5 uppercase tracking-widest relative z-10">国公立2次</p>
                         <div class="flex items-baseline gap-0.5 relative z-10">
                             <span class="font-black text-2xl sm:text-3xl text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-purple-500 leading-none tracking-tighter drop-shadow-sm cd-second-val">--</span>
-                            <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400 ml-0.5">日</span>
+                            <span class="text-[9px] font-bold text-zinc-500 dark:text-slate-400 ml-0.5">日</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- 名言 -->
                 <div id="home-quote-container" class="mb-5 bg-gradient-to-br from-slate-800 to-slate-900 dark:from-slate-800 dark:to-slate-950 p-6 rounded-2xl shadow-modern transition-all animate-pop-in relative overflow-hidden border border-slate-700/50 hover:shadow-glow">
-                    <!-- 背景の装飾アイコン -->
                     <i class="fas fa-quote-left absolute -top-3 -left-2 text-7xl text-white/5 dark:text-white/5 transform -rotate-12 pointer-events-none"></i>
                     <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
                     
                     <div class="relative z-10 flex flex-col h-full justify-between min-h-[5rem]">
-                        <p id="home-daily-quote-text" class="text-sm sm:text-base font-bold text-slate-100 dark:text-slate-200 leading-relaxed tracking-wide mb-3 z-10">
-                            ""
-                        </p>
+                        <p id="home-daily-quote-text" class="text-sm sm:text-base font-bold text-slate-100 dark:text-slate-200 leading-relaxed tracking-wide mb-3 z-10">""</p>
                         <div class="flex items-center justify-end gap-2 mt-auto">
                             <div class="h-px w-8 bg-indigo-400/60"></div>
-                            <p id="home-daily-quote-author" class="text-[11px] text-indigo-200 dark:text-indigo-300 font-black tracking-widest uppercase drop-shadow-sm">
-                                -
-                            </p>
+                            <p id="home-daily-quote-author" class="text-[11px] text-indigo-200 dark:text-indigo-300 font-black tracking-widest uppercase drop-shadow-sm">-</p>
                         </div>
                     </div>
                 </div>
                 
                 <!-- ナビゲーションタイル -->
                 <div class="grid grid-cols-2 gap-4">
-                    <button class="nav-tile group bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-pink-300/50 dark:hover:border-pink-500/30" data-target="dashboard">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-pink-300/50 dark:hover:border-pink-500/30" data-target="dashboard">
                         <div class="w-12 h-12 rounded-xl bg-pink-50 dark:bg-pink-900/20 text-pink-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fas fa-list-check pointer-events-none"></i></div>
-                        <span class="font-bold text-sm text-slate-700 dark:text-slate-200 tracking-wide pointer-events-none">本日のタスク</span>
+                        <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">本日のタスク</span>
                     </button>
                     
-                    <button class="nav-tile group bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-blue-300/50 dark:hover:border-blue-500/30" data-target="calendar">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-blue-300/50 dark:hover:border-blue-500/30" data-target="calendar">
                         <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="far fa-calendar-alt pointer-events-none"></i></div>
-                        <span class="font-bold text-sm text-slate-700 dark:text-slate-200 tracking-wide pointer-events-none">カレンダー</span>
+                        <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">カレンダー</span>
                     </button>
                     
-                    <button class="nav-tile group bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-orange-300/50 dark:hover:border-orange-500/30" data-target="past-exams">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-orange-300/50 dark:hover:border-orange-500/30" data-target="past-exams">
                         <div class="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-900/20 text-orange-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fas fa-history pointer-events-none"></i></div>
-                        <span class="font-bold text-sm text-slate-700 dark:text-slate-200 tracking-wide pointer-events-none">過去問ログ</span>
+                        <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">過去問ログ</span>
                     </button>
                     
-                    <button class="nav-tile group bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-emerald-300/50 dark:hover:border-emerald-500/30" data-target="analytics">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-emerald-300/50 dark:hover:border-emerald-500/30" data-target="analytics">
                         <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fas fa-chart-pie pointer-events-none"></i></div>
-                        <span class="font-bold text-sm text-slate-700 dark:text-slate-200 tracking-wide pointer-events-none">学習分析</span>
+                        <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">学習分析</span>
                     </button>
                     
-                    <button class="nav-tile group bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-indigo-300/50 dark:hover:border-indigo-500/30" data-target="drill">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-indigo-300/50 dark:hover:border-indigo-500/30" data-target="drill">
                         <div class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fas fa-calculator pointer-events-none"></i></div>
-                        <span class="font-bold text-sm text-slate-700 dark:text-slate-200 tracking-wide pointer-events-none">計算ドリル</span>
+                        <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">計算ドリル</span>
                     </button>
                     
-                    <button class="nav-tile group bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-purple-300/50 dark:hover:border-purple-500/30" data-target="flashcard-app">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-purple-300/50 dark:hover:border-purple-500/30" data-target="flashcard-app">
                         <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fa-solid fa-layer-group pointer-events-none"></i></div>
-                        <span class="font-bold text-sm text-slate-700 dark:text-slate-200 tracking-wide pointer-events-none">My単語帳</span>
+                        <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">My単語帳</span>
                     </button>
                     
-                    <button class="nav-tile group bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-sky-300/50 dark:hover:border-sky-500/30" data-target="timeline">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-sky-300/50 dark:hover:border-sky-500/30" data-target="timeline">
                         <div class="w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-900/20 text-sky-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fas fa-globe pointer-events-none"></i></div>
-                        <span class="font-bold text-sm text-slate-700 dark:text-slate-200 tracking-wide pointer-events-none">タイムライン</span>
+                        <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">タイムライン</span>
                     </button>
 
-                    <button class="nav-tile group bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-slate-300/50 dark:hover:border-slate-500/30" data-target="store">
-                        <div class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fa-solid fa-pen-nib pointer-events-none"></i></div>
-                        <span class="font-bold text-sm text-slate-700 dark:text-slate-200 tracking-wide pointer-events-none">英作文サポート</span>
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-slate-300/50 dark:hover:border-slate-500/30" data-target="store">
+                        <div class="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-slate-800 text-zinc-600 dark:text-slate-300 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fa-solid fa-pen-nib pointer-events-none"></i></div>
+                        <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">英作文サポート</span>
                     </button>
                 </div>
             </div>
 
             <!-- サブ画面: ダッシュボード -->
             <div id="view-dashboard" class="view-section p-5">
-                <!-- 移設: 日付ナビゲーション -->
                 <div class="flex justify-between items-end mb-4 px-1 mt-2 animate-pop-in">
                     <div>
                         <div class="flex items-center gap-3 mb-1">
-                            <button id="btn-dashboard-prev-day" class="text-slate-400 hover:text-pink-500 transition-colors px-2.5 py-1.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm"><i class="fas fa-chevron-left text-xs pointer-events-none"></i></button>
-                            <h2 id="dashboard-date-display" class="text-xl sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight"></h2>
-                            <button id="btn-dashboard-next-day" class="text-slate-400 hover:text-pink-500 transition-colors px-2.5 py-1.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm"><i class="fas fa-chevron-right text-xs pointer-events-none"></i></button>
+                            <button id="btn-dashboard-prev-day" class="text-zinc-500 hover:text-pink-500 transition-colors px-2.5 py-1.5 bg-white/90 dark:bg-slate-800 rounded-lg border border-zinc-200/80 dark:border-slate-700 shadow-sm"><i class="fas fa-chevron-left text-xs pointer-events-none"></i></button>
+                            <h2 id="dashboard-date-display" class="text-xl sm:text-2xl font-black text-zinc-800 dark:text-white tracking-tight"></h2>
+                            <button id="btn-dashboard-next-day" class="text-zinc-500 hover:text-pink-500 transition-colors px-2.5 py-1.5 bg-white/90 dark:bg-slate-800 rounded-lg border border-zinc-200/80 dark:border-slate-700 shadow-sm"><i class="fas fa-chevron-right text-xs pointer-events-none"></i></button>
                         </div>
                         <button id="btn-dashboard-today" class="hidden text-[10px] font-bold text-pink-500 bg-pink-50 dark:bg-pink-900/30 px-2.5 py-1 rounded-md border border-pink-100 dark:border-pink-800 transition-all mt-1">
                             <i class="fas fa-undo-alt mr-1 pointer-events-none"></i>今日に戻る
@@ -341,34 +331,34 @@
 
                 <div id="dashboard-tasks-container" class="pb-6"></div>
 
-                <button id="btn-open-add-task" class="fixed bottom-24 right-5 lg:right-[calc(50%-14rem)] w-14 h-14 bg-slate-800 dark:bg-white text-white dark:text-slate-800 rounded-full shadow-modern flex items-center justify-center text-xl hover:bg-slate-700 dark:hover:bg-slate-100 transition-all transform hover:scale-105 hover:-translate-y-1 z-10 border border-slate-700 dark:border-white">
+                <button id="btn-open-add-task" class="fixed bottom-24 right-5 lg:right-[calc(50%-14rem)] w-14 h-14 bg-zinc-800 dark:bg-white text-white dark:text-zinc-800 rounded-full shadow-modern flex items-center justify-center text-xl hover:bg-zinc-700 dark:hover:bg-zinc-100 transition-all transform hover:scale-105 hover:-translate-y-1 z-10 border border-zinc-700 dark:border-white">
                     <i class="fas fa-plus pointer-events-none"></i>
                 </button>
             </div>
 
             <!-- サブ画面: カレンダー -->
             <div id="view-calendar" class="view-section p-5">
-                <div class="flex justify-between items-center mb-4 bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-soft transition-colors border border-slate-200/60 dark:border-slate-800 mt-2">
-                    <button id="btn-prev-month" class="p-2 w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition"><i class="fas fa-chevron-left"></i></button>
-                    <h2 id="calendar-month-display" class="text-lg font-bold tracking-widest text-slate-800 dark:text-slate-100 uppercase">年月</h2>
-                    <button id="btn-next-month" class="p-2 w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition"><i class="fas fa-chevron-right"></i></button>
+                <div class="flex justify-between items-center mb-4 bg-white/90 dark:bg-slate-900 p-3 rounded-2xl shadow-soft transition-colors border border-zinc-200/80 dark:border-slate-800 mt-2">
+                    <button id="btn-prev-month" class="p-2 w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-50 dark:bg-slate-800 text-zinc-500 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-700 transition"><i class="fas fa-chevron-left"></i></button>
+                    <h2 id="calendar-month-display" class="text-lg font-bold tracking-widest text-zinc-800 dark:text-slate-100 uppercase">年月</h2>
+                    <button id="btn-next-month" class="p-2 w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-50 dark:bg-slate-800 text-zinc-500 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-700 transition"><i class="fas fa-chevron-right"></i></button>
                 </div>
                 
-                <div class="flex justify-end gap-3 px-2 mb-3 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                <div class="flex justify-end gap-3 px-2 mb-3 text-[10px] font-bold text-zinc-500 dark:text-slate-400">
                     <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-sm"></div>通常</div>
                     <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-sm"></div>復習</div>
                     <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm animate-pulse"></div>未完了</div>
                 </div>
 
-                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft mb-6 p-2 transition-colors border border-slate-200/60 dark:border-slate-800">
-                    <div class="grid grid-cols-7 text-center text-[10px] font-bold text-slate-400 dark:text-slate-500 py-3 mb-1 tracking-widest uppercase">
+                <div class="bg-white/90 dark:bg-slate-900 rounded-2xl shadow-soft mb-6 p-2 transition-colors border border-zinc-200/80 dark:border-slate-800">
+                    <div class="grid grid-cols-7 text-center text-[10px] font-bold text-zinc-400 dark:text-slate-500 py-3 mb-1 tracking-widest uppercase">
                         <div class="text-rose-400 dark:text-rose-500">Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div class="text-blue-400 dark:text-blue-500">Sat</div>
                     </div>
                     <div id="calendar-grid" class="calendar-grid p-1"></div>
                 </div>
-                <div class="flex justify-between items-end mb-3 pb-2 border-b border-slate-200 dark:border-slate-800 ml-1">
-                    <h3 id="calendar-selected-date-display" class="font-bold text-slate-700 dark:text-slate-300">
-                        Tasks <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2.5 py-0.5 rounded-md font-semibold border border-slate-200 dark:border-slate-700" id="calendar-task-count">0</span>
+                <div class="flex justify-between items-end mb-3 pb-2 border-b border-zinc-200/80 dark:border-slate-800 ml-1">
+                    <h3 id="calendar-selected-date-display" class="font-bold text-zinc-700 dark:text-slate-300">
+                        Tasks <span class="bg-zinc-100 dark:bg-slate-800 text-zinc-600 dark:text-slate-300 text-xs px-2.5 py-0.5 rounded-md font-semibold border border-zinc-200/80 dark:border-slate-700" id="calendar-task-count">0</span>
                     </h3>
                     <button id="btn-calendar-add-task" class="text-xs bg-pink-500 hover:bg-pink-600 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm transition-all flex items-center">
                         <i class="fas fa-plus mr-1 pointer-events-none"></i>タスク追加
@@ -384,30 +374,30 @@
 
             <!-- サブ画面: 過去問ログ -->
             <div id="view-past-exams" class="view-section p-5">
-                <div class="overflow-x-auto mb-4 pb-2 border-b border-slate-200/60 dark:border-slate-800 mt-2" style="scrollbar-width: none;">
+                <div class="overflow-x-auto mb-4 pb-2 border-b border-zinc-200/80 dark:border-slate-800 mt-2" style="scrollbar-width: none;">
                     <div id="pe-subject-tabs" class="flex space-x-2 w-max px-1"></div>
                 </div>
 
                 <div id="pe-analytics-container" class="hidden flex-col gap-4 mb-6 px-1 animate-pop-in">
-                    <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 transition-colors">
-                        <h3 id="pe-chart1-title" class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center bg-slate-50 dark:bg-slate-800/50 w-max px-3 py-1.5 rounded-md border border-slate-100 dark:border-slate-700"><i class="fas fa-chart-line text-pink-500 mr-2"></i>得点推移</h3>
+                    <div class="bg-white/90 dark:bg-slate-900 p-4 sm:p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 transition-colors">
+                        <h3 id="pe-chart1-title" class="text-xs font-bold text-zinc-700 dark:text-slate-300 mb-3 flex items-center bg-zinc-50 dark:bg-slate-800/50 w-max px-3 py-1.5 rounded-md border border-zinc-100 dark:border-slate-700"><i class="fas fa-chart-line text-pink-500 mr-2"></i>得点推移</h3>
                         <div class="relative h-48 w-full"><canvas id="pe-trend-chart"></canvas></div>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 transition-colors">
-                            <h3 id="pe-chart2-title" class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center"><i class="fas fa-exclamation-triangle text-orange-500 mr-2"></i>なぜ間違えたか (原因)</h3>
+                        <div class="bg-white/90 dark:bg-slate-900 p-4 sm:p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 transition-colors">
+                            <h3 id="pe-chart2-title" class="text-xs font-bold text-zinc-700 dark:text-slate-300 mb-3 flex items-center"><i class="fas fa-exclamation-triangle text-orange-500 mr-2"></i>なぜ間違えたか (原因)</h3>
                             <div class="relative h-56 w-full"><canvas id="pe-cause-chart"></canvas></div>
                         </div>
-                        <div id="pe-field-chart-container" class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 transition-colors">
-                            <h3 id="pe-chart3-title" class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center"><i class="fas fa-book-open text-blue-500 mr-2"></i>何が苦手か (分野)</h3>
+                        <div id="pe-field-chart-container" class="bg-white/90 dark:bg-slate-900 p-4 sm:p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 transition-colors">
+                            <h3 id="pe-chart3-title" class="text-xs font-bold text-zinc-700 dark:text-slate-300 mb-3 flex items-center"><i class="fas fa-book-open text-blue-500 mr-2"></i>何が苦手か (分野)</h3>
                             <div class="relative h-56 w-full"><canvas id="pe-field-chart"></canvas></div>
                         </div>
                     </div>
                 </div>
 
                 <div id="pe-retry-list-container" class="hidden flex-col mb-6 px-1 animate-pop-in">
-                    <h3 class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center"><i class="fas fa-fire text-orange-500 mr-2"></i>再挑戦推奨リスト <span class="ml-2 text-[9px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">優先度順</span></h3>
+                    <h3 class="text-xs font-bold text-zinc-700 dark:text-slate-300 mb-3 flex items-center"><i class="fas fa-fire text-orange-500 mr-2"></i>再挑戦推奨リスト <span class="ml-2 text-[9px] font-bold text-zinc-500 bg-zinc-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-zinc-200/80 dark:border-slate-700">優先度順</span></h3>
                     <div id="pe-retry-list" class="space-y-3"></div>
                 </div>
 
@@ -416,18 +406,18 @@
 
             <!-- サブ画面: 学習分析 -->
             <div id="view-analytics" class="view-section p-5">
-                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-soft mb-6 transition-colors border border-slate-200/60 dark:border-slate-800 relative overflow-hidden mt-2">
+                <div class="bg-white/90 dark:bg-slate-900 p-6 rounded-2xl shadow-soft mb-6 transition-colors border border-zinc-200/80 dark:border-slate-800 relative overflow-hidden mt-2">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-purple-500"></div>
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1 text-center">配点比率 vs 学習時間</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 text-center mb-5 font-medium">志望校の配点に対して、適切なバランスか確認しましょう。</p>
+                    <h3 class="text-sm font-bold text-zinc-800 dark:text-slate-200 mb-1 text-center">配点比率 vs 学習時間</h3>
+                    <p class="text-xs text-zinc-500 dark:text-slate-400 text-center mb-5 font-medium">志望校の配点に対して、適切なバランスか確認しましょう。</p>
                     <div class="relative h-72 w-full"><canvas id="chart-radar"></canvas></div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-32">
-                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-soft transition-colors border border-slate-200/60 dark:border-slate-800">
+                    <div class="bg-white/90 dark:bg-slate-900 p-6 rounded-2xl shadow-soft transition-colors border border-zinc-200/80 dark:border-slate-800">
                         <h3 class="text-xs font-bold text-pink-600 dark:text-pink-400 mb-5 text-center bg-pink-50 dark:bg-pink-950/40 py-1.5 rounded-lg block w-max mx-auto px-4 border border-pink-100 dark:border-pink-900/50">科目別 累計学習時間</h3>
                         <div class="relative h-64 w-full"><canvas id="chart-subject"></canvas></div>
                     </div>
-                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-soft transition-colors border border-slate-200/60 dark:border-slate-800">
+                    <div class="bg-white/90 dark:bg-slate-900 p-6 rounded-2xl shadow-soft transition-colors border border-zinc-200/80 dark:border-slate-800">
                         <h3 class="text-xs font-bold text-purple-600 dark:text-purple-400 mb-5 text-center bg-purple-50 dark:bg-purple-950/40 py-1.5 rounded-lg block w-max mx-auto px-4 border border-purple-100 dark:border-purple-900/50">理解度分布</h3>
                         <div class="relative h-64 w-full"><canvas id="chart-evaluation"></canvas></div>
                     </div>
@@ -436,24 +426,24 @@
 
             <!-- サブ画面: 計算ドリル -->
             <div id="view-drill" class="view-section p-5">
-                <div class="bg-white dark:bg-slate-900 p-1.5 rounded-xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex flex-col md:flex-row mb-6 gap-1 transition-colors mt-2">
-                    <button id="drill-mode-training" class="flex-1 flex items-center justify-center gap-2 py-2.5 px-2 rounded-lg font-bold text-xs transition-all duration-200 bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-800 shadow-sm">
+                <div class="bg-white/90 dark:bg-slate-900 p-1.5 rounded-xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col md:flex-row mb-6 gap-1 transition-colors mt-2">
+                    <button id="drill-mode-training" class="flex-1 flex items-center justify-center gap-2 py-2.5 px-2 rounded-lg font-bold text-xs transition-all duration-200 bg-zinc-800 dark:bg-slate-100 text-white dark:text-slate-800 shadow-sm">
                         <i class="fas fa-fire text-orange-400"></i> Training
                     </button>
-                    <button id="drill-mode-random" class="flex-1 flex items-center justify-center gap-2 py-2.5 px-2 rounded-lg font-bold text-xs transition-all duration-200 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <button id="drill-mode-random" class="flex-1 flex items-center justify-center gap-2 py-2.5 px-2 rounded-lg font-bold text-xs transition-all duration-200 text-zinc-500 dark:text-slate-400 hover:bg-zinc-100 dark:hover:bg-slate-800">
                         <i class="fas fa-dice"></i> Random
                     </button>
-                    <button id="drill-mode-timeattack" class="flex-1 flex items-center justify-center gap-2 py-2.5 px-2 rounded-lg font-bold text-xs transition-all duration-200 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <button id="drill-mode-timeattack" class="flex-1 flex items-center justify-center gap-2 py-2.5 px-2 rounded-lg font-bold text-xs transition-all duration-200 text-zinc-500 dark:text-slate-400 hover:bg-zinc-100 dark:hover:bg-slate-800">
                         <i class="fas fa-stopwatch"></i> Time Attack
                     </button>
                 </div>
 
                 <div class="flex justify-between items-end mb-4 px-1">
                     <div>
-                        <h2 id="drill-title" class="text-base font-bold text-slate-800 dark:text-white tracking-tight">🎯 パターン特訓</h2>
-                        <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1.5">
+                        <h2 id="drill-title" class="text-base font-bold text-zinc-800 dark:text-white tracking-tight">🎯 パターン特訓</h2>
+                        <p class="text-[11px] font-medium text-zinc-500 dark:text-slate-400 mt-1.5">
                             <span id="drill-score-label">連続正解:</span> <span id="drill-score-text" class="text-indigo-600 dark:text-indigo-400 font-bold">0</span> 問
-                            <span class="ml-2 px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-[10px] font-bold text-slate-500 dark:text-slate-400">PB: <span id="drill-highscore-text">0</span></span>
+                            <span class="ml-2 px-1.5 py-0.5 bg-zinc-100 dark:bg-slate-800 border border-zinc-200/80 dark:border-slate-700 rounded text-[10px] font-bold text-zinc-500 dark:text-slate-400">PB: <span id="drill-highscore-text">0</span></span>
                         </p>
                     </div>
                     <div id="drill-timer" class="hidden text-xl font-black text-rose-500 dark:text-rose-400 font-mono tracking-tighter">⏳ 60s</div>
@@ -464,10 +454,10 @@
                     </button>
                 </div>
 
-                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 overflow-hidden mb-6 transition-colors">
-                    <div class="p-8 sm:p-10 text-center bg-slate-50/50 dark:bg-slate-800/20 border-b border-slate-100 dark:border-slate-800/50 transition-colors">
-                        <div class="flex justify-center items-center text-5xl sm:text-6xl font-black text-slate-800 dark:text-white tracking-wide font-mono whitespace-nowrap">
-                            <span id="drill-num1">0</span> <span class="text-slate-300 dark:text-slate-600 text-4xl mx-3 sm:mx-4">×</span> <span id="drill-num2">0</span>
+                <div class="bg-white/90 dark:bg-slate-900 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 overflow-hidden mb-6 transition-colors">
+                    <div class="p-8 sm:p-10 text-center bg-zinc-50/50 dark:bg-slate-800/20 border-b border-zinc-100 dark:border-slate-800/50 transition-colors">
+                        <div class="flex justify-center items-center text-5xl sm:text-6xl font-black text-zinc-800 dark:text-white tracking-wide font-mono whitespace-nowrap">
+                            <span id="drill-num1">0</span> <span class="text-zinc-300 dark:text-slate-600 text-4xl mx-3 sm:mx-4">×</span> <span id="drill-num2">0</span>
                         </div>
                     </div>
                     
@@ -476,28 +466,28 @@
                             <i class="fas fa-info-circle text-amber-500 mt-0.5"></i>
                             <div>
                                 <div class="text-[9px] font-bold text-amber-600/80 dark:text-amber-400/80 uppercase tracking-widest mb-1">推奨解法</div>
-                                <div id="drill-hint-name" class="font-bold text-slate-800 dark:text-slate-200 mb-1 text-xs">ヒント名</div>
-                                <div id="drill-hint-desc" class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed font-medium">ヒントの説明がここに入ります。</div>
+                                <div id="drill-hint-name" class="font-bold text-zinc-800 dark:text-slate-200 mb-1 text-xs">ヒント名</div>
+                                <div id="drill-hint-desc" class="text-[11px] text-zinc-600 dark:text-slate-400 leading-relaxed font-medium">ヒントの説明がここに入ります。</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="p-6">
                         <form id="drill-play-area" class="flex flex-col gap-4">
-                            <input id="drill-user-input" type="number" placeholder="答えを入力..." class="w-full text-center text-2xl font-bold py-4 bg-slate-50 dark:bg-slate-950 dark:text-white border-2 border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:border-slate-800 dark:focus:border-slate-400 transition-colors" autocomplete="off" required>
-                            <button type="submit" id="drill-btn-submit" class="w-full py-3.5 rounded-xl font-bold text-sm text-white bg-slate-800 hover:bg-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white disabled:opacity-50 transition-colors shadow-sm">答える</button>
+                            <input id="drill-user-input" type="number" placeholder="答えを入力..." class="w-full text-center text-2xl font-bold py-4 bg-zinc-50 dark:bg-slate-950 dark:text-white border-2 border-zinc-200 dark:border-slate-700 rounded-xl focus:outline-none focus:border-zinc-800 dark:focus:border-slate-400 transition-colors" autocomplete="off" required>
+                            <button type="submit" id="drill-btn-submit" class="w-full py-3.5 rounded-xl font-bold text-sm text-white bg-zinc-800 hover:bg-zinc-900 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white disabled:opacity-50 transition-colors shadow-sm">答える</button>
                         </form>
 
                         <div id="drill-result-area" class="hidden zoom-in duration-200">
                             <div id="drill-result-box" class="flex flex-col items-center justify-center p-6 rounded-xl mb-4 border-2">
                                 <i id="drill-icon-correct" class="fas fa-check-circle text-4xl text-emerald-500 mb-3 hidden"></i>
                                 <i id="drill-icon-incorrect" class="fas fa-times-circle text-4xl text-rose-500 mb-3 hidden"></i>
-                                <i id="drill-icon-timeup" class="fas fa-clock text-4xl text-slate-400 mb-3 hidden"></i>
+                                <i id="drill-icon-timeup" class="fas fa-clock text-4xl text-zinc-400 mb-3 hidden"></i>
                                 <h2 id="drill-result-title" class="text-xl font-black mb-1">Results</h2>
                                 <p id="drill-correct-text" class="text-rose-600 dark:text-rose-400 font-medium hidden text-sm">正解: <span id="drill-actual-answer" class="font-bold text-lg">0</span></p>
-                                <p id="drill-timeattack-text" class="text-slate-600 dark:text-slate-400 font-medium hidden text-sm mt-2">スコア: <span id="drill-final-score" class="font-bold text-xl">0</span> 問</p>
+                                <p id="drill-timeattack-text" class="text-zinc-600 dark:text-slate-400 font-medium hidden text-sm mt-2">スコア: <span id="drill-final-score" class="font-bold text-xl">0</span> 問</p>
                             </div>
-                            <button id="drill-btn-next" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700">
+                            <button id="drill-btn-next" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm text-zinc-700 dark:text-slate-200 bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 transition-colors border border-zinc-200/80 dark:border-slate-700">
                                 <span id="drill-btn-next-text">Next</span> <i class="fas fa-arrow-right ml-1 text-xs"></i>
                             </button>
                         </div>
@@ -505,18 +495,17 @@
                 </div>
 
                 <div class="text-center">
-                    <button id="drill-btn-skip" class="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors px-4 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <button id="drill-btn-skip" class="inline-flex items-center gap-1.5 text-[11px] font-bold text-zinc-400 hover:text-zinc-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors px-4 py-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-800">
                         <i class="fas fa-forward"></i> Skip
                     </button>
                 </div>
             </div>
 
             <!-- サブ画面: 単語帳 -->
-            <div id="view-flashcard-app" class="view-section h-full relative flex-col bg-slate-50/50 dark:bg-slate-950">
+            <div id="view-flashcard-app" class="view-section h-full relative flex-col bg-zinc-50/50 dark:bg-slate-950">
                 
-                <!-- 単語帳アプリ内ナビゲーション（タグ崩れ修正済） -->
-                <div class="px-4 py-3 flex justify-between items-center border-b border-slate-200/60 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm sticky top-0 z-20">
-                    <button data-fc-view="fc-sets" class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-soft border border-slate-200/60 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition">
+                <div class="px-4 py-3 flex justify-between items-center border-b border-zinc-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/50 backdrop-blur-sm sticky top-0 z-20">
+                    <button data-fc-view="fc-sets" class="text-xs font-bold text-zinc-600 dark:text-slate-300 flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-soft border border-zinc-200/80 dark:border-slate-700 hover:bg-zinc-50 dark:hover:bg-slate-700 transition">
                         <i class="fa-solid fa-layer-group text-purple-500 pointer-events-none"></i> 一覧に戻る
                     </button>
                     <div id="fc-header-action"></div>
@@ -524,71 +513,71 @@
 
                 <div class="flex-1 overflow-y-auto p-4 pb-32">
                     <div id="fc-sets" class="fc-view space-y-6 animate-pop-in">
-                        <section class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800">
-                            <h3 class="text-xs font-bold mb-3 text-slate-700 dark:text-slate-300 flex items-center gap-2"><i class="fa-solid fa-folder-plus text-slate-400"></i> Create New Sets</h3>
+                        <section class="bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800">
+                            <h3 class="text-xs font-bold mb-3 text-zinc-700 dark:text-slate-300 flex items-center gap-2"><i class="fa-solid fa-folder-plus text-zinc-400"></i> Create New Sets</h3>
                             <form id="fc-set-form" class="flex gap-2">
-                                <input type="text" id="fc-set-name-input" required placeholder="例: ターゲット1900 Part1" class="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-800 dark:focus:ring-slate-400 text-sm dark:text-white transition-colors">
-                                <button type="submit" class="bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-800 font-bold px-5 py-2.5 rounded-xl transition text-sm whitespace-nowrap shadow-sm hover:opacity-90">作成</button>
+                                <input type="text" id="fc-set-name-input" required placeholder="例: ターゲット1900 Part1" class="flex-1 px-4 py-2.5 bg-zinc-50 dark:bg-slate-800/50 border border-zinc-200/80 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-800 dark:focus:ring-slate-400 text-sm dark:text-white transition-colors">
+                                <button type="submit" class="bg-zinc-800 dark:bg-slate-100 text-white dark:text-slate-800 font-bold px-5 py-2.5 rounded-xl transition text-sm whitespace-nowrap shadow-sm hover:opacity-90">作成</button>
                             </form>
                         </section>
                         <section>
-                            <h3 class="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-3 ml-2 uppercase tracking-wider">単語帳リスト</h3>
+                            <h3 class="text-[11px] font-bold text-zinc-500 dark:text-slate-400 mb-3 ml-2 uppercase tracking-wider">単語帳リスト</h3>
                             <div id="fc-set-list" class="space-y-3"></div>
-                            <div id="fc-set-empty" class="text-center py-12 text-slate-400 hidden bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-slate-200/60 dark:border-slate-800 border-dashed">
-                                <i class="fa-solid fa-folder-open text-3xl mb-3 text-slate-300 dark:text-slate-700"></i>
+                            <div id="fc-set-empty" class="text-center py-12 text-zinc-400 hidden bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-zinc-200/80 dark:border-slate-800 border-dashed">
+                                <i class="fa-solid fa-folder-open text-3xl mb-3 text-zinc-300 dark:text-slate-700"></i>
                                 <p class="font-medium text-xs">Your Box is Empty<br>上のフォームから作成しましょう。</p>
                             </div>
                         </section>
                     </div>
 
                     <div id="fc-words" class="fc-view space-y-6 hidden pb-20 animate-pop-in">
-                        <div class="flex justify-between items-end pb-3 border-b border-slate-200/60 dark:border-slate-800 px-1">
-                            <h3 id="fc-current-set-title" class="text-lg font-black text-slate-800 dark:text-white tracking-tight">セット名</h3>
-                            <span id="fc-word-count" class="text-[10px] font-bold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded-md">0 words</span>
+                        <div class="flex justify-between items-end pb-3 border-b border-zinc-200/80 dark:border-slate-800 px-1">
+                            <h3 id="fc-current-set-title" class="text-lg font-black text-zinc-800 dark:text-white tracking-tight">セット名</h3>
+                            <span id="fc-word-count" class="text-[10px] font-bold border border-zinc-200/80 dark:border-slate-700 text-zinc-600 dark:text-slate-300 bg-zinc-50 dark:bg-slate-800 px-2 py-0.5 rounded-md">0 words</span>
                         </div>
-                        <section class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800">
+                        <section class="bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800">
                             <form id="fc-word-form" class="space-y-3">
                                 <div class="grid grid-cols-2 gap-3">
-                                    <input type="text" id="fc-word-input" required placeholder="Word (Apple)" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-800 dark:focus:ring-slate-400 text-sm dark:text-white transition-colors font-medium">
-                                    <input type="text" id="fc-meaning-input" required placeholder="Meaning (りんご)" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-800 dark:focus:ring-slate-400 text-sm dark:text-white transition-colors font-medium">
+                                    <input type="text" id="fc-word-input" required placeholder="Word (Apple)" class="w-full px-4 py-2.5 bg-zinc-50 dark:bg-slate-800/50 border border-zinc-200/80 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-800 dark:focus:ring-slate-400 text-sm dark:text-white transition-colors font-medium">
+                                    <input type="text" id="fc-meaning-input" required placeholder="Meaning (りんご)" class="w-full px-4 py-2.5 bg-zinc-50 dark:bg-slate-800/50 border border-zinc-200/80 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-800 dark:focus:ring-slate-400 text-sm dark:text-white transition-colors font-medium">
                                 </div>
-                                <button type="submit" class="w-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold py-3 rounded-xl transition hover:bg-slate-200 dark:hover:bg-slate-700 flex justify-center items-center gap-2 text-sm border border-slate-200 dark:border-slate-700"><i class="fa-solid fa-plus text-xs"></i> 単語を追加する</button>
+                                <button type="submit" class="w-full bg-zinc-100 dark:bg-slate-800 text-zinc-700 dark:text-slate-200 font-bold py-3 rounded-xl transition hover:bg-zinc-200 dark:hover:bg-slate-700 flex justify-center items-center gap-2 text-sm border border-zinc-200/80 dark:border-slate-700"><i class="fa-solid fa-plus text-xs"></i> 単語を追加する</button>
                             </form>
                         </section>
                         <section>
                             <div id="fc-word-list" class="space-y-2"></div>
-                            <div id="fc-word-empty" class="text-center py-12 text-slate-400 hidden bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-slate-200/60 dark:border-slate-800 border-dashed"><p class="font-medium text-xs">単語がありません。</p></div>
+                            <div id="fc-word-empty" class="text-center py-12 text-zinc-400 hidden bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-zinc-200/80 dark:border-slate-800 border-dashed"><p class="font-medium text-xs">単語がありません。</p></div>
                         </section>
                         <div class="fixed bottom-24 left-0 w-full px-4 flex justify-center z-10 pointer-events-none">
                             <div class="max-w-md w-full flex gap-2 pointer-events-auto shadow-modern rounded-2xl">
-                                <button id="fc-start-btn" class="flex-1 bg-slate-800 dark:bg-slate-100 dark:text-slate-900 text-white font-bold py-4 rounded-2xl transition flex justify-center items-center gap-2 text-sm disabled:opacity-50 hover:opacity-90"><i class="fa-solid fa-bolt text-yellow-400"></i> 今日の復習 (<span id="fc-due-count">0</span>)</button>
-                                <button id="fc-start-all-btn" class="w-14 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 font-bold py-4 rounded-2xl transition flex justify-center items-center text-sm border border-slate-200/60 dark:border-slate-700 disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-700" title="全て学習する"><i class="fa-solid fa-layer-group"></i></button>
+                                <button id="fc-start-btn" class="flex-1 bg-zinc-800 dark:bg-slate-100 dark:text-slate-900 text-white font-bold py-4 rounded-2xl transition flex justify-center items-center gap-2 text-sm disabled:opacity-50 hover:opacity-90"><i class="fa-solid fa-bolt text-yellow-400"></i> 今日の復習 (<span id="fc-due-count">0</span>)</button>
+                                <button id="fc-start-all-btn" class="w-14 bg-white dark:bg-slate-800 text-zinc-600 dark:text-slate-200 font-bold py-4 rounded-2xl transition flex justify-center items-center text-sm border border-zinc-200/80 dark:border-slate-700 disabled:opacity-50 hover:bg-zinc-50 dark:hover:bg-slate-700" title="全て学習する"><i class="fa-solid fa-layer-group"></i></button>
                             </div>
                         </div>
                     </div>
 
                     <div id="fc-play" class="fc-view hidden flex-col h-[60vh] animate-pop-in">
                         <div class="mb-6">
-                            <div class="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-2 px-1 uppercase tracking-wider"><span>Progress</span><span id="fc-progress-text">1 / 10</span></div>
-                            <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden"><div id="fc-progress-bar" class="bg-slate-800 dark:bg-slate-200 h-full rounded-full transition-all duration-500" style="width: 10%"></div></div>
+                            <div class="flex justify-between text-[10px] text-zinc-500 dark:text-slate-400 font-bold mb-2 px-1 uppercase tracking-wider"><span>Progress</span><span id="fc-progress-text">1 / 10</span></div>
+                            <div class="w-full bg-zinc-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden"><div id="fc-progress-bar" class="bg-zinc-800 dark:bg-slate-200 h-full rounded-full transition-all duration-500" style="width: 10%"></div></div>
                         </div>
                         <div class="flex-1 w-full flex flex-col justify-center perspective-1000">
                             <div id="fc-inner" class="w-full h-72 relative preserve-3d cursor-pointer">
-                                <div class="absolute inset-0 w-full h-full backface-hidden bg-white dark:bg-slate-900 rounded-3xl p-6 flex flex-col justify-center items-center text-center overflow-y-auto border border-slate-200/60 dark:border-slate-800 shadow-soft transition-colors">
-                                    <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full absolute top-5 border border-slate-200 dark:border-slate-700">Question</span>
-                                    <h4 id="fc-card-word" class="text-3xl font-black text-slate-800 dark:text-white mt-4 break-words hyphens-auto tracking-tight">Word</h4>
-                                    <p class="text-[10px] text-slate-400 mt-8 font-medium"><i class="fa-solid fa-hand-pointer mr-1"></i> タップして裏返す</p>
+                                <div class="absolute inset-0 w-full h-full backface-hidden bg-white/90 dark:bg-slate-900 rounded-3xl p-6 flex flex-col justify-center items-center text-center overflow-y-auto border border-zinc-200/80 dark:border-slate-800 shadow-soft transition-colors">
+                                    <span class="text-[9px] font-bold text-zinc-400 dark:text-slate-500 uppercase tracking-widest bg-zinc-100 dark:bg-slate-800 px-3 py-1 rounded-full absolute top-5 border border-zinc-200/80 dark:border-slate-700">Question</span>
+                                    <h4 id="fc-card-word" class="text-3xl font-black text-zinc-800 dark:text-white mt-4 break-words hyphens-auto tracking-tight">Word</h4>
+                                    <p class="text-[10px] text-zinc-400 mt-8 font-medium"><i class="fa-solid fa-hand-pointer mr-1"></i> タップして裏返す</p>
                                 </div>
-                                <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-slate-50 dark:bg-slate-800 rounded-3xl p-6 flex flex-col justify-center items-center text-center overflow-y-auto border border-slate-200 dark:border-slate-700 shadow-soft transition-colors">
-                                    <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-white dark:bg-slate-900 px-3 py-1 rounded-full absolute top-5 border border-slate-200 dark:border-slate-700">Answer</span>
-                                    <h4 id="fc-card-meaning" class="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-4 break-words hyphens-auto">Meaning</h4>
-                                    <p class="text-[10px] text-slate-400 mt-8 font-medium"><i class="fa-solid fa-hand-pointer mr-1"></i> タップして裏返す</p>
+                                <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-zinc-50 dark:bg-slate-800 rounded-3xl p-6 flex flex-col justify-center items-center text-center overflow-y-auto border border-zinc-200/80 dark:border-slate-700 shadow-soft transition-colors">
+                                    <span class="text-[9px] font-bold text-zinc-500 dark:text-slate-400 uppercase tracking-widest bg-white dark:bg-slate-900 px-3 py-1 rounded-full absolute top-5 border border-zinc-200/80 dark:border-slate-700">Answer</span>
+                                    <h4 id="fc-card-meaning" class="text-2xl font-bold text-zinc-800 dark:text-slate-100 mt-4 break-words hyphens-auto">Meaning</h4>
+                                    <p class="text-[10px] text-zinc-400 mt-8 font-medium"><i class="fa-solid fa-hand-pointer mr-1"></i> タップして裏返す</p>
                                 </div>
                             </div>
                         </div>
                         <div class="mt-6 h-16 w-full relative">
                             <div id="fc-show-ans-container" class="absolute inset-0 transition-opacity duration-300">
-                                <button id="fc-show-ans-btn" class="w-full h-full bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-bold rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex justify-center items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition text-sm">
+                                <button id="fc-show-ans-btn" class="w-full h-full bg-white dark:bg-slate-900 text-zinc-800 dark:text-slate-200 font-bold rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex justify-center items-center gap-2 hover:bg-zinc-50 dark:hover:bg-slate-800 transition text-sm">
                                     <i class="fa-regular fa-eye pointer-events-none"></i> Answer
                                 </button>
                             </div>
@@ -603,18 +592,18 @@
             </div>
 
             <!-- サブ画面: タイムライン -->
-            <div id="view-timeline" class="view-section p-5 pb-32 bg-slate-50/50 dark:bg-transparent">
-                <div class="flex justify-between items-center mb-5 sticky top-0 z-10 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur py-2 mt-2">
+            <div id="view-timeline" class="view-section p-5 pb-32 bg-zinc-50/50 dark:bg-transparent">
+                <div class="flex justify-between items-center mb-5 sticky top-0 z-10 bg-zinc-50/90 dark:bg-slate-900/90 backdrop-blur py-2 mt-2">
                     <div class="flex space-x-2">
-                        <button id="tl-tab-all" class="text-xs font-bold bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-800 px-4 py-2 rounded-full shadow-sm transition-all">全体</button>
-                        <button id="tl-tab-following" class="text-xs font-bold bg-white text-slate-500 dark:bg-slate-800 dark:text-slate-400 px-4 py-2 rounded-full border border-slate-200/60 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all opacity-50 cursor-not-allowed" title="フォロー機能は準備中です">フォロー中 <i class="fas fa-lock ml-1"></i></button>
+                        <button id="tl-tab-all" class="text-xs font-bold bg-zinc-800 text-white dark:bg-slate-100 dark:text-slate-800 px-4 py-2 rounded-full shadow-sm transition-all">全体</button>
+                        <button id="tl-tab-following" class="text-xs font-bold bg-white text-zinc-500 dark:bg-slate-800 dark:text-slate-400 px-4 py-2 rounded-full border border-zinc-200/80 dark:border-slate-700 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-all opacity-50 cursor-not-allowed" title="フォロー機能は準備中です">フォロー中 <i class="fas fa-lock ml-1"></i></button>
                     </div>
-                    <button id="btn-refresh-timeline" class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-300 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm border border-slate-200/60 dark:border-slate-700"><i class="fas fa-sync-alt text-xs pointer-events-none"></i></button>
+                    <button id="btn-refresh-timeline" class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-zinc-500 dark:text-slate-300 flex items-center justify-center hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors shadow-sm border border-zinc-200/80 dark:border-slate-700"><i class="fas fa-sync-alt text-xs pointer-events-none"></i></button>
                 </div>
 
                 <div id="timeline-loading" class="flex flex-col items-center justify-center py-10 hidden">
                     <i class="fas fa-circle-notch fa-spin text-2xl text-sky-500 mb-3"></i>
-                    <p class="text-[10px] font-bold text-slate-500">読み込み中...</p>
+                    <p class="text-[10px] font-bold text-zinc-500">読み込み中...</p>
                 </div>
                 
                 <div id="timeline-container" class="space-y-4"></div>
@@ -624,7 +613,7 @@
             <div id="view-store" class="view-section p-5 pb-32">
                 <div id="store-loading" class="flex flex-col items-center justify-center py-20 hidden">
                     <i class="fas fa-circle-notch fa-spin text-3xl text-indigo-500 mb-4"></i>
-                    <p class="text-xs font-bold text-slate-500">Loading...</p>
+                    <p class="text-xs font-bold text-zinc-500">Loading...</p>
                 </div>
 
                 <div id="store-content" class="mt-2">
@@ -639,68 +628,68 @@
             <!-- サブ画面: 設定メインメニュー -->
             <div id="view-settings" class="view-section p-5 pb-32">
                 <div class="space-y-4 animate-pop-in mt-2">
-                    <button id="nav-settings-profile" class="w-full bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex items-center gap-4 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-emerald-300/50 dark:hover:border-emerald-500/30 group">
+                    <button id="nav-settings-profile" class="w-full bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex items-center gap-4 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-emerald-300/50 dark:hover:border-emerald-500/30 group">
                         <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 flex items-center justify-center text-xl transition-transform group-hover:scale-110"><i class="fas fa-id-badge pointer-events-none"></i></div>
                         <div class="text-left pointer-events-none flex-grow">
-                            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm tracking-wide">マイプロフィール</h3>
-                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">公開プロフィール、志望校・配点設定</p>
+                            <h3 class="font-bold text-zinc-800 dark:text-slate-100 text-sm tracking-wide">マイプロフィール</h3>
+                            <p class="text-[10px] text-zinc-500 dark:text-slate-400 mt-0.5 font-medium">公開プロフィール、志望校・配点設定</p>
                         </div>
-                        <i class="fas fa-chevron-right text-slate-300 dark:text-slate-600 pointer-events-none"></i>
+                        <i class="fas fa-chevron-right text-zinc-300 dark:text-slate-600 pointer-events-none"></i>
                     </button>
-                    <button id="nav-settings-account" class="w-full bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex items-center gap-4 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-blue-300/50 dark:hover:border-blue-500/30 group">
+                    <button id="nav-settings-account" class="w-full bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex items-center gap-4 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-blue-300/50 dark:hover:border-blue-500/30 group">
                         <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center text-xl transition-transform group-hover:scale-110"><i class="fas fa-user-circle pointer-events-none"></i></div>
                         <div class="text-left pointer-events-none flex-grow">
-                            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm tracking-wide">アカウント情報</h3>
-                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">ID確認、API Key設定、ログアウト</p>
+                            <h3 class="font-bold text-zinc-800 dark:text-slate-100 text-sm tracking-wide">アカウント情報</h3>
+                            <p class="text-[10px] text-zinc-500 dark:text-slate-400 mt-0.5 font-medium">ID確認、API Key設定、ログアウト</p>
                         </div>
-                        <i class="fas fa-chevron-right text-slate-300 dark:text-slate-600 pointer-events-none"></i>
+                        <i class="fas fa-chevron-right text-zinc-300 dark:text-slate-600 pointer-events-none"></i>
                     </button>
-                    <button id="nav-settings-routine" class="w-full bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800 flex items-center gap-4 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-purple-300/50 dark:hover:border-purple-500/30 group">
+                    <button id="nav-settings-routine" class="w-full bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex items-center gap-4 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-purple-300/50 dark:hover:border-purple-500/30 group">
                         <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-500 flex items-center justify-center text-xl transition-transform group-hover:scale-110"><i class="fas fa-list-check pointer-events-none"></i></div>
                         <div class="text-left pointer-events-none flex-grow">
-                            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm tracking-wide">固定ルーティン</h3>
-                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">毎日・毎週繰り返すタスクの管理</p>
+                            <h3 class="font-bold text-zinc-800 dark:text-slate-100 text-sm tracking-wide">固定ルーティン</h3>
+                            <p class="text-[10px] text-zinc-500 dark:text-slate-400 mt-0.5 font-medium">毎日・毎週繰り返すタスクの管理</p>
                         </div>
-                        <i class="fas fa-chevron-right text-slate-300 dark:text-slate-600 pointer-events-none"></i>
+                        <i class="fas fa-chevron-right text-zinc-300 dark:text-slate-600 pointer-events-none"></i>
                     </button>
                 </div>
             </div>
 
             <!-- サブ画面: マイプロフィール -->
             <div id="view-settings-profile" class="view-section p-5 pb-32">
-                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 border border-slate-200/60 dark:border-slate-800 transition-colors relative overflow-hidden animate-pop-in mt-2">
+                <div class="bg-white/90 dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 border border-zinc-200/80 dark:border-slate-800 transition-colors relative overflow-hidden animate-pop-in mt-2">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center text-sm"><i class="fas fa-id-card text-emerald-500 mr-2"></i>公開プロフィール</h3>
+                        <h3 class="font-bold text-zinc-700 dark:text-slate-200 flex items-center text-sm"><i class="fas fa-id-card text-emerald-500 mr-2"></i>公開プロフィール</h3>
                         <button id="btn-open-profile-settings" class="text-xs bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors border border-emerald-100 dark:border-emerald-800 shadow-sm flex items-center">
                             <i class="fas fa-edit mr-1"></i> 編集
                         </button>
                     </div>
-                    <div id="public-profile-summary" class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/60 dark:border-slate-700 flex flex-col gap-3 min-h-[100px] justify-center transition-all">
-                        <div class="text-center text-slate-400 dark:text-slate-500 text-xs font-bold py-4">
+                    <div id="public-profile-summary" class="bg-zinc-50 dark:bg-slate-800/50 rounded-xl p-4 border border-zinc-200/80 dark:border-slate-700 flex flex-col gap-3 min-h-[100px] justify-center transition-all">
+                        <div class="text-center text-zinc-400 dark:text-slate-500 text-xs font-bold py-4">
                             <i class="fas fa-circle-notch fa-spin mb-2 text-2xl"></i><br>読み込み中...
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 transition-colors border border-slate-200/60 dark:border-slate-800 relative overflow-hidden animate-pop-in" style="animation-delay: 0.1s; animation-fill-mode: both;">
+                <div class="bg-white/90 dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 transition-colors border border-zinc-200/80 dark:border-slate-800 relative overflow-hidden animate-pop-in" style="animation-delay: 0.1s; animation-fill-mode: both;">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-rose-500"></div>
-                    <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-3 flex items-center text-sm"><i class="fas fa-university text-pink-500 mr-2"></i>志望校・配点設定</h3>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">大学・学部名を入力して「AIで自動検索」を押すと配点情報を自動入力します。</p>
+                    <h3 class="font-bold text-zinc-700 dark:text-slate-200 mb-3 flex items-center text-sm"><i class="fas fa-university text-pink-500 mr-2"></i>志望校・配点設定</h3>
+                    <p class="text-[11px] text-zinc-500 dark:text-slate-400 mb-4 leading-relaxed">大学・学部名を入力して「AIで自動検索」を押すと配点情報を自動入力します。</p>
                     <div class="flex space-x-3 mb-4">
                         <div class="w-1/2">
-                            <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">大学名</label>
-                            <input type="text" id="setting-univ" class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none transition-all text-sm" placeholder="例: 東京大学">
+                            <label class="block text-[10px] font-bold text-zinc-500 dark:text-slate-400 mb-1.5 ml-1">大学名</label>
+                            <input type="text" id="setting-univ" class="w-full border border-zinc-200/80 dark:border-slate-700 bg-zinc-50 dark:bg-slate-800 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none transition-all text-sm" placeholder="例: 東京大学">
                         </div>
                         <div class="w-1/2">
-                            <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">学部・学科名</label>
-                            <input type="text" id="setting-fac" class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none transition-all text-sm" placeholder="例: 理科一類">
+                            <label class="block text-[10px] font-bold text-zinc-500 dark:text-slate-400 mb-1.5 ml-1">学部・学科名</label>
+                            <input type="text" id="setting-fac" class="w-full border border-zinc-200/80 dark:border-slate-700 bg-zinc-50 dark:bg-slate-800 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none transition-all text-sm" placeholder="例: 理科一類">
                         </div>
                     </div>
-                    <button id="btn-auto-fetch" class="w-full bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-800 font-bold py-3 rounded-xl hover:opacity-90 transition-all mb-5 flex justify-center items-center shadow-sm text-sm">
+                    <button id="btn-auto-fetch" class="w-full bg-zinc-800 dark:bg-slate-100 text-white dark:text-slate-800 font-bold py-3 rounded-xl hover:opacity-90 transition-all mb-5 flex justify-center items-center shadow-sm text-sm">
                         <i class="fas fa-magic mr-2"></i> AIで配点自動検索
                     </button>
-                    <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-2 ml-1">各科目の配点（修正可能）</label>
+                    <label class="block text-[10px] font-bold text-zinc-500 dark:text-slate-400 mb-2 ml-1">各科目の配点（修正可能）</label>
                     <div id="exam-weights-container" class="mb-5"></div>
                     <button id="btn-save-profile" class="w-full bg-pink-500 text-white font-bold py-3.5 rounded-xl hover:bg-pink-600 transition-all shadow-md transform hover:-translate-y-0.5 text-sm">志望校情報を保存</button>
                 </div>
@@ -708,19 +697,19 @@
             
             <!-- サブ画面: アカウント情報 -->
             <div id="view-settings-account" class="view-section p-5 pb-32">
-                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 border border-slate-200/60 dark:border-slate-800 transition-colors animate-pop-in mt-2">
-                    <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center text-sm"><i class="fas fa-user-circle text-slate-400 mr-2"></i>Account</h3>
-                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mb-2 ml-1 font-medium">ユーザーID:</p>
-                    <p class="text-xs font-mono bg-slate-50 dark:bg-slate-800 p-3 rounded-lg mb-6 break-all text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700" id="display-user-id">---</p>
+                <div class="bg-white/90 dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 border border-zinc-200/80 dark:border-slate-800 transition-colors animate-pop-in mt-2">
+                    <h3 class="font-bold text-zinc-700 dark:text-slate-200 mb-4 flex items-center text-sm"><i class="fas fa-user-circle text-zinc-400 mr-2"></i>Account</h3>
+                    <p class="text-[10px] text-zinc-500 dark:text-slate-400 mb-2 ml-1 font-medium">ユーザーID:</p>
+                    <p class="text-xs font-mono bg-zinc-50 dark:bg-slate-800 p-3 rounded-lg mb-6 break-all text-zinc-600 dark:text-slate-300 border border-zinc-200/80 dark:border-slate-700" id="display-user-id">---</p>
                     <button id="btn-logout" class="w-full bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 font-bold py-3 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors border border-rose-100 dark:border-rose-900/50 text-sm shadow-sm">ログアウト</button>
                 </div>
 
-                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 transition-colors border border-slate-200/60 dark:border-slate-800 relative overflow-hidden animate-pop-in" style="animation-delay: 0.1s; animation-fill-mode: both;">
+                <div class="bg-white/90 dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 transition-colors border border-zinc-200/80 dark:border-slate-800 relative overflow-hidden animate-pop-in" style="animation-delay: 0.1s; animation-fill-mode: both;">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500"></div>
-                    <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-3 flex items-center text-sm"><i class="fas fa-key text-yellow-500 mr-2"></i>API Key設定</h3>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">配点の自動検索機能を使用するには、Gemini APIキーを設定してください。キーはローカルにのみ保存されます。</p>
+                    <h3 class="font-bold text-zinc-700 dark:text-slate-200 mb-3 flex items-center text-sm"><i class="fas fa-key text-yellow-500 mr-2"></i>API Key設定</h3>
+                    <p class="text-[11px] text-zinc-500 dark:text-slate-400 mb-4 leading-relaxed">配点の自動検索機能を使用するには、Gemini APIキーを設定してください。キーはローカルにのみ保存されます。</p>
                     <div class="mb-4">
-                        <input type="password" id="setting-api-key" class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none transition-all text-sm font-mono" placeholder="AIzaSy...">
+                        <input type="password" id="setting-api-key" class="w-full border border-zinc-200/80 dark:border-slate-700 bg-zinc-50 dark:bg-slate-800 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none transition-all text-sm font-mono" placeholder="AIzaSy...">
                     </div>
                     <button id="btn-save-api-key" class="w-full bg-yellow-50 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-500 font-bold py-3 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors border border-yellow-200/50 dark:border-yellow-800/50 text-sm shadow-sm">保存する</button>
                 </div>
@@ -728,10 +717,10 @@
 
             <!-- サブ画面: 固定ルーティン -->
             <div id="view-settings-routine" class="view-section p-5 pb-32">
-                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 transition-colors border border-slate-200/60 dark:border-slate-800 animate-pop-in mt-2">
+                <div class="bg-white/90 dark:bg-slate-900 rounded-2xl shadow-soft p-6 mb-6 transition-colors border border-zinc-200/80 dark:border-slate-800 animate-pop-in mt-2">
                     <div class="flex justify-between items-center mb-5">
-                        <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center text-sm"><i class="fas fa-list-check text-purple-500 mr-2"></i>登録済みルーティン</h3>
-                        <button id="btn-open-add-routine" class="text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-md font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition"><i class="fas fa-plus mr-1"></i>追加</button>
+                        <h3 class="font-bold text-zinc-700 dark:text-slate-200 flex items-center text-sm"><i class="fas fa-list-check text-purple-500 mr-2"></i>登録済みルーティン</h3>
+                        <button id="btn-open-add-routine" class="text-xs bg-zinc-100 dark:bg-slate-800 text-zinc-700 dark:text-slate-300 border border-zinc-200/80 dark:border-slate-700 px-3 py-1.5 rounded-md font-bold hover:bg-zinc-200 dark:hover:bg-slate-700 transition"><i class="fas fa-plus mr-1"></i>追加</button>
                     </div>
                     <ul id="routine-list" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar"></ul>
                 </div>
@@ -744,7 +733,7 @@
 
     <!-- 各種モーダル -->
     <div id="tutorial-overlay" class="modal-overlay fixed inset-0 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md z-[300] hidden flex-col items-center justify-center p-5 transition-colors">
-        <div class="w-full max-w-sm text-center relative zoom-in bg-white dark:bg-zinc-900 p-8 rounded-3xl shadow-modern border border-zinc-200/60 dark:border-zinc-800">
+        <div class="w-full max-w-sm text-center relative zoom-in bg-white dark:bg-zinc-900 p-8 rounded-3xl shadow-modern border border-zinc-200/80 dark:border-zinc-800">
             <button id="tutorial-skip-btn" class="absolute top-6 right-6 text-xs font-bold text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">スキップ</button>
             <div id="tutorial-icon-container" class="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center bg-pink-50 dark:bg-pink-950/30 transition-colors duration-300">
                 <i id="tutorial-icon" class="fa-solid fa-rocket text-3xl text-pink-500"></i>
@@ -765,7 +754,7 @@
 
     <!-- モーダル: タスク詳細・記録（※復元） -->
     <div id="modal-task-detail" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[100] justify-center items-end sm:items-center">
-        <div class="modal-content bg-white dark:bg-zinc-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-modern border border-zinc-200/60 dark:border-zinc-800 relative overflow-y-auto max-h-[90vh]">
+        <div class="modal-content bg-white dark:bg-zinc-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-modern border border-zinc-200/80 dark:border-zinc-800 relative overflow-y-auto max-h-[90vh]">
             <button class="modal-close-btn absolute top-5 right-5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 transition-colors z-10"><i class="fas fa-times pointer-events-none"></i></button>
 
             <!-- 内部処理用: タスクID保持 -->
@@ -773,7 +762,7 @@
 
             <div class="mb-5 pr-8">
                 <div class="flex items-center gap-2 mb-1">
-                    <span id="detail-subject" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">教科</span>
+                    <span id="detail-subject" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200/80 dark:border-zinc-700">教科</span>
                     <span class="text-[10px] font-bold text-zinc-500"><i class="fas fa-stopwatch mr-1"></i>予定: <span id="detail-est-time">0分</span></span>
                 </div>
                 <h3 id="detail-title" class="text-xl font-black text-zinc-800 dark:text-white tracking-tight leading-tight">タスク名</h3>
@@ -783,7 +772,7 @@
                 <!-- 実際の学習時間 -->
                 <div>
                     <label class="block text-[11px] font-bold text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1">実際の学習時間 (分) <span class="text-rose-500">*</span></label>
-                    <input type="number" id="detail-actual-time" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700 rounded-xl text-lg font-black p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white transition-all" placeholder="例: 30" required>
+                    <input type="number" id="detail-actual-time" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700 rounded-xl text-lg font-black p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white transition-all" placeholder="例: 30" required>
                 </div>
 
                 <!-- ルーティン進捗（ルーティン時のみ表示） -->
@@ -808,28 +797,28 @@
                     <div id="main-evaluation-section" class="grid grid-cols-4 gap-2 transition-opacity">
                         <label class="eval-label cursor-pointer relative">
                             <input type="radio" name="evaluation" value="A" class="peer sr-only">
-                            <div class="w-full text-center py-2.5 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all peer-checked:border-pink-500 peer-checked:bg-pink-50 dark:peer-checked:bg-pink-900/30">
+                            <div class="w-full text-center py-2.5 rounded-xl border-2 border-zinc-200/80 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all peer-checked:border-pink-500 peer-checked:bg-pink-50 dark:peer-checked:bg-pink-900/30">
                                 <div class="font-black text-lg text-zinc-700 dark:text-zinc-200 peer-checked:text-pink-600 dark:peer-checked:text-pink-400">A</div>
                                 <div class="text-[9px] font-bold text-zinc-400 mt-0.5">完璧</div>
                             </div>
                         </label>
                         <label class="eval-label cursor-pointer relative">
                             <input type="radio" name="evaluation" value="B" class="peer sr-only">
-                            <div class="w-full text-center py-2.5 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/30">
+                            <div class="w-full text-center py-2.5 rounded-xl border-2 border-zinc-200/80 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/30">
                                 <div class="font-black text-lg text-zinc-700 dark:text-zinc-200 peer-checked:text-emerald-600 dark:peer-checked:text-emerald-400">B</div>
                                 <div class="text-[9px] font-bold text-zinc-400 mt-0.5">あと一歩・計算ミス</div>
                             </div>
                         </label>
                         <label class="eval-label cursor-pointer relative">
                             <input type="radio" name="evaluation" value="C" class="peer sr-only">
-                            <div class="w-full text-center py-2.5 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all peer-checked:border-orange-500 peer-checked:bg-orange-50 dark:peer-checked:bg-orange-900/30">
+                            <div class="w-full text-center py-2.5 rounded-xl border-2 border-zinc-200/80 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all peer-checked:border-orange-500 peer-checked:bg-orange-50 dark:peer-checked:bg-orange-900/30">
                                 <div class="font-black text-lg text-zinc-700 dark:text-zinc-200 peer-checked:text-orange-600 dark:peer-checked:text-orange-400">C</div>
                                 <div class="text-[9px] font-bold text-zinc-400 mt-0.5">要復習</div>
                             </div>
                         </label>
                         <label class="eval-label cursor-pointer relative">
                             <input type="radio" name="evaluation" value="D" class="peer sr-only">
-                            <div class="w-full text-center py-2.5 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all peer-checked:border-rose-500 peer-checked:bg-rose-50 dark:peer-checked:bg-rose-900/30">
+                            <div class="w-full text-center py-2.5 rounded-xl border-2 border-zinc-200/80 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all peer-checked:border-rose-500 peer-checked:bg-rose-50 dark:peer-checked:bg-rose-900/30">
                                 <div class="font-black text-lg text-zinc-700 dark:text-zinc-200 peer-checked:text-rose-600 dark:peer-checked:text-rose-400">D</div>
                                 <div class="text-[9px] font-bold text-zinc-400 mt-0.5">理解できない</div>
                             </div>
@@ -837,12 +826,12 @@
                     </div>
 
                     <!-- サブ評価 (問題別の詳細評価) -->
-                    <div id="sub-evaluations-section" class="hidden mt-3 bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-700">
+                    <div id="sub-evaluations-section" class="hidden mt-3 bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-zinc-200/80 dark:border-zinc-700">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-[10px] font-bold text-zinc-500">問題ごとの評価</span>
                             <div class="flex gap-2">
                                 <button id="btn-sync-sub-evals" class="hidden text-[10px] font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded border border-blue-100 dark:border-blue-800"><i class="fas fa-sync-alt mr-1"></i>自動生成</button>
-                                <button id="btn-add-sub-eval" class="text-[10px] font-bold text-zinc-600 dark:text-zinc-300 bg-white dark:bg-zinc-700 px-2 py-1 rounded border border-zinc-200 dark:border-zinc-600"><i class="fas fa-plus mr-1"></i>追加</button>
+                                <button id="btn-add-sub-eval" class="text-[10px] font-bold text-zinc-600 dark:text-zinc-300 bg-white dark:bg-zinc-700 px-2 py-1 rounded border border-zinc-200/80 dark:border-zinc-600"><i class="fas fa-plus mr-1"></i>追加</button>
                             </div>
                         </div>
                         <div id="sub-evaluations-list" class="max-h-48 overflow-y-auto pr-1"></div>
@@ -852,7 +841,7 @@
                 <!-- メモ -->
                 <div>
                     <label class="block text-[11px] font-bold text-zinc-600 dark:text-zinc-400 mb-1.5 ml-1">学習メモ・振り返り (任意)</label>
-                    <textarea id="detail-note" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700 rounded-xl text-sm p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white h-20 resize-none transition-all" placeholder="間違えた理由や、次に活かすポイントなど"></textarea>
+                    <textarea id="detail-note" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700 rounded-xl text-sm p-3 outline-none focus:ring-2 focus:ring-pink-500 dark:text-white h-20 resize-none transition-all" placeholder="間違えた理由や、次に活かすポイントなど"></textarea>
                 </div>
 
                 <!-- タイムライン共有 -->
@@ -863,8 +852,8 @@
             </div>
 
             <!-- フッターボタン -->
-            <div class="flex space-x-2 mt-6 pt-4 border-t border-zinc-200/60 dark:border-zinc-800">
-                <button id="btn-delete-task" class="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-rose-500 border border-zinc-200 dark:border-zinc-700 rounded-xl transition-colors hover:bg-rose-50 dark:hover:bg-rose-900/30" title="タスクを削除">
+            <div class="flex space-x-2 mt-6 pt-4 border-t border-zinc-200/80 dark:border-zinc-800">
+                <button id="btn-delete-task" class="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-rose-500 border border-zinc-200/80 dark:border-zinc-700 rounded-xl transition-colors hover:bg-rose-50 dark:hover:bg-rose-900/30" title="タスクを削除">
                     <i class="fas fa-trash-alt"></i>
                 </button>
                 <button id="btn-save-task-detail" class="flex-1 bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-800 font-bold py-3.5 rounded-xl shadow-sm transition-all hover:opacity-90 text-sm">
@@ -876,46 +865,42 @@
 
     <!-- タスク追加モーダル -->
     <div id="modal-add-task" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[100] justify-center items-center p-4">
-        <div class="modal-content bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-transform duration-300">
+        <div class="modal-content bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-transform duration-300 border border-zinc-200/80 dark:border-slate-800">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-5">
-                    <h3 class="text-xl font-black text-slate-800 dark:text-slate-100">タスクを追加</h3>
-                    <button class="modal-close text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700">
+                    <h3 class="text-xl font-black text-zinc-800 dark:text-slate-100">タスクを追加</h3>
+                    <button class="modal-close text-zinc-400 hover:text-zinc-600 dark:hover:text-slate-200 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-slate-700">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
 
-                <!-- ▼ 新設: タブ切り替えUI ▼ -->
-                <div class="flex p-1 bg-slate-100 dark:bg-slate-700 rounded-lg mb-5">
-                    <button id="tab-task-custom" class="flex-1 py-2 text-xs font-bold rounded-md bg-white dark:bg-slate-600 text-slate-800 dark:text-white shadow-sm transition-all">単発タスク</button>
-                    <button id="tab-task-routine" class="flex-1 py-2 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all">固定ルーティン</button>
+                <div class="flex p-1 bg-zinc-100 dark:bg-slate-700 rounded-lg mb-5">
+                    <button id="tab-task-custom" class="flex-1 py-2 text-xs font-bold rounded-md bg-white dark:bg-slate-600 text-zinc-800 dark:text-white shadow-sm transition-all">単発タスク</button>
+                    <button id="tab-task-routine" class="flex-1 py-2 text-xs font-bold rounded-md text-zinc-500 dark:text-slate-400 hover:text-zinc-700 dark:hover:text-slate-200 transition-all">固定ルーティン</button>
                 </div>
 
-                <!-- ▼ 既存: 単発タスク入力エリア ▼ -->
                 <div id="add-task-custom-area" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">タスク名</label>
-                        <input type="text" id="input-task-title" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all placeholder:text-slate-400 font-sans" placeholder="例: 英単語 第1章">
+                        <label class="block text-xs font-bold text-zinc-500 dark:text-slate-400 mb-1.5 ml-1">タスク名</label>
+                        <input type="text" id="input-task-title" class="w-full bg-zinc-50 dark:bg-slate-900/50 border border-zinc-200/80 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-zinc-800 dark:text-slate-100 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all placeholder:text-zinc-400 font-sans" placeholder="例: 英単語 第1章">
                     </div>
                     <div class="flex gap-3">
                         <div class="flex-1">
-                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">教科</label>
-                            <select id="input-task-subject" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-pink-500 transition-all appearance-none cursor-pointer">
-                                <!-- JSで動的生成 -->
+                            <label class="block text-xs font-bold text-zinc-500 dark:text-slate-400 mb-1.5 ml-1">教科</label>
+                            <select id="input-task-subject" class="w-full bg-zinc-50 dark:bg-slate-900/50 border border-zinc-200/80 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-zinc-800 dark:text-slate-100 focus:outline-none focus:border-pink-500 transition-all appearance-none cursor-pointer">
                             </select>
                         </div>
                         <div class="w-28">
-                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">予定(分)</label>
-                            <input type="number" id="input-task-time" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-pink-500 transition-all font-sans" value="30" min="1" step="5">
+                            <label class="block text-xs font-bold text-zinc-500 dark:text-slate-400 mb-1.5 ml-1">予定(分)</label>
+                            <input type="number" id="input-task-time" class="w-full bg-zinc-50 dark:bg-slate-900/50 border border-zinc-200/80 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-zinc-800 dark:text-slate-100 focus:outline-none focus:border-pink-500 transition-all font-sans" value="30" min="1" step="5">
                         </div>
                     </div>
                 </div>
 
-                <!-- ▼ 新設: ルーティン補填エリア ▼ -->
                 <div id="add-task-routine-area" class="hidden space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 ml-1">補填するルーティンを選択</label>
-                        <select id="input-routine-select" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-pink-500 transition-all appearance-none cursor-pointer">
+                        <label class="block text-xs font-bold text-zinc-500 dark:text-slate-400 mb-1.5 ml-1">補填するルーティンを選択</label>
+                        <select id="input-routine-select" class="w-full bg-zinc-50 dark:bg-slate-900/50 border border-zinc-200/80 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-zinc-800 dark:text-slate-100 focus:outline-none focus:border-pink-500 transition-all appearance-none cursor-pointer">
                             <option value="">ルーティンを読み込んでいます...</option>
                         </select>
                     </div>
@@ -928,7 +913,7 @@
                 </div>
 
                 <div class="mt-8 flex gap-3">
-                    <button class="modal-close flex-1 py-3.5 rounded-xl font-bold text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">キャンセル</button>
+                    <button class="modal-close flex-1 py-3.5 rounded-xl font-bold text-sm text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors border border-zinc-200/80 dark:border-slate-700/0">キャンセル</button>
                     <button id="btn-save-new-task" class="flex-1 py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/30 hover:shadow-pink-500/50 transform hover:-translate-y-0.5 transition-all">追加する</button>
                 </div>
             </div>
@@ -937,7 +922,7 @@
 
     <!-- モーダル: 新規ルーティン追加 -->
     <div id="modal-add-routine" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[100] justify-center items-end sm:items-center">
-        <div class="modal-content bg-white dark:bg-zinc-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-modern border border-zinc-200/60 dark:border-zinc-800">
+        <div class="modal-content bg-white dark:bg-zinc-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-modern border border-zinc-200/80 dark:border-zinc-800">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-black text-zinc-800 dark:text-white tracking-tight">固定ルーティン追加</h3>
                 <button class="modal-close-btn text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 transition-colors"><i class="fas fa-times pointer-events-none"></i></button>
@@ -945,28 +930,28 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">ルーティン名</label>
-                    <input type="text" id="input-routine-title" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-sm font-medium" placeholder="例: ターゲット1900">
+                    <input type="text" id="input-routine-title" class="w-full border border-zinc-200/80 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-sm font-medium" placeholder="例: ターゲット1900">
                 </div>
                 <div class="flex space-x-3">
                     <div class="w-1/2 relative">
                         <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">科目</label>
-                        <select id="input-routine-subject" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all appearance-none text-sm font-medium"></select>
+                        <select id="input-routine-subject" class="w-full border border-zinc-200/80 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all appearance-none text-sm font-medium"></select>
                         <i class="fas fa-chevron-down absolute right-4 top-10 text-zinc-400 pointer-events-none text-[10px]"></i>
                     </div>
                     <div class="w-1/2">
                         <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">予定時間(分)</label>
-                        <input type="number" id="input-routine-time" min="1" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-sm font-bold" placeholder="15">
+                        <input type="number" id="input-routine-time" min="1" class="w-full border border-zinc-200/80 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3.5 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-sm font-bold" placeholder="15">
                     </div>
                 </div>
 
                 <div class="flex space-x-2">
                     <div class="w-1/3">
                         <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">全体量</label>
-                        <input type="number" id="input-routine-total" min="1" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-xs" placeholder="例: 100">
+                        <input type="number" id="input-routine-total" min="1" class="w-full border border-zinc-200/80 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-xs" placeholder="例: 100">
                     </div>
                     <div class="w-1/3 relative">
                         <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">単位</label>
-                        <select id="input-routine-unit" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all appearance-none font-medium text-center text-xs">
+                        <select id="input-routine-unit" class="w-full border border-zinc-200/80 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all appearance-none font-medium text-center text-xs">
                             <option value="問">問</option>
                             <option value="ページ">ページ</option>
                             <option value="章">章</option>
@@ -977,7 +962,7 @@
                     </div>
                     <div class="w-1/3">
                         <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5 ml-1">ペース(1日)</label>
-                        <input type="number" id="input-routine-pace" min="1" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-xs" placeholder="例: 5">
+                        <input type="number" id="input-routine-pace" min="1" class="w-full border border-zinc-200/80 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-xs" placeholder="例: 5">
                     </div>
                 </div>
                 
@@ -998,11 +983,11 @@
 
     <!-- モーダル: 独自確認モーダル -->
     <div id="custom-confirm-modal" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[200] justify-center items-center">
-        <div class="modal-content bg-white dark:bg-zinc-900 w-11/12 max-w-xs rounded-2xl p-6 transform transition-transform shadow-modern text-center border border-zinc-200/60 dark:border-zinc-800">
+        <div class="modal-content bg-white dark:bg-zinc-900 w-11/12 max-w-xs rounded-2xl p-6 transform transition-transform shadow-modern text-center border border-zinc-200/80 dark:border-zinc-800">
             <div class="mb-4 text-zinc-400 dark:text-zinc-500"><i class="fa-solid fa-circle-question text-4xl"></i></div>
             <p id="confirm-message" class="text-zinc-700 dark:text-zinc-200 font-bold mb-6 text-sm whitespace-pre-wrap leading-relaxed"></p>
             <div class="flex gap-2">
-                <button id="confirm-cancel-btn" class="flex-1 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 font-bold text-xs hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">キャンセル</button>
+                <button id="confirm-cancel-btn" class="flex-1 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 font-bold text-xs hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">キャンセル</button>
                 <button id="confirm-execute-btn" class="flex-1 py-2.5 rounded-xl bg-rose-500 text-white font-bold text-xs hover:bg-rose-600 transition shadow-sm">実行する</button>
             </div>
         </div>
@@ -1010,7 +995,7 @@
 
     <!-- モーダル: 復習履歴 -->
     <div id="modal-review-history" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[100] justify-center items-center">
-        <div class="modal-content bg-white dark:bg-zinc-900 w-11/12 max-w-md rounded-2xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-modern relative border border-zinc-200/60 dark:border-zinc-800">
+        <div class="modal-content bg-white dark:bg-zinc-900 w-11/12 max-w-md rounded-2xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-modern relative border border-zinc-200/80 dark:border-zinc-800">
             <button class="modal-close-btn absolute top-5 right-5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 transition-colors"><i class="fas fa-times pointer-events-none"></i></button>
             <h3 class="text-lg font-black mb-1.5 text-zinc-800 dark:text-white pr-8 tracking-tight" id="history-task-title">タスク名</h3>
             <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mb-6 font-medium">復習と定着度の履歴</p>
@@ -1018,7 +1003,7 @@
             <div class="space-y-5">
                 <div>
                     <label class="block text-[11px] font-bold text-zinc-600 dark:text-zinc-400 mb-2 ml-1"><i class="fas fa-sticky-note text-zinc-400 mr-1.5"></i>最初の学習メモ</label>
-                    <div id="history-original-note" class="w-full bg-zinc-50 dark:bg-zinc-800/80 dark:text-zinc-300 p-4 rounded-xl text-xs leading-relaxed border border-zinc-200/60 dark:border-zinc-700 min-h-[4rem] whitespace-pre-wrap font-medium"></div>
+                    <div id="history-original-note" class="w-full bg-zinc-50 dark:bg-zinc-800/80 dark:text-zinc-300 p-4 rounded-xl text-xs leading-relaxed border border-zinc-200/80 dark:border-zinc-700 min-h-[4rem] whitespace-pre-wrap font-medium"></div>
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-zinc-600 dark:text-zinc-400 mb-3 ml-1"><i class="fas fa-chart-line text-zinc-400 mr-1.5"></i>評価の推移</label>
@@ -1030,10 +1015,10 @@
 
     <!-- モーダル: 過去問記録ウィザード -->
     <div id="modal-pe-wizard" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[100] justify-center items-end sm:items-center">
-        <div class="modal-content bg-white dark:bg-zinc-900 w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-modern border border-zinc-200/60 dark:border-zinc-800 relative overflow-y-auto max-h-[90vh]">
+        <div class="modal-content bg-white dark:bg-zinc-900 w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-modern border border-zinc-200/80 dark:border-zinc-800 relative overflow-y-auto max-h-[90vh]">
             <button class="modal-close-btn absolute top-5 right-5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 transition-colors z-10"><i class="fas fa-times pointer-events-none"></i></button>
 
-            <h3 class="text-lg font-black mb-5 text-zinc-800 dark:text-white pr-8 border-b border-zinc-200/60 dark:border-zinc-800 pb-3 flex items-center">
+            <h3 class="text-lg font-black mb-5 text-zinc-800 dark:text-white pr-8 border-b border-zinc-200/80 dark:border-zinc-800 pb-3 flex items-center">
                 <i class="fas fa-edit text-orange-500 mr-2 text-base"></i>過去問ログを記録
             </h3>
 
@@ -1043,19 +1028,19 @@
                     <div>
                         <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">今回の得点</label>
                         <div class="flex items-end">
-                            <input type="number" id="pe-score-input" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700 rounded-xl text-base font-black text-center p-3 outline-none focus:ring-2 focus:ring-orange-500 dark:text-white transition-all" placeholder="0">
+                            <input type="number" id="pe-score-input" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700 rounded-xl text-base font-black text-center p-3 outline-none focus:ring-2 focus:ring-orange-500 dark:text-white transition-all" placeholder="0">
                             <span class="ml-2 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-2.5 whitespace-nowrap">/ <span id="pe-display-full-score">100</span> 点</span>
                         </div>
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">目標: <span id="pe-display-target-score" class="text-orange-500 font-black">80</span> 点</label>
-                        <input type="number" id="pe-time-input" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700 rounded-xl text-base font-black text-center p-3 outline-none focus:ring-2 focus:ring-orange-500 dark:text-white transition-all" placeholder="解答時間(分)">
+                        <input type="number" id="pe-time-input" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700 rounded-xl text-base font-black text-center p-3 outline-none focus:ring-2 focus:ring-orange-500 dark:text-white transition-all" placeholder="解答時間(分)">
                     </div>
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">本番度 (環境・緊張感)</label>
                     <div class="relative">
-                        <select id="pe-seriousness-select" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700 rounded-xl text-xs font-bold p-3.5 outline-none focus:ring-2 focus:ring-orange-500 dark:text-white appearance-none transition-all">
+                        <select id="pe-seriousness-select" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700 rounded-xl text-xs font-bold p-3.5 outline-none focus:ring-2 focus:ring-orange-500 dark:text-white appearance-none transition-all">
                             <option value="未選択">- 選択してください -</option>
                             <option value="本番同様">本番同様 (時間制限あり・環境整備)</option>
                             <option value="時間制限あり">時間制限あり</option>
@@ -1088,18 +1073,18 @@
                     </div>
                 </div>
 
-                <div class="flex justify-between items-end mb-2 border-b border-zinc-200/60 dark:border-zinc-800 pb-2">
+                <div class="flex justify-between items-end mb-2 border-b border-zinc-200/80 dark:border-zinc-800 pb-2">
                     <div>
                         <h4 class="font-bold text-zinc-700 dark:text-zinc-200 flex items-center text-sm"><i class="fas fa-list-check text-orange-500 mr-2"></i>問題ごとの分析</h4>
                         <p class="text-[9px] text-zinc-500 dark:text-zinc-500 mt-1 font-medium">※大問の順序は↑↓で並び替えられます。</p>
                     </div>
-                    <button id="btn-pe-add-section" class="text-[10px] bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 font-bold px-3 py-1.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors border border-zinc-200 dark:border-zinc-700 shadow-sm whitespace-nowrap"><i class="fas fa-plus mr-1"></i>大問追加</button>
+                    <button id="btn-pe-add-section" class="text-[10px] bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 font-bold px-3 py-1.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors border border-zinc-200/80 dark:border-zinc-700 shadow-sm whitespace-nowrap"><i class="fas fa-plus mr-1"></i>大問追加</button>
                 </div>
                 
                 <div id="pe-questions-container" class="space-y-3 pb-4"></div>
 
-                <div class="flex space-x-2 mt-2 pt-4 border-t border-zinc-200/60 dark:border-zinc-800">
-                    <button id="btn-pe-prev-step" class="w-1/3 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold py-3.5 rounded-xl transition-colors hover:bg-zinc-200 dark:hover:bg-zinc-700 text-sm"><i class="fas fa-arrow-left mr-1 text-xs"></i> 戻る</button>
+                <div class="flex space-x-2 mt-2 pt-4 border-t border-zinc-200/80 dark:border-zinc-800">
+                    <button id="btn-pe-prev-step" class="w-1/3 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold py-3.5 rounded-xl transition-colors hover:bg-zinc-200 dark:hover:bg-zinc-700 text-sm"><i class="fas fa-arrow-left mr-1 text-xs"></i> 戻る</button>
                     <button id="btn-pe-save" class="w-2/3 bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-800 font-bold py-3.5 rounded-xl shadow-sm transition-all hover:opacity-90 text-sm"><i class="fas fa-check mr-1"></i> 完了して保存</button>
                 </div>
             </div>
@@ -1108,23 +1093,23 @@
 
     <!-- モーダル: 単語帳クイック追加 -->
     <div id="modal-fc-quick-add" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[200] justify-center items-center">
-        <div class="modal-content bg-white dark:bg-zinc-900 w-11/12 max-w-sm rounded-2xl p-6 transform transition-transform shadow-modern relative border border-zinc-200/60 dark:border-zinc-800">
+        <div class="modal-content bg-white dark:bg-zinc-900 w-11/12 max-w-sm rounded-2xl p-6 transform transition-transform shadow-modern relative border border-zinc-200/80 dark:border-zinc-800">
             <button class="modal-close-btn absolute top-5 right-5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 transition-colors"><i class="fas fa-times pointer-events-none"></i></button>
             <h3 class="text-base font-black mb-4 text-zinc-800 dark:text-white flex items-center tracking-tight"><i class="fa-solid fa-layer-group text-purple-500 mr-2"></i>単語帳に追加</h3>
             
             <div class="space-y-4">
                 <div class="relative">
                     <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">追加先セット</label>
-                    <select id="quick-fc-set-select" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700 rounded-xl text-xs font-bold p-3 outline-none focus:ring-2 focus:ring-purple-500 dark:text-white appearance-none transition-all"></select>
+                    <select id="quick-fc-set-select" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700 rounded-xl text-xs font-bold p-3 outline-none focus:ring-2 focus:ring-purple-500 dark:text-white appearance-none transition-all"></select>
                     <i class="fas fa-chevron-down absolute right-3 top-8 text-zinc-400 pointer-events-none text-[10px]"></i>
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">Question (問題・覚えること)</label>
-                    <input type="text" id="quick-fc-q" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700 rounded-xl text-sm p-3 outline-none focus:ring-2 focus:ring-purple-500 dark:text-white font-bold transition-all" placeholder="例: take action の語法">
+                    <input type="text" id="quick-fc-q" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700 rounded-xl text-sm p-3 outline-none focus:ring-2 focus:ring-purple-500 dark:text-white font-bold transition-all" placeholder="例: take action の語法">
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">Answer (答え・内容)</label>
-                    <textarea id="quick-fc-a" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700 rounded-xl text-sm p-3 outline-none focus:ring-2 focus:ring-purple-500 dark:text-white h-20 resize-none transition-all" placeholder="例: 行動を起こす"></textarea>
+                    <textarea id="quick-fc-a" class="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700 rounded-xl text-sm p-3 outline-none focus:ring-2 focus:ring-purple-500 dark:text-white h-20 resize-none transition-all" placeholder="例: 行動を起こす"></textarea>
                 </div>
                 <button id="btn-quick-fc-save" class="w-full bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-800 font-bold py-3 rounded-xl hover:opacity-90 transition-all shadow-sm mt-2 flex justify-center items-center text-sm"><i class="fa-solid fa-plus mr-2 text-xs"></i>保存する</button>
             </div>
@@ -1133,11 +1118,11 @@
 
     <!-- モーダル: 公開プロフィール設定 -->
     <div id="modal-public-profile" class="modal-overlay fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[100] justify-center items-end sm:items-center">
-        <div class="modal-content bg-white dark:bg-zinc-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6 transform transition-transform duration-300 translate-y-0 shadow-modern relative border border-zinc-200/60 dark:border-zinc-800 overflow-y-auto max-h-[90vh]">
+        <div class="modal-content bg-white dark:bg-zinc-900 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6 transform transition-transform duration-300 translate-y-0 shadow-modern relative border border-zinc-200/80 dark:border-zinc-800 overflow-y-auto max-h-[90vh]">
             <button class="modal-close-btn absolute top-5 right-5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 transition-colors z-10"><i class="fas fa-times pointer-events-none"></i></button>
             
             <h3 class="text-lg font-black mb-1 text-zinc-800 dark:text-white pr-8 tracking-tight">プロフィール設定</h3>
-            <p class="text-[10px] text-zinc-500 dark:text-zinc-400 mb-5 font-medium border-b border-zinc-200/60 dark:border-zinc-800 pb-3">タイムラインで公開される情報です。</p>
+            <p class="text-[10px] text-zinc-500 dark:text-zinc-400 mb-5 font-medium border-b border-zinc-200/80 dark:border-zinc-800 pb-3">タイムラインで公開される情報です。</p>
             
             <div class="space-y-5">
                 <div>
@@ -1146,14 +1131,14 @@
                     <input type="hidden" id="profile-avatar-id" value="cat">
                 </div>
 
-                <div class="space-y-3 bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-200/60 dark:border-zinc-700">
+                <div class="space-y-3 bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-200/80 dark:border-zinc-700">
                     <div>
                         <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">ニックネーム (必須)</label>
-                        <input type="text" id="profile-display-name" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-white dark:bg-zinc-900 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm font-bold" placeholder="本名は入力しないでください" maxlength="20">
+                        <input type="text" id="profile-display-name" class="w-full border border-zinc-200/80 dark:border-zinc-700 bg-white dark:bg-zinc-900 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm font-bold" placeholder="本名は入力しないでください" maxlength="20">
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">意気込み・スローガン</label>
-                        <input type="text" id="profile-bio" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-white dark:bg-zinc-900 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-xs" placeholder="例: 夏までに基礎固め！" maxlength="60">
+                        <input type="text" id="profile-bio" class="w-full border border-zinc-200/80 dark:border-zinc-700 bg-white dark:bg-zinc-900 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-xs" placeholder="例: 夏までに基礎固め！" maxlength="60">
                     </div>
                 </div>
 
@@ -1162,33 +1147,33 @@
                     <div class="flex space-x-3">
                         <div class="w-1/2 relative">
                             <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1">学年・ステータス</label>
-                            <select id="profile-status" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
+                            <select id="profile-status" class="w-full border border-zinc-200/80 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
                             <i class="fas fa-chevron-down absolute right-3 top-8 text-zinc-400 pointer-events-none text-[9px]"></i>
                         </div>
                         <div class="w-1/2 relative">
                             <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1">文理</label>
-                            <select id="profile-track" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
+                            <select id="profile-track" class="w-full border border-zinc-200/80 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
                             <i class="fas fa-chevron-down absolute right-3 top-8 text-zinc-400 pointer-events-none text-[9px]"></i>
                         </div>
                     </div>
                     <div class="relative">
                         <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1">志望系統</label>
-                        <select id="profile-target-category" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
+                        <select id="profile-target-category" class="w-full border border-zinc-200/80 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
                         <i class="fas fa-chevron-down absolute right-3 top-8 text-zinc-400 pointer-events-none text-[9px]"></i>
                     </div>
                 </div>
 
                 <div class="space-y-3">
-                    <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1 border-b border-zinc-200/60 dark:border-zinc-800 pb-1">基本属性</label>
+                    <label class="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1 border-b border-zinc-200/80 dark:border-zinc-800 pb-1">基本属性</label>
                     <div class="flex space-x-3">
                         <div class="w-1/2 relative">
                             <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1">所在</label>
-                            <select id="profile-prefecture" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
+                            <select id="profile-prefecture" class="w-full border border-zinc-200/80 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
                             <i class="fas fa-chevron-down absolute right-3 top-8 text-zinc-400 pointer-events-none text-[9px]"></i>
                         </div>
                         <div class="w-1/2 relative">
                             <label class="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mb-1">学校区分</label>
-                            <select id="profile-school-type" class="w-full border border-zinc-200/60 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
+                            <select id="profile-school-type" class="w-full border border-zinc-200/80 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 dark:text-white p-3 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all appearance-none text-xs font-medium"></select>
                             <i class="fas fa-chevron-down absolute right-3 top-8 text-zinc-400 pointer-events-none text-[9px]"></i>
                         </div>
                     </div>
@@ -1206,7 +1191,7 @@
         window.addEventListener('error', function(e) {
             const ls = document.getElementById('loading-screen');
             if(ls) {
-                ls.innerHTML = '<div class="text-center p-4 bg-white dark:bg-gray-800 rounded-xl shadow-xl w-3/4 max-w-sm"><i class="fas fa-exclamation-triangle text-red-500 text-4xl mb-3"></i><p class="text-red-500 font-bold text-sm">読み込みエラーが発生しました</p><p class="text-xs text-gray-500 dark:text-gray-400 mt-2 break-words text-left">' + e.message + '</p></div>';
+                ls.innerHTML = '<div class="text-center p-4 bg-white dark:bg-gray-800 rounded-xl shadow-xl w-3/4 max-w-sm"><i class="fas fa-exclamation-triangle text-red-500 text-4xl mb-3"></i><p class="text-red-500 font-bold text-sm">読み込みエラーが発生しました</p><p class="text-xs text-zinc-500 dark:text-gray-400 mt-2 break-words text-left">' + e.message + '</p></div>';
             }
         });
     </script>
