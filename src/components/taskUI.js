@@ -1,5 +1,5 @@
 import { SUBJECT_COLORS } from '../utils/constants.js';
-import { formatTime, escapeHTML } from '../utils/helpers.js';
+import { formatDate, formatTime, escapeHTML } from '../utils/helpers.js';
 
 // ルーティンタスクの範囲（例: 1〜5問）を表示するバッジを生成
 function getRangeBadge(t) {
