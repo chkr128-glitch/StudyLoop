@@ -462,14 +462,9 @@ let isTaskModalInitialized = false;
 
 function openAddTaskModal(targetDate = null) {
     // カレンダーやダッシュボードからの日付指定をセット。指定がなければ現在表示中の日付
-    const dateToSet = targetDate || state.dashboardDate;
-    
-    // 隠しフィールドに保存用日付をセット
-    const dateInput = document.getElementById('add-task-date');
-    if (dateInput) dateInput.value = dateToSet;
-
-    // ダッシュボードの日付も同期させる
-    state.dashboardDate = dateToSet;
+    if (targetDate) {
+        state.dashboardDate = targetDate;
+    }
 
     // タブのイベントリスナーを初回のみ登録
     if (!isTaskModalInitialized) {
@@ -478,7 +473,6 @@ function openAddTaskModal(targetDate = null) {
         isTaskModalInitialized = true;
     }
 
-    // ▼ 修正: HTML要素が存在するかどうかを確認しながら安全に値をリセット（エラー停止を防止）
     const titleInput = document.getElementById('input-task-title');
     if (titleInput) titleInput.value = '';
     
@@ -536,11 +530,9 @@ function switchTaskModalTab(tabId) {
 }
 
 // ▼ 変更: タブの状態に応じて保存処理を分岐させる
+// ▼ 変更: タブの状態に応じて保存処理を分岐させる
 async function saveNewTask() {
-    // 隠しフィールドから対象日付を取得。万が一取れなければ state の日付を使う
-    const dateInputVal = document.getElementById('add-task-date')?.value;
-    const dateVal = dateInputVal || state.dashboardDate;
-    
+    const dateVal = state.dashboardDate; // 選択中のダッシュボード日付を確実に使用
     const isCustom = document.getElementById('add-task-custom-area').dataset.active !== 'false';
     const btn = document.getElementById('btn-save-new-task');
     if (btn) btn.disabled = true;
@@ -548,7 +540,7 @@ async function saveNewTask() {
     try {
         if (isCustom) {
             // ------------------------------------
-            // 処理A: 単発タスクの保存（既存処理）
+            // 処理A: 単発タスクの保存
             // ------------------------------------
             const title = document.getElementById('input-task-title').value.trim();
             const subject = document.getElementById('input-task-subject').value;
@@ -572,7 +564,11 @@ async function saveNewTask() {
                 createdAt: new Date().toISOString()
             };
 
-            await setDoc(newRef, newTaskData);
+            // ▼ 修正: 画面のちらつき・消滅を防ぐため、先にローカル配列に強制追加する
+            state.tasks.push(newTaskData);
+
+            // DB保存は裏側で非同期実行（ネットワーク遅延によるUIブロックを防ぐ）
+            setDoc(newRef, newTaskData).catch(err => console.error("タスク保存エラー:", err));
             showToast(`${dateVal} にタスクを追加しました`);
 
         } else {
@@ -620,15 +616,17 @@ async function saveNewTask() {
                 createdAt: new Date().toISOString()
             };
 
-            // DBに保存
-            await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
-            
-            // 画面反映のラグを防ぐため、ローカルのstateにも一時的にPushしておく
+            // ▼ 修正: ローカル配列に即時反映
             state.tasks.push({ id: docId, ...newTaskData });
+
+            // DBに保存は裏側で非同期実行
+            setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true })
+                .catch(err => console.error("ルーティン保存エラー:", err));
+            
             showToast(`${dateVal} にルーティンを補填しました`);
         }
         
-        // モーダルを閉じて画面を更新
+        // モーダルを閉じて画面を即時更新
         const targetId = document.getElementById('modal-add-task') ? 'modal-add-task' : 'add-task-modal';
         closeModal(targetId);
         updateAllViews();
