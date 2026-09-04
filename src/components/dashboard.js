@@ -136,8 +136,8 @@ export function renderDashboard(tasks, dashboardDate) {
 
     const importantTasks = []; const normalTasks = [];
     dashboardTasks.forEach(t => {
-        // 重要度判定も対象日を基準に行う
-        const imp = getTaskImportance(t, targetDateStr);
+        // 重要度判定は関数内で「現実の今日」を基準に行うように修正したため、tのみ渡す
+        const imp = getTaskImportance(t);
         if (imp.rank !== 'NORMAL' && !t.completed) importantTasks.push({ task: t, imp: imp }); 
         else if (t.date === targetDateStr) normalTasks.push(t);
     });
