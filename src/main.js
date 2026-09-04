@@ -460,9 +460,6 @@ async function generateRoutineTasks(targetDateStr = null) {
 // ▼ 新規追加: モーダルの初期化状態を管理するフラグ
 let isTaskModalInitialized = false;
 
-// ▼ 変更: タブ制御とルーティン一覧の展開処理を追加
-let isTaskModalInitialized = false;
-
 function openAddTaskModal(targetDate = null) {
     // カレンダーからの日付指定があれば状態を更新
     if (targetDate) {
