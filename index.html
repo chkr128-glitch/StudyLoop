@@ -136,7 +136,8 @@
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-lock text-zinc-400"></i></div>
                     <input type="password" id="auth-password" class="w-full border-none bg-zinc-50 dark:bg-gray-900 dark:text-white py-3.5 pl-11 pr-4 rounded-xl focus:ring-2 focus:ring-pink-500 shadow-inner transition-all outline-none text-sm font-medium" placeholder="パスワード (6文字以上)">
                 </div>
-                <button id="auth-btn-action" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-3.5 rounded-xl mt-2 hover:opacity-90 transition-all shadow-sm transform hover:-translate-y-0.5">ログイン</button>
+                <!-- メインアクションボタンにシャドウとホバーエフェクトを強調 -->
+                <button id="auth-btn-action" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-3.5 rounded-xl mt-2 hover:opacity-90 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">ログイン</button>
             </div>
 
             <div class="relative flex items-center justify-center my-6">
@@ -144,13 +145,15 @@
                 <span class="absolute px-3 bg-transparent text-[10px] text-zinc-400 font-bold uppercase tracking-wider">or</span>
             </div>
             
-            <button id="auth-google-btn" class="w-full bg-white dark:bg-gray-700 text-zinc-700 dark:text-gray-200 font-bold py-3.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-gray-600 transition-all shadow-sm border border-zinc-200 dark:border-gray-600 flex justify-center items-center">
+            <!-- Googleボタンにもシャドウとホバーエフェクトを追加 -->
+            <button id="auth-google-btn" class="w-full bg-white dark:bg-gray-700 text-zinc-700 dark:text-gray-200 font-bold py-3.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-gray-600 transition-all shadow-sm hover:shadow-md transform hover:-translate-y-0.5 border border-zinc-200 dark:border-gray-600 flex justify-center items-center">
                 <i class="fab fa-google text-red-500 mr-2 text-lg"></i> Sign in with Google
             </button>
 
             <div class="mt-8 pt-6 border-t border-zinc-200/80 dark:border-slate-700/80 text-center">
                 <p class="text-xs text-zinc-500 dark:text-zinc-400 font-bold mb-3 tracking-wide">はじめてご利用の方</p>
-                <button id="auth-toggle-btn" class="w-full bg-white/90 dark:bg-slate-800 text-pink-500 dark:text-pink-400 font-bold py-3.5 rounded-xl hover:bg-pink-50 dark:hover:bg-slate-700 transition-all shadow-sm border border-pink-200 dark:border-pink-900/50 text-sm flex justify-center items-center">
+                <!-- 切り替えボタンに色付きボーダーとシャドウを追加 -->
+                <button id="auth-toggle-btn" class="w-full bg-white/90 dark:bg-slate-800 text-pink-500 dark:text-pink-400 font-bold py-3.5 rounded-xl hover:bg-pink-50 dark:hover:bg-slate-700 transition-all shadow-sm hover:shadow-md transform hover:-translate-y-0.5 border border-pink-300 dark:border-pink-900/60 text-sm flex justify-center items-center">
                     <i class="fas fa-user-plus mr-2 text-xs"></i>新規アカウント作成
                 </button>
             </div>
@@ -262,44 +265,44 @@
                     </div>
                 </div>
                 
-                <!-- ナビゲーションタイル -->
+                <!-- ナビゲーションタイル: カラーボーダーとシャドウ・ホバーエフェクトの追加 -->
                 <div class="grid grid-cols-2 gap-4">
-                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-pink-300/50 dark:hover:border-pink-500/30" data-target="dashboard">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-sm hover:shadow-md border border-pink-200 dark:border-pink-900/50 flex flex-col items-center justify-center gap-3 transition-all duration-200 transform hover:-translate-y-1 hover:border-pink-300 dark:hover:border-pink-500/40" data-target="dashboard">
                         <div class="w-12 h-12 rounded-xl bg-pink-50 dark:bg-pink-900/20 text-pink-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fas fa-list-check pointer-events-none"></i></div>
                         <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">本日のタスク</span>
                     </button>
                     
-                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-blue-300/50 dark:hover:border-blue-500/30" data-target="calendar">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-sm hover:shadow-md border border-blue-200 dark:border-blue-900/50 flex flex-col items-center justify-center gap-3 transition-all duration-200 transform hover:-translate-y-1 hover:border-blue-300 dark:hover:border-blue-500/40" data-target="calendar">
                         <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="far fa-calendar-alt pointer-events-none"></i></div>
                         <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">カレンダー</span>
                     </button>
                     
-                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-orange-300/50 dark:hover:border-orange-500/30" data-target="past-exams">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-sm hover:shadow-md border border-orange-200 dark:border-orange-900/50 flex flex-col items-center justify-center gap-3 transition-all duration-200 transform hover:-translate-y-1 hover:border-orange-300 dark:hover:border-orange-500/40" data-target="past-exams">
                         <div class="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-900/20 text-orange-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fas fa-history pointer-events-none"></i></div>
                         <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">過去問ログ</span>
                     </button>
                     
-                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-emerald-300/50 dark:hover:border-emerald-500/30" data-target="analytics">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-sm hover:shadow-md border border-emerald-200 dark:border-emerald-900/50 flex flex-col items-center justify-center gap-3 transition-all duration-200 transform hover:-translate-y-1 hover:border-emerald-300 dark:hover:border-emerald-500/40" data-target="analytics">
                         <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fas fa-chart-pie pointer-events-none"></i></div>
                         <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">学習分析</span>
                     </button>
                     
-                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-indigo-300/50 dark:hover:border-indigo-500/30" data-target="drill">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-sm hover:shadow-md border border-indigo-200 dark:border-indigo-900/50 flex flex-col items-center justify-center gap-3 transition-all duration-200 transform hover:-translate-y-1 hover:border-indigo-300 dark:hover:border-indigo-500/40" data-target="drill">
                         <div class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fas fa-calculator pointer-events-none"></i></div>
                         <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">計算ドリル</span>
                     </button>
                     
-                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-purple-300/50 dark:hover:border-purple-500/30" data-target="flashcard-app">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-sm hover:shadow-md border border-purple-200 dark:border-purple-900/50 flex flex-col items-center justify-center gap-3 transition-all duration-200 transform hover:-translate-y-1 hover:border-purple-300 dark:hover:border-purple-500/40" data-target="flashcard-app">
                         <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fa-solid fa-layer-group pointer-events-none"></i></div>
                         <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">My単語帳</span>
                     </button>
                     
-                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-sky-300/50 dark:hover:border-sky-500/30" data-target="timeline">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-sm hover:shadow-md border border-sky-200 dark:border-sky-900/50 flex flex-col items-center justify-center gap-3 transition-all duration-200 transform hover:-translate-y-1 hover:border-sky-300 dark:hover:border-sky-500/40" data-target="timeline">
                         <div class="w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-900/20 text-sky-500 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fas fa-globe pointer-events-none"></i></div>
                         <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">タイムライン</span>
                     </button>
 
-                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-soft border border-zinc-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-modern hover:-translate-y-1 hover:border-slate-300/50 dark:hover:border-slate-500/30" data-target="store">
+                    <button class="nav-tile group bg-white/90 dark:bg-slate-900 p-5 rounded-2xl shadow-sm hover:shadow-md border border-zinc-200 dark:border-zinc-700 flex flex-col items-center justify-center gap-3 transition-all duration-200 transform hover:-translate-y-1 hover:border-zinc-300 dark:hover:border-zinc-600" data-target="store">
                         <div class="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-slate-800 text-zinc-600 dark:text-slate-300 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"><i class="fa-solid fa-pen-nib pointer-events-none"></i></div>
                         <span class="font-bold text-sm text-zinc-700 dark:text-slate-200 tracking-wide pointer-events-none">英作文サポート</span>
                     </button>
