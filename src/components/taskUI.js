@@ -10,13 +10,16 @@ function getRangeBadge(t) {
     return `<span class="ml-2 text-[10px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded-md border border-blue-100 dark:border-blue-800 whitespace-nowrap align-middle">${start}〜${end}${unit}</span>`;
 }
 
-export function getTaskImportance(t, todayStr) {
+export function getTaskImportance(t) {
     if (t.completed) return { rank: 'NORMAL', score: 0 };
     let score = 0; let rank = 'NORMAL'; let colorClass = ''; let iconClass = ''; let badgeText = '';
     
-    if (t.date < todayStr && t.isReview) {
+    // 常に「現実の今日」を基準にして遅延を判定する
+    const realTodayStr = formatDate(new Date());
+
+    if (t.date < realTodayStr && t.isReview) {
         score += 10000; 
-        const daysOver = Math.max(1, Math.ceil((new Date(todayStr) - new Date(t.date)) / (1000 * 60 * 60 * 24))); 
+        const daysOver = Math.max(1, Math.ceil((new Date(realTodayStr) - new Date(t.date)) / (1000 * 60 * 60 * 24))); 
         score += daysOver * 10;
         rank = 'SS'; colorClass = 'border-l-4 border-rose-500 bg-rose-50/50 dark:bg-rose-950/30'; iconClass = 'fas fa-exclamation-triangle text-rose-500 dark:text-rose-400'; badgeText = `${daysOver}日遅れ`;
     } else if (t.sourceEval === 'D') {
