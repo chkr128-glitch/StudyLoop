@@ -371,7 +371,6 @@ let isGeneratingTasks = false;
 
 async function generateRoutineTasks(targetDateStr = null) {
     if (isGeneratingTasks) {
-        // 処理中の場合でも、カレンダーの切り替えなどを反映させるために画面更新は行う
         updateAllViews();
         return;
     }
@@ -384,9 +383,6 @@ async function generateRoutineTasks(targetDateStr = null) {
         for (const r of state.routines) {
             if (r.totalItems && r.currentPosition > r.totalItems) continue;
 
-            // ▼ 修正: 過去の未完了タスクを自動削除するブロックを廃止しました ▼
-
-            // 1. 選択された日付 (dateStr) のルーティンタスクを検索
             const existingTask = state.tasks.find(t => 
                 t.sourceRoutineId === r.id && t.isRoutine === true && t.date === dateStr && !t.deleted
             );
@@ -395,8 +391,9 @@ async function generateRoutineTasks(targetDateStr = null) {
             let endPos = startPos + (r.dailyPace || 1) - 1;
             if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
 
-            // 2. なければ新規作成（※今日または未来の日付のみ自動生成する）
-            if (!existingTask && dateStr >= todayStr) {
+            // ★ 修正: 未来日のカレンダーを開いた際の自動生成とDB保存を防止
+            // 「今日」の場合のみ、未生成なら新規作成する
+            if (!existingTask && dateStr === todayStr) {
                 const docId = `routine_${r.id}_${dateStr}`;
                 const newTaskData = {
                     title: r.title,
@@ -424,12 +421,11 @@ async function generateRoutineTasks(targetDateStr = null) {
                     }
                 }
             } else if (existingTask) {
-                // 3. 既存タスクがある場合、進行状況に応じて予定範囲を追従させる
                 let needsUpdate = false;
                 const updateData = {};
 
-                // ※履歴保護のため、「今日以降」のタスクのみ開始・終了位置を自動追従させる
-                if (dateStr >= todayStr) {
+                // ★ 修正: 既存タスクの範囲追従も「今日」のみに限定
+                if (dateStr === todayStr) {
                     if (existingTask.plannedStart !== startPos) {
                         existingTask.plannedStart = startPos; updateData.plannedStart = startPos; needsUpdate = true;
                     }
@@ -452,7 +448,6 @@ async function generateRoutineTasks(targetDateStr = null) {
             }
         }
 
-        // すべての処理・生成が終わったら画面を更新
         updateAllViews();
     } finally {
         isGeneratingTasks = false;
@@ -871,8 +866,13 @@ async function saveTaskDetail() {
                 updateData.actualEnd = actualEnd;
                 updateData.actualStart = parseInt(document.getElementById('detail-routine-start').innerText, 10) || task.plannedStart;
                 
+                // ★ 修正: 進捗の巻き戻り防止。現在の到達点と、今回完了した到達点の「大きい方」を採用する
+                const routine = state.routines.find(r => r.id === task.sourceRoutineId);
+                const currentPos = routine ? (routine.currentPosition || 1) : 1;
+                const nextPos = Math.max(currentPos, actualEnd + 1);
+
                 try {
-                    await setDoc(doc(getAppCollectionRef('routines'), task.sourceRoutineId), { currentPosition: actualEnd + 1 }, { merge: true });
+                    await setDoc(doc(getAppCollectionRef('routines'), task.sourceRoutineId), { currentPosition: nextPos }, { merge: true });
                 } catch (err) {
                     console.error("Routine position update failed:", err);
                 }
@@ -885,9 +885,7 @@ async function saveTaskDetail() {
             await scheduleReviews(task, evaluation, subEvaluations);
         }
 
-        // タイムライン投稿処理
         const shareTimelineCheckbox = document.getElementById('detail-share-timeline');
-        // レビュー（復習）タスクでない、かつチェックボックスがONの場合に投稿
         if (shareTimelineCheckbox && shareTimelineCheckbox.checked && !task.isReview) {
             try {
                 await addTimelineLog({
@@ -900,7 +898,6 @@ async function saveTaskDetail() {
                 });
             } catch (err) {
                 console.error("タイムラインの投稿に失敗しました:", err);
-                // 投稿に失敗しても、タスクの保存処理自体は進行させる
             }
         }
 
