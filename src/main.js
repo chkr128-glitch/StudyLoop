@@ -154,12 +154,6 @@ function setupEventListeners() {
     document.getElementById('toggle-sub-eval-btn')?.addEventListener('click', toggleSubEvaluations);
     document.getElementById('btn-add-sub-eval')?.addEventListener('click', () => addSubEvaluation());
     
-    document.getElementById('btn-calendar-add-task')?.addEventListener('click', async () => {
-        const { getCalendarSelectedDate } = await import('./components/calendar.js');
-        // カレンダー側で選択された日付を渡してモーダルを開く
-        openAddTaskModal(getCalendarSelectedDate());
-    });
-
     document.getElementById('sub-evaluations-list')?.addEventListener('click', (e) => {
         const deleteBtn = e.target.closest('.sub-eval-delete-btn');
         if (deleteBtn) deleteBtn.closest('.flex-col').remove();
@@ -412,8 +406,6 @@ async function generateRoutineTasks(targetDateStr = null) {
                     createdAt: new Date().toISOString()
                 };
 
-                state.tasks.push({ id: docId, ...newTaskData });
-                
                 if (!r.id.startsWith('temp_')) {
                     try {
                         await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
@@ -615,8 +607,6 @@ async function saveNewTask() {
             // DBに保存
             await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
             
-            // 画面反映のラグを防ぐため、ローカルのstateにも一時的にPushしておく
-            state.tasks.push({ id: docId, ...newTaskData });
             showToast(`${dateVal} にルーティンを補填しました`);
         }
         
@@ -908,7 +898,8 @@ async function saveTaskDetail() {
 }
 
 async function scheduleReviews(originalTask, evaluation, subEvaluations) {
-    const baseDate = new Date();
+    // タスクの本来の日付を起算日とする（タイムゾーンによるズレを防ぐためT00:00:00を付与）
+    const baseDate = new Date(originalTask.date + 'T00:00:00');
 
     // 1. 問題別の詳細評価（subEvaluations）がある場合：問題ごとに個別の復習タスクを生成
     if (subEvaluations && subEvaluations.length > 0) {
