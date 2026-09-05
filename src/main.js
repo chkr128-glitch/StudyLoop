@@ -366,7 +366,7 @@ function updateAllViews() {
     }
 }
 
-// ▼ 修正: 誤って削除されていた変数宣言を復元（これがReferenceErrorの原因でした）
+// ▼ この1行が消えているとアプリが起動しません
 let isGeneratingTasks = false;
 
 async function generateRoutineTasks(targetDateStr = null) {
@@ -391,8 +391,6 @@ async function generateRoutineTasks(targetDateStr = null) {
             let endPos = startPos + (r.dailyPace || 1) - 1;
             if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
 
-            // ★ 修正: 未来日のカレンダーを開いた際の自動生成とDB保存を防止
-            // 「今日」の場合のみ、未生成なら新規作成する
             if (!existingTask && dateStr === todayStr) {
                 const docId = `routine_${r.id}_${dateStr}`;
                 const newTaskData = {
@@ -424,7 +422,6 @@ async function generateRoutineTasks(targetDateStr = null) {
                 let needsUpdate = false;
                 const updateData = {};
 
-                // ★ 修正: 既存タスクの範囲追従も「今日」のみに限定
                 if (dateStr === todayStr) {
                     if (existingTask.plannedStart !== startPos) {
                         existingTask.plannedStart = startPos; updateData.plannedStart = startPos; needsUpdate = true;
