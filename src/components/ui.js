@@ -132,11 +132,15 @@ export function initTheme() {
 // ==========================================
 // ビュー（画面）切り替えの基礎部分とヘッダー制御
 // ==========================================
+// ==========================================
+// ビュー（画面）切り替えの基礎部分とヘッダー制御
+// ==========================================
 export function switchViewUI(viewName) {
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active')); 
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active', 'text-pink-500', 'dark:text-pink-400')); 
     
-    document.getElementById(`view-${viewName}`).classList.add('active');
+    const targetView = document.getElementById(`view-${viewName}`);
+    if (targetView) targetView.classList.add('active');
     
     // アイコンのアニメーション処理
     const btn = document.getElementById(`nav-${viewName}`);
@@ -151,11 +155,9 @@ export function switchViewUI(viewName) {
         } 
     }
 
-    // ▼ 新規追加: ヘッダーの自動切り替え制御 ▼
     const headerHome = document.getElementById('header-home');
     const headerSub = document.getElementById('header-sub');
     const subTitleEl = document.getElementById('header-sub-title');
-    const btnBack = document.getElementById('btn-header-back');
 
     if (!headerHome || !headerSub) return;
 
@@ -191,7 +193,7 @@ export function switchViewUI(viewName) {
         const viewInfo = viewTitles[viewName] || { title: 'StudyLoop', backTo: 'home' };
         if (subTitleEl) subTitleEl.innerText = viewInfo.title;
 
-        // ★ 修正: cloneNodeでの強引なリスナー付け替えを廃止し、遷移先変数を更新するだけにする
+        // 遷移先の変数を更新する
         currentBackTarget = viewInfo.backTo;
     }
 }
