@@ -532,7 +532,7 @@ async function saveNewTask() {
     try {
         if (isCustom) {
             // ------------------------------------
-            // 処理A: 単発タスクの保存（既存処理）
+            // 処理A: 単発タスクの保存
             // ------------------------------------
             const title = document.getElementById('input-task-title').value.trim();
             const subject = document.getElementById('input-task-subject').value;
@@ -553,6 +553,7 @@ async function saveNewTask() {
                 completed: false,
                 isReview: false,
                 isRoutine: false,
+                deleted: false, // ★追加: 確実に表示させるため削除フラグを折る
                 createdAt: new Date().toISOString()
             };
 
@@ -582,7 +583,7 @@ async function saveNewTask() {
                 return;
             }
 
-            // 現在のルーティン設定（到達番号と1日のペース）から補填タスクの範囲を計算
+            // 現在のルーティン設定から補填タスクの範囲を計算
             const startPos = r.currentPosition || 1;
             let endPos = startPos + (r.dailyPace || 1) - 1;
             if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
@@ -601,12 +602,12 @@ async function saveNewTask() {
                 plannedEnd: endPos,
                 unit: r.unit || '問',
                 totalItems: r.totalItems || null,
+                deleted: false, // ★追加: 過去の削除済みフラグの復活を防ぐ
                 createdAt: new Date().toISOString()
             };
 
-            // DBに保存
+            // DBに保存（ローカルpushは行わずFirestoreの同期に任せる）
             await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
-            
             showToast(`${dateVal} にルーティンを補填しました`);
         }
         
@@ -898,19 +899,20 @@ async function saveTaskDetail() {
 }
 
 async function scheduleReviews(originalTask, evaluation, subEvaluations) {
-    // タスクの本来の日付を起算日とする（タイムゾーンによるズレを防ぐためT00:00:00を付与）
-    const baseDate = new Date(originalTask.date + 'T00:00:00');
+    // ★修正: タイムゾーンのズレを完全に防ぐため、文字列を直接年・月・日に分解してローカル日付オブジェクトを作る
+    const [y, m, d] = originalTask.date.split('-');
+    const baseDate = new Date(y, m - 1, d);
 
-    // 1. 問題別の詳細評価（subEvaluations）がある場合：問題ごとに個別の復習タスクを生成
+    // 1. 問題別の詳細評価（subEvaluations）がある場合
     if (subEvaluations && subEvaluations.length > 0) {
         for (const sub of subEvaluations) {
             const intervals = REVIEW_INTERVALS[sub.eval];
             if (!intervals) continue;
 
             for (let i = 0; i < intervals.length; i++) {
-                const d = new Date(baseDate);
-                d.setDate(d.getDate() + intervals[i]);
-                const dateStr = formatDate(d);
+                const targetDate = new Date(baseDate);
+                targetDate.setDate(targetDate.getDate() + intervals[i]);
+                const dateStr = formatDate(targetDate);
 
                 // 個別問題用のタイトルとメモを生成
                 const reviewTitle = `[復習: ${intervals[i]}日後] ${originalTask.title} ${sub.name} (評${sub.eval})`;
@@ -920,7 +922,7 @@ async function scheduleReviews(originalTask, evaluation, subEvaluations) {
                 await setDoc(newDocRef, {
                     title: reviewTitle,
                     subject: originalTask.subject,
-                    estimatedTime: 10, // 個別の問題なので10分等短めに設定
+                    estimatedTime: 10,
                     date: dateStr,
                     completed: false,
                     isReview: true,
@@ -928,21 +930,25 @@ async function scheduleReviews(originalTask, evaluation, subEvaluations) {
                     originalTaskId: originalTask.id,
                     sourceEval: sub.eval,
                     note: reviewNote, 
+                    deleted: false, // ★追加
                     createdAt: new Date().toISOString(),
-                    subName: sub.name // 参照用に追加
+                    subName: sub.name
                 });
             }
         }
     } 
-    // 2. 詳細評価がない場合：タスク全体として1つの復習タスクを生成（従来通り）
+    // 2. 詳細評価がない場合：タスク全体として1つの復習タスクを生成
     else {
         const intervals = REVIEW_INTERVALS[evaluation];
-        if (!intervals) return;
+        if (!intervals) {
+            console.warn("評価に対応する復習間隔が見つかりません:", evaluation);
+            return;
+        }
 
         for (let i = 0; i < intervals.length; i++) {
-            const d = new Date(baseDate);
-            d.setDate(d.getDate() + intervals[i]);
-            const dateStr = formatDate(d);
+            const targetDate = new Date(baseDate);
+            targetDate.setDate(targetDate.getDate() + intervals[i]);
+            const dateStr = formatDate(targetDate);
 
             // 基本の復習タイトル生成
             let reviewTitle = `[復習: ${intervals[i]}日後] ${originalTask.title}`;
@@ -969,6 +975,7 @@ async function scheduleReviews(originalTask, evaluation, subEvaluations) {
                 originalTaskId: originalTask.id,
                 sourceEval: evaluation,
                 note: "", 
+                deleted: false, // ★追加
                 createdAt: new Date().toISOString()
             });
         }
