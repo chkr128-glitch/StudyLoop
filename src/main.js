@@ -274,15 +274,22 @@ function switchView(viewName) {
 }
 
 async function changeDashboardDate(offsetDays, resetToToday = false) {
+    const todayStr = formatDate(new Date());
     if (resetToToday) {
-        state.dashboardDate = formatDate(new Date());
+        state.dashboardDate = todayStr;
     } else {
         const d = new Date(state.dashboardDate);
         d.setDate(d.getDate() + offsetDays);
-        state.dashboardDate = formatDate(d);
+        const newDateStr = formatDate(d);
+        
+        // ▼ 追加: 未来の日付への移動をブロックする
+        if (newDateStr > todayStr) {
+            return;
+        }
+        state.dashboardDate = newDateStr;
     }
     
-    // ▼ 修正: ルーティンタスクの生成完了を待ってから画面を再描画する
+    // ルーティンタスクの生成完了を待ってから画面を再描画する
     await generateRoutineTasks(state.dashboardDate);
     updateAllViews();
 }
@@ -292,7 +299,6 @@ function updateAllViews() {
     if (state.currentView === 'home') {
         displayDailyQuote();
         
-        // ▼ 修正: ホーム画面に日付を表示するロジックを追加
         const homeDateEl = document.getElementById('home-date-display');
         if (homeDateEl) {
             const d = new Date(state.dashboardDate);
@@ -301,11 +307,11 @@ function updateAllViews() {
         }
     }
 
-    // ▼ 修正: switchの各caseを { } で囲み、安全なブロックスコープを作成
     switch (state.currentView) {
         case 'dashboard': {
             const dateEl = document.getElementById('dashboard-date-display');
             const todayBtn = document.getElementById('btn-dashboard-today');
+            const nextDayBtn = document.getElementById('btn-dashboard-next-day'); // ▼ 追加
             
             if (dateEl) {
                 const d = new Date(state.dashboardDate);
@@ -313,12 +319,22 @@ function updateAllViews() {
                 dateEl.innerText = `${d.getMonth() + 1}月${d.getDate()}日(${days[d.getDay()]})`;
             }
             
+            const todayStr = formatDate(new Date());
+
             if (todayBtn) {
-                const todayStr = formatDate(new Date());
                 if (state.dashboardDate !== todayStr) {
                     todayBtn.classList.remove('hidden');
                 } else {
                     todayBtn.classList.add('hidden');
+                }
+            }
+            
+            // ▼ 追加: 今日を見ている時は「翌日」ボタンを非活性化する
+            if (nextDayBtn) {
+                if (state.dashboardDate >= todayStr) {
+                    nextDayBtn.classList.add('opacity-30', 'pointer-events-none');
+                } else {
+                    nextDayBtn.classList.remove('opacity-30', 'pointer-events-none');
                 }
             }
             
