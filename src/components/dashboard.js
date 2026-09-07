@@ -117,8 +117,16 @@ export function renderDashboard(tasks, dashboardDate) {
     // 引数として渡された dashboardDate を基準日にする（未指定の場合は今日）
     const targetDateStr = dashboardDate || formatDate(new Date()); 
     
-    // 対象日のタスク、または対象日より過去の「未完了の復習タスク」をフィルタリング
-    const dashboardTasks = tasks.filter(t => t.date === targetDateStr && !t.deleted); 
+    // ▼ 修正: 対象日のタスク、または「対象日より過去」の「未完了の復習タスク(期限超過)」を抽出
+    const dashboardTasks = tasks.filter(t => {
+        if (t.deleted) return false;
+        // 当日のタスク
+        if (t.date === targetDateStr) return true;
+        // 過去の未完了の復習タスク（今日以前のダッシュボードを見ている時は、その日基準での過去）
+        if (t.date < targetDateStr && !t.completed && t.isReview) return true;
+        
+        return false;
+    });
     
     const incomplete = dashboardTasks.filter(t => !t.completed); 
     const completed = dashboardTasks.filter(t => t.date === targetDateStr && t.completed);
