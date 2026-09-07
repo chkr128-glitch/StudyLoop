@@ -114,10 +114,12 @@ export function updateStreak(tasks) {
 }
 
 export function renderDashboard(tasks, dashboardDate) {
+    const todayStr = formatDate(new Date());
     // 引数として渡された dashboardDate を基準日にする（未指定の場合は今日）
-    const targetDateStr = dashboardDate || formatDate(new Date()); 
+    const targetDateStr = dashboardDate || todayStr; 
+    const isPast = targetDateStr < todayStr; // ▼ 追加: 過去日かどうかの判定
     
-    // ▼ 修正: 対象日のタスク、または「対象日より過去」の「未完了の復習タスク(期限超過)」を抽出
+    // 対象日のタスク、または「対象日より過去」の「未完了の復習タスク(期限超過)」を抽出
     const dashboardTasks = tasks.filter(t => {
         if (t.deleted) return false;
         // 当日のタスク
@@ -144,10 +146,13 @@ export function renderDashboard(tasks, dashboardDate) {
 
     const importantTasks = []; const normalTasks = [];
     dashboardTasks.forEach(t => {
-        // 重要度判定も対象日を基準に行う
+        // ▼ 変更: 過去日の場合は重要タスクとして抽出せず、すべて通常タスクに入れる
         const imp = getTaskImportance(t, targetDateStr);
-        if (imp.rank !== 'NORMAL' && !t.completed) importantTasks.push({ task: t, imp: imp }); 
-        else if (t.date === targetDateStr) normalTasks.push(t);
+        if (!isPast && imp.rank !== 'NORMAL' && !t.completed) {
+            importantTasks.push({ task: t, imp: imp }); 
+        } else if (t.date === targetDateStr) {
+            normalTasks.push(t);
+        }
     });
     importantTasks.sort((a, b) => b.imp.score - a.imp.score);
 
