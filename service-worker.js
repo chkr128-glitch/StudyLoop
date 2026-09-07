@@ -1,4 +1,4 @@
-const CACHE_NAME = 'studyloop-cache-v1';
+const CACHE_NAME = 'studyloop-cache-v2'; // バージョンを上げて古いキャッシュを強制更新
 const urlsToCache = [
     './',
     './index.html',
@@ -15,6 +15,10 @@ const urlsToCache = [
     './src/components/flashcard.js',
     './src/components/store.js',
     './src/components/ui.js',
+    './src/components/taskUI.js',      // 追加
+    './src/components/timeline.js',    // 追加
+    './src/components/tutorial.js',    // 追加
+    './src/components/pastExams.js',   // 追加
     './src/services/auth.js',
     './src/services/db.js',
     './src/utils/constants.js',
@@ -23,6 +27,9 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+    // 新しいService Workerがすぐにアクティブになるようにする
+    self.skipWaiting();
+    
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
@@ -33,7 +40,7 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
-    // ★ 修正ポイント: http または https のリクエスト以外（拡張機能の通信など）は無視する
+    // http または https のリクエスト以外（拡張機能の通信など）は無視する
     if (!event.request.url.startsWith('http')) {
         return;
     }
@@ -72,6 +79,10 @@ self.addEventListener('fetch', event => {
 // 古いキャッシュの削除
 self.addEventListener('activate', event => {
     const cacheWhitelist = [CACHE_NAME];
+    
+    // 新しいService Workerがコントロールをすぐに引き継ぐようにする
+    event.waitUntil(self.clients.claim());
+    
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(

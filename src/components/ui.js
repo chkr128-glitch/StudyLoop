@@ -195,10 +195,16 @@ export function switchViewUI(viewName) {
             newBtnBack.addEventListener('click', () => {
                 // `main.js` の `switchView` に相当する処理を間接的に呼ぶためのカスタムイベント等も可能ですが、
                 // ここではシンプルに対象のナビボタンをクリックさせる挙動で代用します
-                const targetNavBtn = document.querySelector(`[data-target="${viewInfo.backTo}"]`) 
-                                  || document.getElementById(`nav-${viewInfo.backTo}`);
-                if (targetNavBtn) targetNavBtn.click();
-                else document.getElementById('btn-go-home')?.click(); // 念のためフォールバック
+                
+                // ▼ 修正: 戻り先が設定画面の場合は、ヘッダーの歯車アイコンをクリックさせる
+                if (viewInfo.backTo === 'settings') {
+                    document.getElementById('btn-open-settings')?.click();
+                } else {
+                    const targetNavBtn = document.querySelector(`[data-target="${viewInfo.backTo}"]`) 
+                                      || document.getElementById(`nav-${viewInfo.backTo}`);
+                    if (targetNavBtn) targetNavBtn.click();
+                    else document.getElementById('btn-go-home')?.click(); // 念のためフォールバック
+                }
             });
         }
     }

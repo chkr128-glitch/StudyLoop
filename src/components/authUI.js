@@ -14,9 +14,25 @@ export function initAuthUI() {
 // ログイン/新規登録の切り替え
 export function toggleAuthMode() {
     isLoginMode = !isLoginMode; 
-    document.getElementById('auth-title').innerText = isLoginMode ? "ログインして学習を始める" : "新しくアカウントを作成する"; 
+
+    // 1. タイトル要素が存在する場合のみ更新（nullエラーによる処理停止を回避）
+    const titleEl = document.getElementById('auth-title');
+    if (titleEl) {
+        titleEl.innerText = isLoginMode ? "ログインして学習を始める" : "新しくアカウントを作成する"; 
+    }
+
+    // 2. アクションボタン（実行ボタン）のテキスト切り替え
     document.getElementById('auth-btn-action').innerText = isLoginMode ? "ログイン" : "登録してはじめる"; 
-    document.getElementById('auth-toggle-btn').innerText = isLoginMode ? "アカウントをお持ちでない方はこちら" : "すでにアカウントをお持ちの方はこちら"; 
+
+    // 3. 切り替えボタンのテキストとアイコンを更新（innerTextではなくinnerHTMLを使用）
+    const toggleBtn = document.getElementById('auth-toggle-btn');
+    if (toggleBtn) {
+        toggleBtn.innerHTML = isLoginMode 
+            ? '<i class="fas fa-user-plus mr-2 text-xs"></i>新規アカウント作成' 
+            : '<i class="fas fa-sign-in-alt mr-2 text-xs"></i>ログイン画面に戻る';
+    }
+
+    // エラーメッセージのクリア
     document.getElementById('auth-error-msg').innerText = "";
 }
 

@@ -75,21 +75,17 @@ export const loadTimeline = async () => {
             return;
         }
 
-        // プロフィールのキャッシュ（同じユーザーのプロフを何度も取得しないため）
+        // ▼ 修正: プロフィール情報を並列で一括取得（N+1問題の解消）
+        const uniqueUserIds = [...new Set(logs.map(log => log.userId))];
         const profileCache = {};
-        const cardsHTML = [];
+        
+        await Promise.all(uniqueUserIds.map(async (uid) => {
+            const profile = await getPublicProfile(uid);
+            profileCache[uid] = profile || { displayName: '名無しさん', avatarId: 'robot' };
+        }));
 
-        // 各ログに対してカードHTMLを生成
-        for (const log of logs) {
-            // プロフィール取得（キャッシュ優先）
-            let profile = profileCache[log.userId];
-            if (!profile) {
-                profile = await getPublicProfile(log.userId) || { displayName: '名無しさん', avatarId: '👤' };
-                profileCache[log.userId] = profile;
-            }
-
-            cardsHTML.push(createTimelineCard(log, profile));
-        }
+        // キャッシュを使ってカードHTMLを一括生成
+        const cardsHTML = logs.map(log => createTimelineCard(log, profileCache[log.userId]));
 
         // DOMに一括追加
         timelineContainer.innerHTML = cardsHTML.join('');

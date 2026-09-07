@@ -4,10 +4,14 @@ import { getTaskImportance, createImportantTaskHTML, createTaskHTML } from './ta
 
 let onToggleTaskComplete = null;
 let onOpenTaskDetail = null;
+let onOpenReviewHistory = null;
+let onOpenAddTask = null; // 追加
 
-export function initDashboard(toggleCallback, openDetailCallback) {
+export function initDashboard(toggleCallback, openDetailCallback, openHistoryCallback, openAddCallback) {
     onToggleTaskComplete = toggleCallback;
     onOpenTaskDetail = openDetailCallback;
+    onOpenReviewHistory = openHistoryCallback;
+    onOpenAddTask = openAddCallback; // 追加
 
     const container = document.getElementById('dashboard-tasks-container');
     if (!container) return;
@@ -15,22 +19,33 @@ export function initDashboard(toggleCallback, openDetailCallback) {
     // タスク完了（チェックボックス）の変更イベントを監視
     container.addEventListener('change', (e) => {
         if (e.target.matches('.task-checkbox')) {
-            const taskId = e.target.dataset.taskId;
-            if (taskId && onToggleTaskComplete) {
-                onToggleTaskComplete(taskId, e.target.checked);
-            }
+            if (onToggleTaskComplete) onToggleTaskComplete(e.target.dataset.taskId, e.target.checked);
         }
     });
 
-    // タスクのクリック（詳細モーダルを開く）イベントを監視
+    // タスクコンテナ内のクリックイベントを監視
     container.addEventListener('click', (e) => {
         if (e.target.matches('.task-checkbox')) return;
 
-        const taskRow = e.target.closest('.task-row-clickable');
-        if (taskRow && taskRow.dataset.taskId) {
-            if (onOpenTaskDetail) {
-                onOpenTaskDetail(taskRow.dataset.taskId);
-            }
+        // ▼ 新規追加: タスクが0件の時などに表示される「タスクを追加」ボタンの検知
+        // （IDやクラス、ボタン内のテキストで汎用的に拾えるようにしています）
+        const addBtn = e.target.closest('#btn-open-add-task, .btn-open-add-task, [data-action="add-task"]');
+        if (addBtn || (e.target.tagName === 'BUTTON' && e.target.innerText.includes('タスクを追加'))) {
+            if (onOpenAddTask) onOpenAddTask();
+            return;
+        }
+
+        // 1. 履歴ボタンがクリックされたか判定
+        const historyBtn = e.target.closest('.task-history-btn');
+        if (historyBtn && historyBtn.dataset.taskId) {
+            if (onOpenReviewHistory) onOpenReviewHistory(historyBtn.dataset.taskId);
+            return; 
+        }
+
+        // 2. 行全体または編集ボタンがクリックされたか判定（詳細モーダルを開く）
+        const targetEl = e.target.closest('.task-row-clickable, .task-edit-btn');
+        if (targetEl && targetEl.dataset.taskId) {
+            if (onOpenTaskDetail) onOpenTaskDetail(targetEl.dataset.taskId);
         }
     });
 }
@@ -99,11 +114,21 @@ export function updateStreak(tasks) {
 }
 
 export function renderDashboard(tasks, dashboardDate) {
+    const todayStr = formatDate(new Date());
     // 引数として渡された dashboardDate を基準日にする（未指定の場合は今日）
-    const targetDateStr = dashboardDate || formatDate(new Date()); 
+    const targetDateStr = dashboardDate || todayStr; 
+    const isPast = targetDateStr < todayStr; // ▼ 追加: 過去日かどうかの判定
     
-    // 対象日のタスク、または対象日より過去の「未完了の復習タスク」をフィルタリング
-    const dashboardTasks = tasks.filter(t => !t.deleted && (t.date === targetDateStr || (!t.completed && t.date < targetDateStr && t.isReview))); 
+    // 対象日のタスク、または「対象日より過去」の「未完了の復習タスク(期限超過)」を抽出
+    const dashboardTasks = tasks.filter(t => {
+        if (t.deleted) return false;
+        // 当日のタスク
+        if (t.date === targetDateStr) return true;
+        // 過去の未完了の復習タスク（今日以前のダッシュボードを見ている時は、その日基準での過去）
+        if (t.date < targetDateStr && !t.completed && t.isReview) return true;
+        
+        return false;
+    });
     
     const incomplete = dashboardTasks.filter(t => !t.completed); 
     const completed = dashboardTasks.filter(t => t.date === targetDateStr && t.completed);
@@ -121,10 +146,13 @@ export function renderDashboard(tasks, dashboardDate) {
 
     const importantTasks = []; const normalTasks = [];
     dashboardTasks.forEach(t => {
-        // 重要度判定も対象日を基準に行う
+        // ▼ 変更: 過去日の場合は重要タスクとして抽出せず、すべて通常タスクに入れる
         const imp = getTaskImportance(t, targetDateStr);
-        if (imp.rank !== 'NORMAL' && !t.completed) importantTasks.push({ task: t, imp: imp }); 
-        else if (t.date === targetDateStr) normalTasks.push(t);
+        if (!isPast && imp.rank !== 'NORMAL' && !t.completed) {
+            importantTasks.push({ task: t, imp: imp }); 
+        } else if (t.date === targetDateStr) {
+            normalTasks.push(t);
+        }
     });
     importantTasks.sort((a, b) => b.imp.score - a.imp.score);
 
