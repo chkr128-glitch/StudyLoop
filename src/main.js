@@ -463,13 +463,6 @@ async function generateRoutineTasks(targetDateStr = null) {
     }
 }
 
-        // すべての処理・生成が終わったら画面を更新
-        updateAllViews();
-    } finally {
-        isGeneratingTasks = false;
-    }
-}
-
 // ▼ 新規追加: モーダルの初期化状態を管理するフラグ
 let isTaskModalInitialized = false;
 
