@@ -419,12 +419,14 @@ async function generateRoutineTasks(targetDateStr = null) {
                     plannedEnd: endPos,
                     unit: r.unit || '問',
                     totalItems: r.totalItems || null,
+                    deleted: false, // ★削除フラグを確実に折る
                     createdAt: new Date().toISOString()
                 };
 
                 if (!r.id.startsWith('temp_')) {
                     try {
-                        await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
+                        // ▼ 修正: { merge: true } を削除し、過去の残存データを「完全上書き」で初期化する
+                        await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData);
                     } catch(err) {
                         console.warn("DB保存に失敗:", err);
                     }
@@ -622,8 +624,8 @@ async function saveNewTask() {
                 createdAt: new Date().toISOString()
             };
 
-            // DBに保存（ローカルpushは行わずFirestoreの同期に任せる）
-            await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData, { merge: true });
+            // ▼ 修正: { merge: true } を削除し、過去に同日削除された履歴があっても完全に上書き（リセット）する
+            await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData);
             showToast(`${dateVal} にルーティンを補填しました`);
         }
         
