@@ -921,18 +921,22 @@ async function saveTaskDetail() {
 
 async function scheduleReviews(originalTask, evaluation, subEvaluations) {
     try {
-        // ★修正: タイムゾーンによる日付のズレを完全に排除するため、数値をパースしてローカル日付を生成
+        // タイムゾーンによる日付のズレを完全に排除するため、数値をパースしてローカル日付を生成
         const [yStr, mStr, dStr] = originalTask.date.split('-');
         const baseDate = new Date(parseInt(yStr, 10), parseInt(mStr, 10) - 1, parseInt(dStr, 10));
 
-        // ★修正: 定数の読み込み不良に備えた、強固なフェイルセーフ（予備の間隔データ）
+        // 定数の読み込み不良に備えた、強固なフェイルセーフ（予備の間隔データ）
         const FALLBACK_INTERVALS = { 'A': [1, 3, 7, 14], 'B': [1, 2, 4, 7], 'C': [1, 2, 3], 'D': [1, 2] };
         let generatedCount = 0;
 
         // 1. 問題別の詳細評価（subEvaluations）がある場合
         if (subEvaluations && subEvaluations.length > 0) {
             for (const sub of subEvaluations) {
-                const intervals = (typeof REVIEW_INTERVALS !== 'undefined' && REVIEW_INTERVALS) ? REVIEW_INTERVALS[sub.eval] : FALLBACK_INTERVALS[sub.eval];
+                // ▼ 修正: REVIEW_INTERVALSの中身が確実に存在するかまで厳密にチェックする
+                const intervals = (typeof REVIEW_INTERVALS !== 'undefined' && REVIEW_INTERVALS && REVIEW_INTERVALS[sub.eval] && REVIEW_INTERVALS[sub.eval].length > 0) 
+                                ? REVIEW_INTERVALS[sub.eval] 
+                                : FALLBACK_INTERVALS[sub.eval];
+                
                 if (!intervals) continue;
 
                 for (let i = 0; i < intervals.length; i++) {
@@ -965,7 +969,11 @@ async function scheduleReviews(originalTask, evaluation, subEvaluations) {
         } 
         // 2. 詳細評価がない場合：タスク全体として1つの復習タスクを生成
         else {
-            const intervals = (typeof REVIEW_INTERVALS !== 'undefined' && REVIEW_INTERVALS) ? REVIEW_INTERVALS[evaluation] : FALLBACK_INTERVALS[evaluation];
+            // ▼ 修正: REVIEW_INTERVALSの中身が確実に存在するかまで厳密にチェックする
+            const intervals = (typeof REVIEW_INTERVALS !== 'undefined' && REVIEW_INTERVALS && REVIEW_INTERVALS[evaluation] && REVIEW_INTERVALS[evaluation].length > 0) 
+                            ? REVIEW_INTERVALS[evaluation] 
+                            : FALLBACK_INTERVALS[evaluation];
+                            
             if (!intervals) {
                 console.warn("評価に対応する復習間隔が見つかりません:", evaluation);
                 return;
