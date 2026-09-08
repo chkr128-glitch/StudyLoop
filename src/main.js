@@ -914,18 +914,17 @@ async function saveTaskDetail() {
 
 async function scheduleReviews(originalTask, evaluation, subEvaluations) {
     try {
-        // タイムゾーンによる日付のズレを完全に排除するため、数値をパースしてローカル日付を生成
+        // ユーザーの設計思想に基づき、起算日は「タスク本来の予定日（過去含む）」とする
         const [yStr, mStr, dStr] = originalTask.date.split('-');
         const baseDate = new Date(parseInt(yStr, 10), parseInt(mStr, 10) - 1, parseInt(dStr, 10));
 
-        // 定数の読み込み不良に備えた、強固なフェイルセーフ（予備の間隔データ）
+        // 定数の読み込み不良に備えたフェイルセーフ
         const FALLBACK_INTERVALS = { 'A': [1, 3, 7, 14], 'B': [1, 2, 4, 7], 'C': [1, 2, 3], 'D': [1, 2] };
         let generatedCount = 0;
 
         // 1. 問題別の詳細評価（subEvaluations）がある場合
         if (subEvaluations && subEvaluations.length > 0) {
             for (const sub of subEvaluations) {
-                // ▼ 修正: REVIEW_INTERVALSの中身が確実に存在するかまで厳密にチェックする
                 const intervals = (typeof REVIEW_INTERVALS !== 'undefined' && REVIEW_INTERVALS && REVIEW_INTERVALS[sub.eval] && REVIEW_INTERVALS[sub.eval].length > 0) 
                                 ? REVIEW_INTERVALS[sub.eval] 
                                 : FALLBACK_INTERVALS[sub.eval];
@@ -962,7 +961,6 @@ async function scheduleReviews(originalTask, evaluation, subEvaluations) {
         } 
         // 2. 詳細評価がない場合：タスク全体として1つの復習タスクを生成
         else {
-            // ▼ 修正: REVIEW_INTERVALSの中身が確実に存在するかまで厳密にチェックする
             const intervals = (typeof REVIEW_INTERVALS !== 'undefined' && REVIEW_INTERVALS && REVIEW_INTERVALS[evaluation] && REVIEW_INTERVALS[evaluation].length > 0) 
                             ? REVIEW_INTERVALS[evaluation] 
                             : FALLBACK_INTERVALS[evaluation];
@@ -978,11 +976,13 @@ async function scheduleReviews(originalTask, evaluation, subEvaluations) {
                 const dateStr = formatDate(targetDate);
 
                 let reviewTitle = `[復習: ${intervals[i]}日後] ${originalTask.title}`;
+                
+                // ★修正: ルーティンタスクの場合も (評X) をタイトルに含めることで、カレンダーでの分類漏れを防ぐ
                 if (originalTask.isRoutine && originalTask.plannedStart) {
                     const start = originalTask.actualStart || originalTask.plannedStart;
                     const end = originalTask.actualEnd || originalTask.plannedEnd;
                     const unit = originalTask.unit || '問';
-                    reviewTitle += ` (${start}〜${end}${unit})`;
+                    reviewTitle += ` (${start}〜${end}${unit}) (評${evaluation})`;
                 } else {
                     reviewTitle += ` (評${evaluation})`;
                 }
