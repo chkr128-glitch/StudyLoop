@@ -392,18 +392,17 @@ async function generateRoutineTasks(targetDateStr = null) {
         for (const r of state.routines) {
             if (r.totalItems && r.currentPosition > r.totalItems) continue;
 
-            // ▼ 修正: 過去の未完了タスクを自動削除するブロックを廃止しました ▼
-
+            // ▼ 修正: !t.deleted の条件を外し、削除済みのタスクも「すでに作成された記録」として検索対象に含める
             // 1. 選択された日付 (dateStr) のルーティンタスクを検索
             const existingTask = state.tasks.find(t => 
-                t.sourceRoutineId === r.id && t.isRoutine === true && t.date === dateStr && !t.deleted
+                t.sourceRoutineId === r.id && t.isRoutine === true && t.date === dateStr
             );
             
             const startPos = r.currentPosition || 1;
             let endPos = startPos + (r.dailyPace || 1) - 1;
             if (r.totalItems && endPos > r.totalItems) endPos = r.totalItems;
 
-            // 2. なければ新規作成（※今日または未来の日付のみ自動生成する）
+            // 2. なければ新規作成（※今日または未来の日付のみ、かつ一度も生成された形跡がない場合のみ）
             if (!existingTask && dateStr >= todayStr) {
                 const docId = `routine_${r.id}_${dateStr}`;
                 const newTaskData = {
@@ -419,19 +418,22 @@ async function generateRoutineTasks(targetDateStr = null) {
                     plannedEnd: endPos,
                     unit: r.unit || '問',
                     totalItems: r.totalItems || null,
-                    deleted: false, // ★削除フラグを確実に折る
+                    deleted: false,
                     createdAt: new Date().toISOString()
                 };
 
                 if (!r.id.startsWith('temp_')) {
                     try {
-                        // ▼ 修正: { merge: true } を削除し、過去の残存データを「完全上書き」で初期化する
+                        // 過去の残存データを完全上書きで初期化
                         await setDoc(doc(getAppCollectionRef('tasks'), docId), newTaskData);
                     } catch(err) {
                         console.warn("DB保存に失敗:", err);
                     }
                 }
-            } else if (existingTask) {
+            } else if (existingTask && !existingTask.deleted) {
+                // ▼ 修正: existingTask が見つかっても、それが「未削除」の場合のみ予定範囲の追従を行う
+                // （削除済み = existingTask.deleted === true の場合は何もしない = 復活させない）
+                
                 // 3. 既存タスクがある場合、進行状況に応じて予定範囲を追従させる
                 let needsUpdate = false;
                 const updateData = {};
@@ -458,8 +460,7 @@ async function generateRoutineTasks(targetDateStr = null) {
                     }
                 }
             }
-        }
-
+            
         // すべての処理・生成が終わったら画面を更新
         updateAllViews();
     } finally {
