@@ -460,6 +460,7 @@ async function generateRoutineTasks(targetDateStr = null) {
                     }
                 }
             }
+        } // ← ★前回欠落していた、forループを閉じるカッコ
             
         // すべての処理・生成が終わったら画面を更新
         updateAllViews();
